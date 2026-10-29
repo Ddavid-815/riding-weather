@@ -550,7 +550,11 @@ function locationNameFromReverseData(data){
     if(!names.some(v=>/[가-힣](구|군)$/.test(v))){
       const administrative=Array.isArray(data.localityInfo && data.localityInfo.administrative)?data.localityInfo.administrative:[];
       const district=administrative.map(x=>clean(x && x.name)).find(x=>/[가-힣](구|군)$/.test(x));
-      if(district && !names.includes(district))names.splice(Math.min(2,names.length),0,district);
+      if(district && !names.includes(district)){
+        // 시/군/구는 동/읍/면보다 앞에 위치해야 합니다.
+        const localityIndex=locality?names.indexOf(locality):-1;
+        names.splice(localityIndex>=0?localityIndex:Math.min(1,names.length),0,district);
+      }
     }
     return names.slice(0,4).join(' · ') || country;
   }
