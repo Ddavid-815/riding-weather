@@ -208,7 +208,7 @@
       <button id="radarPlay" type="button" class="secondary" disabled aria-label="7시간 구름 이동 재생">▶ 재생</button>
       <div class="radar-slider-area">
         <div class="radar-time-row"><strong id="radarOffset">현재</strong><span id="radarClock">시간 확인 중…</span></div>
-        <input id="radarTime" type="range" min="-3" max="3" step="1" value="0" disabled aria-label="현재 기준 마이너스 3시간부터 플러스 3시간까지 선택">
+        <input id="radarTime" type="range" min="-3" max="3" step="0.25" value="0" disabled aria-label="현재 기준 마이너스 3시간부터 플러스 3시간까지 선택">
         <div class="radar-scale"><span>−3시간</span><span>현재</span><span>+3시간</span></div>
       </div>
     </div>
@@ -218,7 +218,7 @@
     </div>
     <div id="radarDetails" class="radar-details">구름 이동 예측과 강수 확률을 표시합니다.</div>
     <div id="radarObservation" class="radar-observation">RainViewer 관측 자료를 확인하는 중입니다.</div>
-    <p class="radar-note">구름은 ECMWF 격자 예보값을 공간 보간해 <strong>끊김 없는 반투명 레이어</strong>로 표시한 예측 지도이며, 실제 위성 구름 영상이 아닙니다. 구름의 분포 변화로 이동 방향을 참고할 수 있지만 실제 개별 구름의 이동 경로는 아닙니다. 🌧️ 표시의 숫자는 Open-Meteo 앙상블의 해당 위치·시간대 강수확률이며, 값이 없는 경우 표시하지 않습니다. <strong>실제 레이더는 과거 약 2시간</strong>만 지원하고 미래 3시간의 레이더 관측은 존재하지 않습니다. 지도 © OpenStreetMap, 레이더 © RainViewer.</p>
+    <p class="radar-note">구름은 ECMWF 격자 예보값을 공간 보간해 <strong>끊김 없는 반투명 레이어</strong>로 표시한 예측 지도이며, 실제 위성 구름 영상이 아닙니다. 구름의 분포 변화로 이동 방향을 참고할 수 있지만 실제 개별 구름의 이동 경로는 아닙니다. 15분 재생 프레임은 1시간 예보값 사이를 시간 보간한 것입니다. 🌧️ 표시의 숫자는 Open-Meteo 앙상블의 해당 위치·시간대 강수확률이며, 값이 없는 경우 표시하지 않습니다. <strong>실제 레이더는 과거 약 2시간</strong>만 지원하고 미래 3시간의 레이더 관측은 존재하지 않습니다. 지도 © OpenStreetMap, 레이더 © RainViewer.</p>
   </section>
 
   <section id="weeks" aria-label="14일 예보">
@@ -811,12 +811,21 @@ function radarTimeIndex(point,targetMs){
  return point.hourly.time.indexOf(key);
 }
 function radarSample(point,targetMs){
- const i=radarTimeIndex(point,targetMs);
- return i<0?null:{
-  cloud:radarHourlyValue(point,'cloud_cover',i),
-  prob:radarHourlyValue(point,'precipitation_probability',i),
-  rain:radarHourlyValue(point,'precipitation',i)
+ // 원본 ECMWF 시간값은 1시간 간격이며 애니메이션만 15분 보간해 부드럽게 재생합니다.
+ const floorMs=Math.floor(targetMs/3600000)*3600000;
+ const i=radarTimeIndex(point,floorMs);
+ if(i<0)return null;
+ const fraction=(targetMs-floorMs)/3600000;
+ const next=fraction>0?radarTimeIndex(point,floorMs+3600000):-1;
+ const get=(key)=>{
+  const left=radarHourlyValue(point,key,i);
+  if(next<0||fraction===0)return left;
+  const right=radarHourlyValue(point,key,next);
+  if(left===null)return right;
+  if(right===null)return left;
+  return left+(right-left)*fraction;
  };
+ return {cloud:get('cloud_cover'),prob:get('precipitation_probability'),rain:get('precipitation')};
 }
 function radarCloudCentroid(targetMs){
  let total=0,lat=0,lon=0;
@@ -829,7 +838,7 @@ function radarCloudCentroid(targetMs){
 }
 function radarDriftLabel(offset){
  const thisTime=radarBaseHour+offset*3600000;
- const nextOffset=offset<3?offset+1:offset-1;
+ const nextOffset=offset<2?offset+1:offset<3?3:offset-1;
  const a=radarCloudCentroid(thisTime);
  const b=radarCloudCentroid(radarBaseHour+nextOffset*3600000);
  if(!a||!b)return '이동 추정 불가';
@@ -931,7 +940,10 @@ function radarFrameDraw(){
  const leaflet=window.L;
  const target=radarBaseHour+radarOffset*3600000;
  const cloudOn=el('radarCloudToggle').checked;
- const offsetText=radarOffset===0?'현재 (0시간)':radarOffset>0?'+'+radarOffset+'시간':'−'+Math.abs(radarOffset)+'시간';
+ const minutes=Math.round(Math.abs(radarOffset)*60);
+ const hh=Math.floor(minutes/60),mm=minutes%60;
+ const label=(hh?hh+'시간':'')+(mm?(hh?' ':'')+mm+'분':'')||'0분';
+ const offsetText=radarOffset===0?'현재 (0시간)':(radarOffset>0?'+':'−')+label;
  el('radarOffset').textContent=offsetText;
  el('radarClock').textContent=radarClockLabel(target,radarDisplayedPlace);
  if(radarCloudLayer)radarMap.removeLayer(radarCloudLayer);
@@ -1067,7 +1079,7 @@ async function radarLoadForPlace(place){
    }
    radarPoints=points.map((coord,index)=>({...coord,data:received[index]}));
    el('radarTime').disabled=false;el('radarPlay').disabled=false;
-   el('radarStatus').textContent='✅ ECMWF 구름 지도 준비 완료 · −3 ~ +3시간 · 1시간 간격 (주변 25개 격자점)';
+   el('radarStatus').textContent='✅ ECMWF 구름 지도 준비 완료 · −3 ~ +3시간 · 15분 재생 (1시간 예보 보간, 주변 25개 격자점)';
   }else{
    el('radarStatus').textContent='⚠️ ECMWF 구름 자료 조회 실패 · 다시 시도해 주세요. 레이더 관측 자료가 있으면 별도로 표시됩니다.';
   }
@@ -1098,10 +1110,10 @@ function radarInitControls(){
   el('radarTime').value=String(radarOffset);
   radarFrameDraw();
   radarPlayback=setInterval(()=>{
-   radarOffset=radarOffset>=3?-3:radarOffset+1;
+   radarOffset=radarOffset>=3?-3:Math.round((radarOffset+.25)*4)/4;
    el('radarTime').value=String(radarOffset);
    radarFrameDraw();
-  },1650);
+  },450);
  });
  el('radarRefresh').addEventListener('click',()=>radarLoadForPlace(selectedPlace));
  ['radarCloudToggle','radarRainToggle'].forEach(id=>{
