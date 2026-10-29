@@ -121,6 +121,12 @@
     .hour-table tbody tr.hour-wet td:first-child{background:#e8f3ff}
     .hour-table tbody tr:hover td{background:#edf4fb}
     .hour-table tbody td.hour-rain{font-weight:800;color:#2467a9}
+    /* 오늘의 현재 시간대만 강조. 강수량 강조 및 마우스 호버보다 우선합니다. */
+    .hour-table tbody tr.hour-current td,
+    .hour-table tbody tr.hour-current:hover td{background:#dceeff;border-top:2px solid #3577bc;border-bottom:2px solid #3577bc;font-weight:800;color:#163e6c}
+    .hour-table tbody tr.hour-current td:first-child,
+    .hour-table tbody tr.hour-current:hover td:first-child{background:#cae4ff;border-left:4px solid #2478cf}
+    .hour-now-badge{display:inline-block;margin-left:5px;padding:2px 5px;border-radius:5px;background:#2467a9;color:#fff;font-size:10px;line-height:1.2;vertical-align:middle}
     .hour-wx{font-size:17px;margin-right:3px;vertical-align:middle}
     .hour-wind{display:inline-flex;align-items:center;gap:4px;font-weight:700}
     .hour-wind .wind-arrow{font-size:15px}
@@ -503,6 +509,9 @@ function renderForecast(json){
   el('week2').innerHTML=chunks[1].join('');
   el('week3').innerHTML=chunks[2].join('');
   hourlyForecast=json.hourly && Array.isArray(json.hourly.time)?json.hourly:null;
+  // 'auto' 요청에서는 API 응답의 실제 IANA 시간대를 사용합니다.
+  forecastTimeZone=typeof json.timezone==='string' && json.timezone.trim()?json.timezone.trim():null;
+  forecastUtcOffsetSeconds=Number.isFinite(json.utc_offset_seconds)?json.utc_offset_seconds:null;
   renderRainChart(d);
   el('weeks').style.display='block';
   return Math.min(15,d.time.length);
@@ -521,6 +530,7 @@ function buildForecastUrl(p){
 const DEFAULT_PLACE=LOCAL_PLACES.find(place=>place.name==='서울특별시');
 let selectedPlace=DEFAULT_PLACE, activeController=null, retryAction=null, operationId=0;
 let hourlyForecast=null, previousModalFocus=null;
+let forecastTimeZone=null, forecastUtcOffsetSeconds=null;
 // 사용자가 직접 검색/지역 선택을 시작하면 대기 중인 자동 위치 탐지 결과로 덮어쓰지 않습니다.
 let locationSelectionSerial=0, locationRequestSerial=0;
 function hideDialog(){el('retryDialog').classList.remove('open');}
@@ -543,7 +553,36 @@ function fmtHourly(value,digits=1,suffix=''){
  return value===null?'—':value.toFixed(digits)+suffix;
 }
 
-function buildHourlyRows(data,dateStr){
+// 현재 시각은 선택한 도시의 현지시간을 기준으로 계산합니다.
+function forecastLocalClock(now=new Date()){
+ const tz=forecastTimeZone || (selectedPlace.timezone && selectedPlace.timezone!=='auto' ? selectedPlace.timezone : null);
+ if(tz){
+  try{
+   const parts=new Intl.DateTimeFormat('en-US',{
+    timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+   }).formatToParts(now);
+   const p={};
+   for(const part of parts)if(part.type!=='literal')p[part.type]=part.value;
+   if(p.year&&p.month&&p.day&&p.hour){
+    return {date:p.year+'-'+p.month+'-'+p.day,hour:p.hour,minute:p.minute||'00'};
+   }
+  }catch(error){
+   // 잘못된 시간대 식별자는 API의 UTC 오프셋으로 대체합니다.
+  }
+ }
+ if(Number.isFinite(forecastUtcOffsetSeconds)){
+  const shifted=new Date(now.getTime()+forecastUtcOffsetSeconds*1000);
+  return {date:shifted.toISOString().slice(0,10),hour:shifted.toISOString().slice(11,13),
+   minute:shifted.toISOString().slice(14,16)};
+ }
+ // API에 시간대 정보가 없으면 기기 현지시간으로 안전하게 대체합니다.
+ const two=v=>String(v).padStart(2,'0');
+ return {date:now.getFullYear()+'-'+two(now.getMonth()+1)+'-'+two(now.getDate()),
+  hour:two(now.getHours()),minute:two(now.getMinutes())};
+}
+
+function buildHourlyRows(data,dateStr,currentHourKey=null){
  if(!data||!Array.isArray(data.time))return {count:0,html:''};
  const rows=[];
  for(let i=0;i<data.time.length;i++){
@@ -560,7 +599,9 @@ function buildHourlyRows(data,dateStr){
   const code=hourlyValue(data,'weather_code',i);
   const w=code===null?['❔','자료 없음']:wx(code);
   const wet=rain!==null&&rain>0;
-  rows.push(`<tr${wet?' class="hour-wet"':''}><td>${time.slice(11,16)}</td>`+
+  const isNow=currentHourKey!==null&&time.slice(0,13)===currentHourKey;
+  const classes=[wet?'hour-wet':'',isNow?'hour-current':''].filter(Boolean).join(' ');
+  rows.push(`<tr${classes?' class="'+classes+'"':''}${isNow?' aria-current="time"':''}><td>${time.slice(11,16)}${isNow?'<span class="hour-now-badge">지금</span>':''}</td>`+
   `<td title="${w[1]}"><span class="hour-wx">${w[0]}</span>${w[1]}</td>`+
   `<td>${fmtHourly(temp,1,'°C')}</td><td>${fmtHourly(feels,1,'°C')}</td>`+
   `<td${wet?' class="hour-rain"':''}>${fmtHourly(rain,1,' mm')}</td>`+
@@ -585,11 +626,14 @@ function openHourlyModal(dateStr,trigger){
  if(!/^\d{4}-\d{2}-\d{2}$/.test(dateStr))return;
  const date=new Date(dateStr+'T12:00:00Z');
  const weekdays=['일','월','화','수','목','금','토'];
- const result=buildHourlyRows(hourlyForecast,dateStr);
+ const clock=forecastLocalClock();
+ const isToday=dateStr===clock.date;
+ const currentHourKey=isToday?clock.date+'T'+clock.hour:null;
+ const result=buildHourlyRows(hourlyForecast,dateStr,currentHourKey);
  el('hourlyDialogTitle').textContent='🕒 '+dateStr.slice(5).replace('-','/')+' ('+weekdays[date.getUTCDay()]+') 시간별 예보';
  el('hourlyDialogDesc').textContent='📍 '+placeLabel(selectedPlace)+' · ECMWF IFS · 현지시간 기준';
  el('hourlySummary').textContent=result.count?
-   result.count+'개 시간대 · 기온(°C) · 강수(mm) · 풍속/순간풍속(m/s) · 습도/운량(%)':
+   result.count+'개 시간대'+(isToday?' · 현재 '+clock.hour+':'+clock.minute+' (현지시간) 강조':'')+' · 기온(°C) · 강수(mm) · 풍속/순간풍속(m/s) · 습도/운량(%)':
    '선택한 날짜의 시간별 자료가 제공되지 않습니다.';
  el('hourlyBody').innerHTML=result.count?result.html:'<tr><td colspan="10">시간별 자료가 없습니다. 다른 날짜를 선택하거나 다시 조회해 주세요.</td></tr>';
  const modal=el('hourlyDialog');
@@ -599,6 +643,11 @@ function openHourlyModal(dateStr,trigger){
  document.body.classList.add('hourly-open');
  const view=modal.querySelector('.hour-table-viewport');
  view.scrollTop=0;view.scrollLeft=0;
+ // 오늘을 열었을 때 현재 시간 행이 화면에 보이도록 세로 스크롤합니다.
+ const nowRow=view.querySelector('.hour-current');
+ if(nowRow && typeof nowRow.offsetTop==='number'){
+  view.scrollTop=Math.max(0,nowRow.offsetTop-view.clientHeight/2+nowRow.offsetHeight/2);
+ }
  el('closeHourly').focus();
 }
 
@@ -659,6 +708,8 @@ async function requestJson(url, action, loadingText){
 async function selectPlace(place){
   closeHourlyModal();
   hourlyForecast=null;
+  forecastTimeZone=null;
+  forecastUtcOffsetSeconds=null;
   selectedPlace=place;hideResults();
   el('placeInput').value=place.currentLocation?placeLabel(place):place.ko || place.name;
   el('location').textContent='📍 '+placeLabel(place);
