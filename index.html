@@ -540,9 +540,12 @@ function locationNameFromReverseData(data){
   const city=clean(data.city);
   const locality=clean(data.locality || data.localityName);
   const country=clean(data.countryName);
-  // 대한민국은 시/도 → 시/군/구 → 읍/면/동 순으로 최대 세 항목을 표시합니다.
+  // 대한민국은 시/도 → 시/군/구 → 읍/면/동 순으로 표시합니다.
   if(data.countryCode==='KR'){
-    const names=unique([province,city,locality]);
+    // "서울특별시 · 서울", "부산광역시 · 부산"처럼 상위 행정구역의 중복 표기를 제거합니다.
+    const administrativeCity=province && city && province.startsWith(city) &&
+      /(?:특별시|광역시|특별자치시|특별자치도)$/.test(province) ? '' : city;
+    const names=unique([province,administrativeCity,locality]);
     // 시/군/구가 상위 필드에 없는 경우, 제공되는 행정구역 계층에서 보충합니다.
     if(!names.some(v=>/[가-힣](구|군)$/.test(v))){
       const administrative=Array.isArray(data.localityInfo && data.localityInfo.administrative)?data.localityInfo.administrative:[];
@@ -634,6 +637,9 @@ async function searchPlace(query){
   locationSelectionSerial++;
   const name=query.trim();
   if(name==='현재 위치')return locateCurrentWeather();
+  // GPS 조회 후 자동으로 입력된 지역명은 검색 API에 재검색하지 않고 같은 좌표로 다시 조회합니다.
+  if(selectedPlace.currentLocation &&
+     (name===placeLabel(selectedPlace) || name===selectedPlace.name))return selectPlace(selectedPlace);
   if(!name){status('지역 이름을 입력해 주세요.','fail');el('placeInput').focus();return;}
   hideResults();
   const locals=matchingLocalPlaces(name);
