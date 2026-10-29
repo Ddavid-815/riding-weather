@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#173e75">
+  <title>지역검색 · ECMWF 14일 라이딩 날씨</title>
+  <style>
+    :root{color-scheme:light;--blue:#1d5da5;--ink:#19283d;--muted:#64748b;--line:#dce5f0}
+    *{box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:#eef3f9;color:var(--ink);margin:0}
+    main{max-width:960px;margin:0 auto;padding:16px 16px 40px}
+    .hero{background:linear-gradient(120deg,#173e75,#4782d0);color:#fff;padding:24px;border-radius:20px}
+    h1{font-size:clamp(22px,4.8vw,28px);margin:0 0 8px;line-height:1.35}
+    h2{font-size:19px;margin:0 0 12px}
+    .hero small{display:block;opacity:.94;line-height:1.6}
+    .hero .location{font-size:15px;font-weight:700;margin:11px 0 5px;min-height:22px}
+    .panel{background:#fff;border-radius:18px;padding:18px;margin-top:16px;box-shadow:0 2px 12px #18365b0a}
+    .muted{color:var(--muted);font-size:14px;line-height:1.6;margin:9px 0}
+    form{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
+    input{flex:1 1 220px;min-width:0;font-size:16px;line-height:24px;border:1.5px solid #c4d1e1;border-radius:11px;padding:12px 13px;background:#fff;color:var(--ink);outline-offset:2px}
+    input:focus{border-color:#3276d5;outline:2px solid #b9d5f7}
+    button,.link{display:inline-flex;justify-content:center;align-items:center;border:0;border-radius:10px;background:var(--blue);color:#fff;padding:12px 15px;text-decoration:none;font-weight:700;font-size:14px;cursor:pointer;min-height:44px}
+    button:disabled{opacity:.55;cursor:default}
+    .secondary{background:#e6eef9;color:var(--blue)}
+    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+    .quick strong{font-size:13px;color:#526174}
+    .quick button{background:#f1f5fa;color:#325985;border:1px solid #dce5f0;padding:7px 11px;min-height:34px;font-size:13px}
+    .status{padding:12px;background:#fff7e5;border-radius:10px;margin:12px 0;font-size:14px;line-height:1.5;white-space:pre-line}
+    .status.ok{background:#e7f5eb;color:#176b32}
+    .status.fail{background:#fff0ef;color:#a32c2c}
+    .results{margin-top:14px;border:1px solid #dce5f0;border-radius:12px;overflow:hidden}
+    .results-head{background:#f2f6fb;padding:10px 13px;font-weight:700;font-size:14px}
+    .result{display:block;width:100%;padding:12px 13px;text-align:left;border:0;border-top:1px solid #e6edf5;border-radius:0;background:#fff;color:var(--ink);min-height:50px;font-weight:600;cursor:pointer}
+    .result small{display:block;margin-top:4px;color:#64748b;font-size:12px;font-weight:500}
+    .result:hover,.result:focus{background:#f0f6ff}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+    .day{border:1px solid var(--line);border-radius:16px;padding:15px;background:#fcfdff;position:relative}
+    .day.sat{border-top:5px solid #3276d5}.day.sun{border-top:5px solid #d45c53}
+    .day .head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+    .head-main{flex:1;min-width:0}
+    .date{display:block;font-weight:750}.sat .date{color:#2467c6}.sun .date{color:#c0443d}
+    .desc{margin:10px 0 0;font-size:15px;line-height:1.45;color:#334a66}
+    .desc-emoji{margin-right:4px}
+    .rain-mini{flex:0 0 48px;display:flex;flex-direction:column;align-items:center;gap:5px;margin-top:1px}
+    /* 모든 날짜에 같은 눈금, 같은 단색: 아래부터 채워지는 10칸 강수량 게이지 */
+    .rain-mini-track{width:25px;height:74px;padding:4px;border:1px solid #cbd8e8;border-radius:7px;background:#f9fbfe;display:flex;flex-direction:column-reverse;gap:2px}
+    .rain-segment{display:block;flex:1;min-height:0;background:#f0f4f9;border:1px solid #d5dfeb;border-radius:2px}
+    .rain-segment.filled{background:#3b6f9f;border-color:#3b6f9f}
+    .rain-mini-value{font-size:12px;font-weight:800;line-height:1;color:#27415e;white-space:nowrap}
+    .rain-mini-unit{font-size:10px;font-weight:700;color:#70819a;line-height:1}
+    .temps{margin:10px 0 8px;font-size:15px}
+    .high{color:#c4453c}.low{color:#2467c6}
+    .rain-line{margin:0 0 8px;font-size:13px;color:#59718e;font-weight:700}
+    /* 풍향명은 바람이 불어오는 방향(From), 화살표는 실제 이동 방향(To). 최대풍속은 일 최대값(10m). */
+    .wind-line{display:flex;flex-wrap:wrap;align-items:center;column-gap:12px;row-gap:5px;margin:0 0 12px;color:#56677c;font-size:12px;line-height:1.35}
+    .wind-direction,.wind-speed{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+    .wind-direction{font-weight:700}
+    .wind-arrow{display:inline-block;width:16px;text-align:center;font-size:16px;line-height:1;color:#2467a9;transform:rotate(var(--wind-deg));transform-origin:center center}
+    .wind-speed strong{color:#304d70;font-weight:800;font-variant-numeric:tabular-nums}
+    .wind-speed .wind-icon{font-size:13px}
+    .wind-speed .unit{font-size:11px;color:#64748b}
+    .rating{display:inline-block;border-radius:99px;padding:6px 10px;font-size:13px;font-weight:700}
+    .good{background:#e4f6e7;color:#176b32}.mid{background:#fff4d9;color:#87610b}.bad{background:#ffe7e7;color:#a72b2b}
+    /* 일별 누적강수량 막대그래프: 외부 라이브러리 없이 로컬 HTML에서 구동 */
+    .rain-title{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .rain-title h2{margin:0}
+    .rain-unit{font-size:12px;font-weight:700;color:#59718e;background:#f0f5fc;padding:5px 9px;border-radius:99px}
+    .rain-legend{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:10px 0 8px;color:#53647a;font-size:12px}
+    .rain-legend strong{font-weight:750;color:#2b4f72}
+    .segment-scale{font-size:11px;font-weight:600;color:#6c7a8e;white-space:nowrap;margin-left:8px}
+    .rain-scroll{overflow-x:auto;overscroll-behavior-x:contain;padding:0 0 5px;scrollbar-color:#bbcce2 transparent}
+    .rain-chart{display:flex;min-width:750px}
+    .rain-axis{position:sticky;left:0;z-index:2;flex:0 0 39px;height:231px;background:#fff;color:#6c7a8e;font-size:11px;text-align:right;padding-right:7px}
+    .rain-axis span{position:absolute;right:7px;transform:translateY(-50%)}
+    .rain-axis .axis-max{top:34px}.rain-axis .axis-half{top:110px}.rain-axis .axis-zero{top:186px}
+    .rain-plot{position:relative;flex:1;height:231px;min-width:700px}
+    .rain-gridline{position:absolute;left:0;right:0;height:1px;background:#e9eff6;pointer-events:none}
+    .rain-gridline.max{top:34px}.rain-gridline.half{top:110px}.rain-gridline.zero{top:186px;background:#aebed0}
+    .rain-bars{position:absolute;left:7px;right:7px;top:34px;bottom:45px;display:grid;grid-template-columns:repeat(14,minmax(44px,1fr));column-gap:4px}
+    .rain-column{position:relative;height:100%;min-width:0;text-align:center}
+    .rain-segments{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:26px;height:100%;display:flex;flex-direction:column-reverse;gap:3px}
+    /* 수치는 막대 높이와 무관하게 전용 상단 행에 고정: 0mm~최댓값까지 겹침 방지 */
+    .rain-value{position:absolute;left:50%;top:-26px;bottom:auto;transform:translateX(-50%);white-space:nowrap;font-size:12px;line-height:17px;font-weight:800;font-variant-numeric:tabular-nums;color:#2c4058;z-index:1}
+    .rain-day{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);font-size:11px;line-height:1.4;white-space:nowrap;color:#5b6980}
+    .rain-day strong{display:block;font-size:11px;font-weight:700;color:#354861}
+    .rain-column.sat .rain-day strong{color:#2467c6}
+    .rain-column.sun .rain-day strong{color:#c0443d}
+    .rain-foot{font-size:12px;color:#6c7a8e;line-height:1.6;margin:5px 0 0}
+    .overlay{position:fixed;inset:0;background:rgba(14,30,52,.58);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}
+    .overlay.open{display:flex}
+    .dialog{background:#fff;width:100%;max-width:390px;border-radius:20px;padding:24px;box-shadow:0 16px 50px #0004}
+    .dialog h2{margin:8px 0}.dialog p{font-size:15px;color:#526174;line-height:1.6}
+    .dialog-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+    .foot{font-size:12px;color:#66768b;line-height:1.65;margin-top:15px}
+    #weeks,#results{display:none}
+    @media(max-width:460px){main{padding:12px 12px 28px}.hero{padding:21px}.panel{padding:16px}form button{min-width:88px}.grid{grid-template-columns:repeat(auto-fit,minmax(145px,1fr))}.day{padding:12px}.wx{font-size:30px}.date{font-size:13px}.temps{font-size:14px}}
+    @media(prefers-reduced-motion:no-preference){.panel{transition:box-shadow .15s}}
+  </style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <h1>🌤️ 지역별 ECMWF 14일 라이딩 예보</h1>
+    <div class="location" id="location">📍 기본 지역: 고흥군</div>
+    <small id="locationDetails">ECMWF IFS 단독 · 오늘부터 14일 · 한국시간(KST)</small>
+  </header>
+
+  <section class="panel" aria-labelledby="searchTitle">
+    <h2 id="searchTitle">🔎 지역 이름으로 검색</h2>
+    <form id="searchForm" autocomplete="off">
+      <input id="placeInput" name="place" type="search" aria-label="날씨를 조회할 지역 이름" placeholder="예: 고흥, 경주, 서울, 제주" value="고흥" enterkeyhint="search" maxlength="90" required>
+      <button id="searchButton" type="submit">날씨 검색</button>
+    </form>
+    <p class="muted">해외 도시도 한글로 검색할 수 있습니다. 예: 런던, 파리, 비엔나, 뉴욕, 도쿄. 일부 오타·부분 입력은 유사 지명 후보를 제시하며, 원하는 도시를 선택하면 실제 위치를 확인합니다.</p>
+    <div class="quick"><strong>빠른 선택</strong><button type="button" data-place="고흥">고흥</button><button type="button" data-place="경주">경주</button><button type="button" data-place="광양">광양</button><button type="button" data-place="고창">고창</button><button type="button" data-place="제주">제주</button></div>
+    <div id="results" class="results" aria-label="지역 검색 결과"><div class="results-head" id="resultsHead">지역을 선택하세요</div><div id="resultItems"></div></div>
+  </section>
+
+  <section class="panel" aria-labelledby="forecastTitle">
+    <h2 id="forecastTitle">예보 데이터 불러오기</h2>
+    <p class="muted">검색한 지역의 ECMWF IFS 기상예보를 조회합니다. 풍향과 풍속은 10m 높이의 주풍향 및 일 최대풍속(m/s)입니다. 네트워크 요청이 10초 동안 완료되지 않으면 재시도 알림이 표시됩니다.</p>
+    <div id="status" class="status" role="status" aria-live="polite">고흥의 예보를 자동 조회합니다.</div>
+    <div class="actions">
+      <button id="retry" type="button">↻ 현재 지역 다시 조회</button>
+      <a class="link secondary" id="source" href="https://open-meteo.com/en/docs/ecmwf-api" target="_blank" rel="noopener noreferrer">↗ ECMWF 원본 데이터 확인</a>
+    </div>
+  </section>
+
+  <section id="weeks" aria-label="14일 예보">
+    <section class="panel" aria-labelledby="rainChartTitle">
+      <div class="rain-title"><h2 id="rainChartTitle">🌧️ 14일 강수량 막대그래프</h2><span class="rain-unit">일강수량 · mm</span></div>
+      <p class="muted">날짜별 일강수량을 10칸 단색 눈금으로 비교합니다. 강수량 숫자는 막대 위에 고정 표시되며 채워진 칸 수가 많을수록 강수량이 많습니다.</p>
+      <div class="rain-legend" id="rainLegend">□ 빈칸 · ■ 채워진 칸 · 전체 10칸</div>
+      <div class="rain-scroll" role="region" tabindex="0" aria-label="14일 강수량 막대그래프, 작은 화면에서는 좌우로 스크롤">
+        <div class="rain-chart">
+          <div class="rain-axis" aria-hidden="true"><span class="axis-max" id="rainAxisMax">10</span><span class="axis-half" id="rainAxisHalf">5</span><span class="axis-zero">0</span></div>
+          <div class="rain-plot">
+            <div class="rain-gridline max" aria-hidden="true"></div>
+            <div class="rain-gridline half" aria-hidden="true"></div>
+            <div class="rain-gridline zero" aria-hidden="true"></div>
+            <div class="rain-bars" id="rainBars" role="list" aria-label="날짜별 강수량"></div>
+          </div>
+        </div>
+      </div>
+      <p class="rain-foot">모든 날짜에 동일한 10칸 눈금을 사용합니다. 강수량이 증가할수록 아래 칸부터 채워지며, 0mm는 빈칸 10개로 표시합니다. 모바일에서는 좌우로 밀어 확인하세요.</p>
+    </section>
+    <section class="panel"><h2>1주차 · D+0~D+6 <span class="segment-scale" id="weekScale1"></span></h2><div id="week1" class="grid"></div></section>
+    <section class="panel"><h2>2주차 · D+7~D+13 <span class="segment-scale" id="weekScale2"></span></h2><div id="week2" class="grid"></div></section>
+  </section>
+
+  <section class="panel">
+    <h2>🚴 라이딩 적합도 기준</h2>
+    <p>🟢 좋음: 강수량 1mm 이하, 최고 14~26°C, 최저 5°C 이상<br>🟡 주의: 다소 춥거나 덥거나 약한 강수<br>🔴 비추천: 일강수량 8mm 이상, 영하, 폭염, 뇌우</p>
+    <p class="muted">참고용 단순 분류입니다. 주풍향과 일 최대풍속(지상 10m)은 별도 표시하며, 라이딩 적합도 판정에는 반영하지 않습니다. 시간대별 바람·강수와 노면 상태도 반영하지 않습니다.</p>
+    <p class="foot">출처: Open-Meteo ECMWF IFS 모델 지정 API. 검색 지역은 Open-Meteo 지명 검색을 사용하며 일부 국내 주요 지역은 대표 좌표를 적용합니다. 예보는 해당 지역 중심 좌표 기준으로 제공되며 다른 예보 모델의 값을 혼합하지 않습니다. 풍향 명칭은 바람이 불어오는 방향(북풍 = 북쪽에서 불어옴), 화살표는 실제 바람이 이동하는 방향(북풍 ↓)을 가리킵니다. 풍속은 지상 10m의 일 최대값입니다. 인터넷 연결이 필요합니다. iPhone의 파일 미리보기 환경에서는 외부 API 요청이 제한될 수 있습니다.</p>
+  </section>
+</main>
+
+<div id="retryDialog" class="overlay" role="alertdialog" aria-modal="true" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+  <div class="dialog">
+    <div style="font-size:30px">⚠️</div>
+    <h2 id="dialogTitle">데이터를 불러오지 못했습니다</h2>
+    <p id="dialogDesc">요청이 10초 안에 완료되지 않았습니다. 다시 시도하시겠습니까?</p>
+    <div class="dialog-actions">
+      <button id="dismiss" type="button" class="secondary">닫기</button>
+      <button id="retryDialogButton" type="button">↻ 다시 시도</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+const el = id => document.getElementById(id);
+const status = (message, kind = '') => {
+  el('status').className = 'status' + (kind ? ' ' + kind : '');
+  el('status').textContent = message;
+};
+
+// 한국의 자주 검색하는 지역에 대한 대표 지점(도심 또는 군청 소재지) 좌표.
+// Open-Meteo 지명 검색에 등록되지 않은 시·군도 우선 처리하기 위한 보완 목록.
+const LOCAL_PLACES = [
+  ['고흥군','전라남도',34.6112,127.2845,['고흥','고흥군']],
+  ['경주시','경상북도',35.8562,129.2247,['경주','경주시']],
+  ['광양시','전라남도',34.9407,127.6959,['광양','광양시']],
+  ['고창군','전북특별자치도',35.4358,126.7021,['고창','고창군']],
+  ['서울특별시','대한민국',37.5665,126.9780,['서울','서울시','서울특별시']],
+  ['부산광역시','대한민국',35.1796,129.0756,['부산','부산시','부산광역시']],
+  ['대구광역시','대한민국',35.8714,128.6014,['대구','대구시','대구광역시']],
+  ['인천광역시','대한민국',37.4563,126.7052,['인천','인천시','인천광역시']],
+  ['광주광역시','대한민국',35.1595,126.8526,['광주','광주광역시']],
+  ['광주시','경기도',37.4295,127.2550,['광주','경기광주','경기도광주','광주시']],
+  ['대전광역시','대한민국',36.3504,127.3845,['대전','대전시','대전광역시']],
+  ['울산광역시','대한민국',35.5384,129.3114,['울산','울산시','울산광역시']],
+  ['세종특별자치시','대한민국',36.4800,127.2890,['세종','세종시','세종특별자치시']],
+  ['제주시','제주특별자치도',33.4996,126.5312,['제주','제주시','제주도']],
+  ['서귀포시','제주특별자치도',33.2541,126.5600,['서귀포','서귀포시']],
+  ['강릉시','강원특별자치도',37.7519,128.8761,['강릉','강릉시']],
+  ['춘천시','강원특별자치도',37.8813,127.7298,['춘천','춘천시']],
+  ['속초시','강원특별자치도',38.2070,128.5918,['속초','속초시']],
+  ['원주시','강원특별자치도',37.3422,127.9202,['원주','원주시']],
+  ['수원시','경기도',37.2636,127.0286,['수원','수원시']],
+  ['평택시','경기도',36.9920,127.1127,['평택','평택시']],
+  ['용인시','경기도',37.2411,127.1776,['용인','용인시']],
+  ['전주시','전북특별자치도',35.8242,127.1480,['전주','전주시']],
+  ['목포시','전라남도',34.8118,126.3922,['목포','목포시']],
+  ['여수시','전라남도',34.7604,127.6622,['여수','여수시']],
+  ['순천시','전라남도',34.9506,127.4873,['순천','순천시']],
+  ['포항시','경상북도',36.0190,129.3435,['포항','포항시']],
+  ['안동시','경상북도',36.5684,128.7294,['안동','안동시']],
+  ['청주시','충청북도',36.6424,127.4890,['청주','청주시']],
+  ['충주시','충청북도',36.9910,127.9259,['충주','충주시']],
+  ['단양군','충청북도',36.9840,128.3650,['단양','단양군']],
+  ['천안시','충청남도',36.8151,127.1139,['천안','천안시']],
+  ['아산시','충청남도',36.7898,127.0019,['아산','아산시']],
+  ['창원시','경상남도',35.2281,128.6811,['창원','창원시']],
+  ['진주시','경상남도',35.1802,128.1076,['진주','진주시']],
+  ['거제시','경상남도',34.8806,128.6211,['거제','거제시']],
+  ['통영시','경상남도',34.8544,128.4332,['통영','통영시']],
+  ['김해시','경상남도',35.2285,128.8894,['김해','김해시']],
+  ['무주군','전북특별자치도',36.0068,127.6608,['무주','무주군']]
+].map(([name,admin,latitude,longitude,aliases]) => ({
+  name, admin, latitude, longitude, aliases, timezone:'Asia/Seoul', countryCode:'KR'
+}));
+
+const FOREIGN_CITIES = [["뉴욕","New York","US","미국","뉴요크","뉴욕시"],["로스앤젤레스","Los Angeles","US","미국","엘에이","로스엔젤레스","로스앤젤리스","LA"],["샌프란시스코","San Francisco","US","미국","샌프란","센프란시스코"],["시카고","Chicago","US","미국"],["보스턴","Boston","US","미국"],["워싱턴","Washington DC","US","미국","워싱턴디시","워싱턴DC","워싱턴D.C."],["라스베이거스","Las Vegas","US","미국","라스베가스"],["시애틀","Seattle","US","미국"],["샌디에이고","San Diego","US","미국","샌디에고"],["마이애미","Miami","US","미국"],["올랜도","Orlando","US","미국"],["휴스턴","Houston","US","미국"],["댈러스","Dallas","US","미국","달라스"],["애틀랜타","Atlanta","US","미국","아틀란타"],["덴버","Denver","US","미국"],["필라델피아","Philadelphia","US","미국"],["포틀랜드","Portland","US","미국"],["호놀룰루","Honolulu","US","미국"],["오클랜드","Oakland","US","미국","오클랜드미국"],["밴쿠버","Vancouver","CA","캐나다","벤쿠버"],["토론토","Toronto","CA","캐나다"],["몬트리올","Montreal","CA","캐나다"],["오타와","Ottawa","CA","캐나다"],["퀘벡","Quebec City","CA","캐나다","퀘벡시"],["캘거리","Calgary","CA","캐나다","켈거리"],["런던","London","GB","영국","론돈"],["맨체스터","Manchester","GB","영국"],["리버풀","Liverpool","GB","영국"],["에든버러","Edinburgh","GB","영국","에딘버러"],["글래스고","Glasgow","GB","영국","글라스고"],["옥스퍼드","Oxford","GB","영국","옥스포드"],["케임브리지","Cambridge","GB","영국","캠브리지"],["브리스틀","Bristol","GB","영국","브리스톨"],["파리","Paris","FR","프랑스"],["니스","Nice","FR","프랑스"],["리옹","Lyon","FR","프랑스","리용"],["마르세유","Marseille","FR","프랑스","마르세이유"],["보르도","Bordeaux","FR","프랑스"],["칸","Cannes","FR","프랑스"],["스트라스부르","Strasbourg","FR","프랑스","스트라스부르그"],["베를린","Berlin","DE","독일"],["뮌헨","Munich","DE","독일","뮨헨","뮌센"],["프랑크푸르트","Frankfurt am Main","DE","독일","프랑크푸르트암마인"],["함부르크","Hamburg","DE","독일"],["쾰른","Cologne","DE","독일","퀼른","콜론"],["드레스덴","Dresden","DE","독일"],["슈투트가르트","Stuttgart","DE","독일","슈트트가르트"],["뒤셀도르프","Dusseldorf","DE","독일","뒤셀도르프"],["로마","Rome","IT","이탈리아"],["밀라노","Milan","IT","이탈리아"],["베네치아","Venice","IT","이탈리아","베니스"],["피렌체","Florence","IT","이탈리아","플로렌스"],["나폴리","Naples","IT","이탈리아"],["볼로냐","Bologna","IT","이탈리아"],["토리노","Turin","IT","이탈리아"],["베로나","Verona","IT","이탈리아"],["마드리드","Madrid","ES","스페인"],["바르셀로나","Barcelona","ES","스페인","바르샤","바셀로나"],["세비야","Seville","ES","스페인","세비아"],["발렌시아","Valencia","ES","스페인"],["그라나다","Granada","ES","스페인"],["말라가","Malaga","ES","스페인"],["빌바오","Bilbao","ES","스페인"],["리스본","Lisbon","PT","포르투갈","리쓰본"],["포르투","Porto","PT","포르투갈","포르토"],["암스테르담","Amsterdam","NL","네덜란드","암스텔담"],["로테르담","Rotterdam","NL","네덜란드"],["헤이그","The Hague","NL","네덜란드","덴하흐"],["브뤼셀","Brussels","BE","벨기에","브뤼쎌"],["브뤼헤","Bruges","BE","벨기에","브루헤"],["취리히","Zurich","CH","스위스","쮜리히"],["제네바","Geneva","CH","스위스"],["인터라켄","Interlaken","CH","스위스"],["베른","Bern","CH","스위스"],["루체른","Lucerne","CH","스위스","루체른"],["빈","Vienna","AT","오스트리아","비엔나"],["잘츠부르크","Salzburg","AT","오스트리아","짤츠부르크"],["인스브루크","Innsbruck","AT","오스트리아"],["그라츠","Graz","AT","오스트리아"],["프라하","Prague","CZ","체코","프라그"],["브르노","Brno","CZ","체코"],["부다페스트","Budapest","HU","헝가리"],["바르샤바","Warsaw","PL","폴란드","바르샤와"],["크라쿠프","Krakow","PL","폴란드","크라코프"],["코펜하겐","Copenhagen","DK","덴마크","코펜하근"],["스톡홀름","Stockholm","SE","스웨덴"],["예테보리","Gothenburg","SE","스웨덴","고텐부르크"],["오슬로","Oslo","NO","노르웨이"],["베르겐","Bergen","NO","노르웨이"],["트롬쇠","Tromso","NO","노르웨이","트롬소"],["헬싱키","Helsinki","FI","핀란드"],["로바니에미","Rovaniemi","FI","핀란드"],["레이캬비크","Reykjavik","IS","아이슬란드","레이캬빅"],["아테네","Athens","GR","그리스"],["산토리니","Fira","GR","그리스","피라"],["이스탄불","Istanbul","TR","튀르키예","이스탄블"],["앙카라","Ankara","TR","튀르키예"],["안탈리아","Antalya","TR","튀르키예"],["카이로","Cairo","EG","이집트"],["알렉산드리아","Alexandria","EG","이집트"],["마라케시","Marrakesh","MA","모로코","마라케쉬"],["카사블랑카","Casablanca","MA","모로코"],["케이프타운","Cape Town","ZA","남아프리카공화국","케이프타운"],["요하네스버그","Johannesburg","ZA","남아프리카공화국"],["두바이","Dubai","AE","아랍에미리트"],["아부다비","Abu Dhabi","AE","아랍에미리트"],["예루살렘","Jerusalem","IL","이스라엘"],["텔아비브","Tel Aviv","IL","이스라엘"],["암만","Amman","JO","요르단"],["도쿄","Tokyo","JP","일본","동경","토쿄"],["오사카","Osaka","JP","일본"],["교토","Kyoto","JP","일본","쿄토"],["고베","Kobe","JP","일본"],["나고야","Nagoya","JP","일본"],["후쿠오카","Fukuoka","JP","일본","후쿠오까"],["삿포로","Sapporo","JP","일본","삿뽀로"],["나하","Naha","JP","일본","오키나와","오키나와나하"],["히로시마","Hiroshima","JP","일본"],["나라","Nara","JP","일본"],["가나자와","Kanazawa","JP","일본"],["하코다테","Hakodate","JP","일본"],["센다이","Sendai","JP","일본"],["요코하마","Yokohama","JP","일본"],["하코네","Hakone","JP","일본"],["구마모토","Kumamoto","JP","일본"],["나가사키","Nagasaki","JP","일본"],["베이징","Beijing","CN","중국","북경"],["상하이","Shanghai","CN","중국","상해"],["광저우","Guangzhou","CN","중국","광주중국"],["선전","Shenzhen","CN","중국","심천","심센"],["청두","Chengdu","CN","중국","성도"],["충칭","Chongqing","CN","중국","중경"],["시안","Xi'an","CN","중국","서안"],["칭다오","Qingdao","CN","중국","청도"],["다롄","Dalian","CN","중국","대련"],["항저우","Hangzhou","CN","중국","항주"],["난징","Nanjing","CN","중국","남경"],["우한","Wuhan","CN","중국"],["타이베이","Taipei","TW","대만","타이페이"],["타이중","Taichung","TW","대만","타이쭝"],["가오슝","Kaohsiung","TW","대만","카오슝"],["타이난","Tainan","TW","대만"],["홍콩","Hong Kong","HK","홍콩","향항"],["마카오","Macau","MO","마카오"],["싱가포르","Singapore","SG","싱가포르","싱가폴"],["방콕","Bangkok","TH","태국","방콕시"],["치앙마이","Chiang Mai","TH","태국","치앙마이시"],["푸껫","Phuket","TH","태국","푸켓"],["파타야","Pattaya","TH","태국","파타야시"],["끄라비","Krabi","TH","태국","크라비"],["하노이","Hanoi","VN","베트남"],["호찌민","Ho Chi Minh City","VN","베트남","호치민","사이공"],["다낭","Da Nang","VN","베트남","다낭시"],["나트랑","Nha Trang","VN","베트남","냐짱","나짱"],["달랏","Da Lat","VN","베트남","다랏"],["하이퐁","Haiphong","VN","베트남"],["후에","Hue","VN","베트남"],["프놈펜","Phnom Penh","KH","캄보디아"],["시엠립","Siem Reap","KH","캄보디아","씨엠립"],["비엔티안","Vientiane","LA","라오스","비안티안"],["루앙프라방","Luang Prabang","LA","라오스","루앙프라방"],["쿠알라룸푸르","Kuala Lumpur","MY","말레이시아","쿠알라룸프르"],["코타키나발루","Kota Kinabalu","MY","말레이시아"],["조호르바루","Johor Bahru","MY","말레이시아"],["조지타운","George Town","MY","말레이시아","페낭"],["자카르타","Jakarta","ID","인도네시아"],["덴파사르","Denpasar","ID","인도네시아","발리","발리섬"],["욕야카르타","Yogyakarta","ID","인도네시아","족자카르타"],["수라바야","Surabaya","ID","인도네시아"],["마닐라","Manila","PH","필리핀"],["세부","Cebu City","PH","필리핀","세부시"],["다바오","Davao","PH","필리핀"],["뉴델리","New Delhi","IN","인도","뉴델히"],["델리","Delhi","IN","인도"],["뭄바이","Mumbai","IN","인도","봄베이"],["벵갈루루","Bengaluru","IN","인도","방갈로르"],["콜카타","Kolkata","IN","인도","캘커타"],["첸나이","Chennai","IN","인도","마드라스"],["자이푸르","Jaipur","IN","인도"],["카트만두","Kathmandu","NP","네팔","카트만두시"],["포카라","Pokhara","NP","네팔"],["시드니","Sydney","AU","호주"],["멜버른","Melbourne","AU","호주","멜번"],["브리즈번","Brisbane","AU","호주"],["퍼스","Perth","AU","호주"],["애들레이드","Adelaide","AU","호주","아들레이드"],["캔버라","Canberra","AU","호주"],["골드코스트","Gold Coast","AU","호주"],["케언스","Cairns","AU","호주"],["호바트","Hobart","AU","호주"],["오클랜드","Auckland","NZ","뉴질랜드","오클랜드뉴질랜드"],["웰링턴","Wellington","NZ","뉴질랜드"],["크라이스트처치","Christchurch","NZ","뉴질랜드"],["퀸스타운","Queenstown","NZ","뉴질랜드"],["로토루아","Rotorua","NZ","뉴질랜드"],["모스크바","Moscow","RU","러시아"],["상트페테르부르크","Saint Petersburg","RU","러시아","상트페테르스부르크"],["블라디보스토크","Vladivostok","RU","러시아"],["상파울루","Sao Paulo","BR","브라질","상파울로"],["리우데자네이루","Rio de Janeiro","BR","브라질","리우"],["부에노스아이레스","Buenos Aires","AR","아르헨티나"],["멕시코시티","Mexico City","MX","멕시코","멕시코시"],["칸쿤","Cancun","MX","멕시코"],["리마","Lima","PE","페루"],["쿠스코","Cusco","PE","페루"],["산티아고","Santiago","CL","칠레"],["보고타","Bogota","CO","콜롬비아"]].map(([ko,en,cc,countryKo,...aliases])=>({ko,en,cc,countryKo,aliases:[ko,...aliases]}));
+
+// 한글 한두 글자/현지 표기 차이로 실패하는 검색을 보완하는 로컬 후보 사전.
+// 사전은 지명만 연결하고 좌표는 API 조회 결과에서만 가져옵니다.
+function levenshtein(a,b){
+  const prev=Array.from({length:b.length+1},(_,i)=>i);
+  for(let i=1;i<=a.length;i++){
+    let last=prev[0];prev[0]=i;
+    for(let j=1;j<=b.length;j++){
+      const prior=prev[j];
+      prev[j]=Math.min(prev[j]+1,prev[j-1]+1,last+(a[i-1]===b[j-1]?0:1));
+      last=prior;
+    }
+  }
+  return prev[b.length];
+}
+function scoreCityAlias(input,alias){
+  const q=normalizeName(input),a=normalizeName(alias);
+  if(!q || !a)return -1;
+  if(q===a)return 100;
+  if(q.length>=2&&a.startsWith(q))return 79-Math.max(0,a.length-q.length)*2;
+  if(q.length>=3&&a.includes(q))return 70-Math.max(0,a.length-q.length)*2;
+  if(a.length>=3&&q.startsWith(a))return 65-Math.max(0,q.length-a.length)*2;
+  if(q.length>=3&&a.length>=3){
+    const distance=levenshtein(q,a);
+    const maxDist=Math.min(q.length,a.length)>=6?2:1;
+    if(distance<=maxDist)return 56-distance*12-Math.abs(q.length-a.length)*2;
+  }
+  return -1;
+}
+function foreignSuggestions(query){
+  const tokens=query.trim().split(/\s+/).filter(Boolean);
+  const countryHint=tokens.length>1?tokens.slice(0,-1).join(''):'';
+  const search=countryHint?tokens[tokens.length-1]:query;
+  const isHangul=/[가-힣]/.test(search);
+  if(!isHangul)return [];
+  return FOREIGN_CITIES.map((city,index)=>{
+    const score=Math.max(...city.aliases.map(a=>scoreCityAlias(search,a)));
+    const countryBonus=countryHint&&city.countryKo.includes(countryHint)?20:0;
+    return {...city,score:score<0?score:score+countryBonus,index};
+  }).filter(city=>city.score>0 && (!countryHint||city.countryKo.includes(countryHint)))
+    .sort((a,b)=>b.score-a.score||a.index-b.index).slice(0,8);
+}
+function showForeignSuggestions(cities,query,live=false){
+  const items=el('resultItems');items.replaceChildren();
+  el('resultsHead').textContent=(live?'🔎 입력 중 · ':'🌏 해외 도시 추천 · ')+`“${query}” · ${cities.length}개 후보`;
+  cities.forEach(city=>{
+    const btn=document.createElement('button');btn.className='result';btn.type='button';
+    const title=document.createElement('span');title.textContent=`${city.ko} (${city.en}) · ${city.countryKo}`;
+    const tip=document.createElement('small');
+    tip.textContent=city.score>=100?'한글 지명 일치 · 선택하면 실제 위치 조회': '유사 지명 후보 · 선택하면 실제 위치 조회';
+    btn.append(title,tip);
+    btn.addEventListener('click',()=>lookupForeignCity(city,query));items.append(btn);
+  });
+  el('results').style.display='block';
+}
+// 지도 검색 데이터의 위치/국가를 확인하고 해당 해외 도시의 예보를 조회.
+async function lookupForeignCity(city,query){
+  const url='https://geocoding-api.open-meteo.com/v1/search?'+new URLSearchParams({name:city.en,count:'50',language:'en',format:'json'});
+  const action=()=>lookupForeignCity(city,query);
+  const data=await requestJson(url,action,`${city.ko} (${city.en}) · 위치 확인 중… (최대 10초)`);
+  if(!data)return;
+  const places=(data.results||[])
+    .filter(p=>p.country_code===city.cc&&Number.isFinite(p.latitude)&&Number.isFinite(p.longitude))
+    .map(p=>({name:p.name,ko:city.ko,admin:[p.admin1,p.admin2].filter((v,i,a)=>v&&a.indexOf(v)===i).join(' · '),
+      country:city.countryKo,countryCode:p.country_code,latitude:p.latitude,longitude:p.longitude,timezone:p.timezone||'auto',population:p.population||0}));
+  if(!places.length){
+    showForeignSuggestions(foreignSuggestions(query),query);
+    status(`“${city.ko}”의 위치를 확인하지 못했습니다. 다른 후보나 영문 검색을 시도하세요.`,'fail');
+    return;
+  }
+  const simplified=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const target=simplified(city.en);
+  places.sort((a,b)=>{
+    const score=p=>simplified(p.name)===target?3:simplified(p.name).startsWith(target)?2:1;
+    return score(b)-score(a) || b.population-a.population;
+  });
+  // 첫 후보가 국가/도시명까지 일치해야 자동 선택. 아니라면 확인 목록 표시.
+  if(places.length===1 || (simplified(places[0].name)===target && (places.length===1 || simplified(places[1].name)!==target))){
+    return selectPlace(places[0]);
+  }
+  showResults(places.slice(0,10),query);
+  status(`“${city.ko}” 위치 후보 ${places.length}개 중 원하는 지역을 선택하세요.`);
+}
+// 목록에 없는 한글 지명에 대한 영문 음역 재검색 (정확하지 않을 수 있어 선택 확인).
+function romanizeHangul(text){
+  const initials=['g','kk','n','d','tt','r','m','b','pp','s','ss','','j','jj','ch','k','t','p','h'];
+  const vowels=['a','ae','ya','yae','eo','e','yeo','ye','o','wa','wae','oe','yo','u','wo','we','wi','yu','eu','ui','i'];
+  const finals=['','k','k','ks','n','nj','nh','t','l','lk','lm','lb','ls','lt','lp','lh','m','p','ps','t','t','ng','t','t','k','t','p','t'];
+  return Array.from(text).map(ch=>{
+    const code=ch.charCodeAt(0)-0xAC00;
+    if(code<0||code>=11172)return ch;
+    return initials[Math.floor(code/588)]+vowels[Math.floor(code%588/28)]+finals[code%28];
+  }).join('');
+}
+
+function normalizeName(name) {
+  return String(name || '').toLocaleLowerCase('ko').replace(/\s+/g,'').replace(/[·,._-]/g,'');
+}
+function matchingLocalPlaces(query) {
+  const candidates = [query, query.trim().split(/\s+/).pop()];
+  const norms = candidates.map(normalizeName);
+  return LOCAL_PLACES.filter(p => p.aliases.some(a => norms.includes(normalizeName(a))));
+}
+function placeLabel(p) { return (p.ko?p.ko+' ('+p.name+')':p.name) + (p.admin && p.admin !== '대한민국' ? ' · ' + p.admin : '') + (p.countryCode && p.countryCode !== 'KR' ? ' · ' + (p.country || p.countryCode) : ''); }
+function formatCoords(p) { return Math.abs(p.latitude).toFixed(3)+'°'+(p.latitude>=0?'N':'S')+' · '+Math.abs(p.longitude).toFixed(3)+'°'+(p.longitude>=0?'E':'W'); }
+function showResults(places, query) {
+  const wrapper=el('results'), items=el('resultItems');
+  items.replaceChildren();
+  el('resultsHead').textContent='“'+query+'” 검색 결과 · 지역을 선택하세요 ('+places.length+'개)';
+  places.forEach(p=>{
+    const btn=document.createElement('button');btn.type='button';btn.className='result';
+    const title=document.createElement('span');title.textContent=placeLabel(p);
+    const coords=document.createElement('small');coords.textContent=formatCoords(p);
+    btn.append(title,coords);btn.addEventListener('click',()=>selectPlace(p));items.appendChild(btn);
+  });
+  wrapper.style.display='block';
+}
+function hideResults(){el('results').style.display='none';el('resultItems').replaceChildren();}
+
+const wx=c=>{
+  if(c===0)return ['☀️','맑음'];
+  if([1,2].includes(c))return ['🌤️','대체로 맑음'];
+  if(c===3)return ['☁️','흐림'];
+  if([45,48].includes(c))return ['🌫️','안개'];
+  if(c>=95)return ['⛈️','뇌우'];
+  if(c>=71&&c<=86&&![80,81,82].includes(c))return ['🌨️','눈'];
+  if(c>=51&&c<=82)return ['🌧️','비 또는 소나기'];
+  return ['🌥️','기타'];
+};
+// 기상학적 풍향은 바람이 '불어오는' 방향: 0°=북풍, 90°=동풍, 180°=남풍.
+function windLabel(degrees){
+  if(!(typeof degrees==='number'&&Number.isFinite(degrees)))return '자료 없음';
+  const names=['북풍','북동풍','동풍','남동풍','남풍','남서풍','서풍','북서풍'];
+  const bearing=((degrees%360)+360)%360;
+  return names[Math.floor((bearing+22.5)/45)%8];
+}
+function renderWind(direction,speed){
+  const dirValid=typeof direction==='number'&&Number.isFinite(direction);
+  const speedValid=typeof speed==='number'&&Number.isFinite(speed)&&speed>=0;
+  const dirName=dirValid?windLabel(direction):'—';
+  const bearing=dirValid?((direction%360)+360)%360:0;
+  // 북풍(0°) ↓, 동풍(90°) ←, 남풍(180°) ↑, 서풍(270°) →.
+  // 데이터는 바람이 불어오는 방위(From)이므로 실제 이동 방향(To)은 180° 반전.
+  const travelBearing=(bearing+180)%360;
+  const directionMarkup=dirValid
+    ? `<span class="wind-arrow" aria-hidden="true" style="--wind-deg:${travelBearing.toFixed(1)}deg">↑</span>`
+    : `<span class="wind-icon" aria-hidden="true">🧭</span>`;
+  return `<div class="wind-line" aria-label="주풍향 ${dirValid?dirName:'자료 없음'}, 일 최대풍속 ${speedValid?speed.toFixed(1)+'미터 매 초':'자료 없음'}"><span class="wind-direction">${directionMarkup}${dirName}</span><span class="wind-speed"><span class="wind-icon" aria-hidden="true">💨</span><span>최대 <strong>${speedValid?speed.toFixed(1):'—'}</strong></span><span class="unit">m/s</span></span></div>`;
+}
+
+function rating(lo,hi,rain,code){
+  if([95,96,99].includes(code)||rain>=8||hi>=33||lo<=0)return ['bad','⛔ 비추천'];
+  if(rain<=1&&hi>=14&&hi<=26&&lo>=5&&![45,48].includes(code))return ['good','🚴 좋음'];
+  return ['mid','⚠️ 주의'];
+}
+function getRainScaleInfo(rainValues){
+  const finiteRain=rainValues.filter(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0);
+  const maxRain=Math.max(10,...finiteRain);
+  const scaleMax=Math.ceil(maxRain/5)*5;
+  return {finiteRain,maxRain,scaleMax};
+}
+// 14일 최대 강수량을 기준으로 10칸 눈금 생성. 0mm는 0칸, 양수는 최소 1칸.
+function rainFilledCells(value, scaleMax){
+  if(!(typeof value==='number'&&Number.isFinite(value)&&value>0))return 0;
+  return Math.min(10,Math.max(1,Math.ceil(value/scaleMax*10)));
+}
+function rainSegmentHTML(filled){
+  return Array.from({length:10},(_,i)=>`<span class="rain-segment${i<filled?' filled':''}"></span>`).join('');
+}
+function renderRainChart(d){
+  const days=d.time.slice(0,14);
+  const rainValues=days.map((_,i)=>d.precipitation_sum[i]);
+  const {scaleMax}=getRainScaleInfo(rainValues);
+  const perCell=scaleMax/10;
+  el('rainAxisMax').textContent=String(scaleMax);
+  el('rainAxisHalf').textContent=String(scaleMax/2);
+  el('rainLegend').innerHTML=`□ 빈칸 · ■ 채워진 칸 · <strong>1칸 ≈ ${perCell.toFixed(1)}mm</strong> · 전체 10칸 = ${scaleMax}mm`;
+  el('weekScale1').textContent=`1칸 ≈ ${perCell.toFixed(1)}mm`;
+  el('weekScale2').textContent=`1칸 ≈ ${perCell.toFixed(1)}mm`;
+  const weekday=['일','월','화','수','목','금','토'];
+  el('rainBars').innerHTML=days.map((dateStr,i)=>{
+    const value=rainValues[i];
+    const valid=typeof value==='number'&&Number.isFinite(value)&&value>=0;
+    const amount=valid?value.toFixed(1):'—';
+    const filled=valid?rainFilledCells(value,scaleMax):0;
+    const dow=new Date(dateStr+'T12:00:00Z').getUTCDay();
+    const cls=dow===6?'sat':dow===0?'sun':'';
+    const label=valid?amount+' mm':'자료 없음';
+    return `<div class="rain-column ${cls}" role="listitem" aria-label="${dateStr}, ${label}, 10칸 중 ${filled}칸" title="${dateStr}: ${label}" ><span class="rain-value">${amount}</span><div class="rain-segments" aria-hidden="true">${rainSegmentHTML(filled)}</div><span class="rain-day"><strong>${dateStr.slice(5).replace('-','/')}</strong>(${weekday[dow]})</span></div>`;
+  }).join('');
+}
+
+function renderForecast(json){
+  const d=json.daily;
+  if(!d||!Array.isArray(d.time)||!d.time.length)throw Error('일별 예보 데이터가 없습니다.');
+  const keys=['temperature_2m_max','temperature_2m_min','precipitation_sum','weather_code'];
+  if(keys.some(k=>!Array.isArray(d[k])))throw Error('필요한 ECMWF 일별 항목이 없습니다.');
+  const chunks=[[],[]];
+  const days=d.time.slice(0,14);
+  const rainValues=days.map((_,i)=>d.precipitation_sum[i]);
+  const {scaleMax}=getRainScaleInfo(rainValues);
+  for(let i=0;i<Math.min(14,d.time.length);i++){
+    const dateStr=d.time[i];
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(dateStr))throw Error('날짜 응답 형식이 올바르지 않습니다.');
+    const hi=d.temperature_2m_max[i],lo=d.temperature_2m_min[i],rain=d.precipitation_sum[i],code=d.weather_code[i];
+    const windDir=Array.isArray(d.wind_direction_10m_dominant)?d.wind_direction_10m_dominant[i]:null;
+    const windMax=Array.isArray(d.wind_speed_10m_max)?d.wind_speed_10m_max[i]:null;
+    const valid=[hi,lo,rain,code].every(v=>typeof v==='number'&&Number.isFinite(v));
+    const day=new Date(dateStr+'T12:00:00Z').getUTCDay(),cls=day===6?'sat':day===0?'sun':'';
+    const [emoji,desc]=valid?wx(code):['❔','확인 불가'];
+    const [rcls,rtxt]=valid?rating(lo,hi,rain,code):['mid','판정 불가'];
+    const rainValid=typeof rain==='number'&&Number.isFinite(rain)&&rain>=0;
+    const rainAmount=rainValid?rain.toFixed(1):'—';
+    const filled=rainValid?rainFilledCells(rain,scaleMax):0;
+    chunks[i<7?0:1].push(`<article class="day ${cls}"><div class="head"><div class="head-main"><span class="date">${dateStr.slice(5)} (${['일','월','화','수','목','금','토'][day]})</span><p class="desc"><span class="desc-emoji" aria-hidden="true">${emoji}</span>${desc}</p></div><div class="rain-mini" aria-label="일강수량 ${rainAmount}mm, 10칸 중 ${filled}칸"><div class="rain-mini-track" aria-hidden="true">${rainSegmentHTML(filled)}</div><span class="rain-mini-value">${rainAmount}</span><span class="rain-mini-unit">mm</span></div></div><div class="temps"><span class="high">최고 ${valid?hi.toFixed(1):'—'}°</span> / <span class="low">최저 ${valid?lo.toFixed(1):'—'}°</span></div><p class="rain-line">강수량 ${rainAmount} mm</p>${renderWind(windDir,windMax)}<span class="rating ${rcls}">${rtxt}</span></article>`);
+  }
+  el('week1').innerHTML=chunks[0].join('');
+  el('week2').innerHTML=chunks[1].join('');
+  renderRainChart(d);
+  el('weeks').style.display='block';
+  return Math.min(14,d.time.length);
+}
+
+function buildForecastUrl(p){
+  const params=new URLSearchParams({
+    latitude:String(p.latitude),longitude:String(p.longitude),models:'ecmwf_ifs',
+    daily:'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,wind_direction_10m_dominant',
+    wind_speed_unit:'ms',
+    forecast_days:'14',timezone:p.timezone || 'auto'
+  });
+  return 'https://api.open-meteo.com/v1/forecast?'+params.toString();
+}
+let selectedPlace=LOCAL_PLACES[0], activeController=null, retryAction=null, operationId=0;
+function hideDialog(){el('retryDialog').classList.remove('open');}
+function showDialog(message){el('dialogDesc').textContent=message;el('retryDialog').classList.add('open');}
+function setBusy(busy){el('retry').disabled=busy;el('searchButton').disabled=busy;}
+
+async function requestJson(url, action, loadingText){
+  if(activeController)activeController.abort();
+  hideDialog();setBusy(true);status(loadingText);
+  const controller=new AbortController();activeController=controller;
+  const thisOperation=++operationId;let timedOut=false;
+  const timer=setTimeout(()=>{timedOut=true;controller.abort();},10000);
+  retryAction=action;
+  try{
+    const response=await fetch(url,{signal:controller.signal,cache:'no-store'});
+    if(!response.ok)throw Error('HTTP '+response.status);
+    const data=await response.json();
+    if(controller.signal.aborted || thisOperation!==operationId)return null;
+    return data;
+  }catch(error){
+    if(thisOperation!==operationId)return null;
+    const detail=timedOut?'10초 안에 서버 응답이 완료되지 않았습니다. 다시 시도하시겠습니까?':
+      '외부 날씨 서버에 연결하지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도하시겠습니까?';
+    status(timedOut?'⏱️ 10초 초과 — 데이터 수신 실패':'⚠️ 데이터 수신 실패 — 다시 시도 가능','fail');
+    showDialog(detail);
+    return null;
+  }finally{
+    clearTimeout(timer);
+    if(thisOperation===operationId){activeController=null;setBusy(false);}
+  }
+}
+
+async function selectPlace(place){
+  selectedPlace=place;hideResults();
+  el('placeInput').value=place.ko || place.name;
+  el('location').textContent='📍 '+placeLabel(place);
+  el('locationDetails').textContent=formatCoords(place)+' · ECMWF IFS 단독 · 오늘부터 14일 · '+(place.timezone || '현지시간');
+  el('weeks').style.display='none';
+  const url=buildForecastUrl(place);
+  el('source').href=url;
+  const action=()=>selectPlace(place);
+  const json=await requestJson(url,action,placeLabel(place)+' · ECMWF IFS 예보 조회 중… (최대 10초)');
+  if(!json)return;
+  try{
+    const count=renderForecast(json);
+    status('✅ '+placeLabel(place)+' · '+count+'일 예보 조회 완료','ok');
+  }catch(error){
+    status('⚠️ 수신 데이터에 오류가 있어 예보를 표시하지 못했습니다.','fail');
+    retryAction=action;
+    showDialog('기상 데이터 형식이 올바르지 않습니다. 다시 시도하시겠습니까?');
+  }
+}
+
+async function searchPlace(query){
+  const name=query.trim();
+  if(!name){status('지역 이름을 입력해 주세요.','fail');el('placeInput').focus();return;}
+  hideResults();
+  const locals=matchingLocalPlaces(name);
+  if(locals.length===1)return selectPlace(locals[0]);
+  if(locals.length>1){showResults(locals,name);status('동명이 지역이 있습니다. 정확한 지역을 선택하세요.');return;}
+  // 한국어로 알려진 외국 도시 이름/통용 별칭/부분 검색/오타(1~2글자 차이) 추천.
+  const guesses=foreignSuggestions(name);
+  if(guesses.length){
+    showForeignSuggestions(guesses,name);
+    status(`“${name}”과(와) 일치하거나 비슷한 해외 도시 ${guesses.length}개를 찾았습니다. 목록에서 선택하세요.`,'ok');
+    return;
+  }
+  const action=()=>searchPlace(name);
+  async function geocode(lookup,language){
+    const api='https://geocoding-api.open-meteo.com/v1/search?'+new URLSearchParams({name:lookup,count:'15',language,format:'json'});
+    const data=await requestJson(api,action,`“${name}” 지역 검색 중… (최대 10초)`);
+    return data;
+  }
+  // API 자체의 한국어 검색을 먼저 사용합니다.
+  let json=await geocode(name,'ko');
+  if(!json)return;
+  let places=(json.results||[]).filter(p=>Number.isFinite(p.latitude)&&Number.isFinite(p.longitude));
+  // API가 한국어 지명을 모르는 경우, 영문 음역을 시도합니다. 음역은 추정치입니다.
+  let fallback=false;
+  if(!places.length && /[가-힣]/.test(name)){
+    const romanized=romanizeHangul(name);
+    if(romanized && romanized!==name){
+      json=await geocode(romanized,'en');
+      if(!json)return;
+      places=(json.results||[]).filter(p=>Number.isFinite(p.latitude)&&Number.isFinite(p.longitude));
+      fallback=true;
+    }
+  }
+  places=places.map(p=>({name:p.name,admin:[p.admin1,p.admin2].filter((v,i,a)=>v&&a.indexOf(v)===i).join(' · '),
+    country:p.country,countryCode:p.country_code,latitude:p.latitude,longitude:p.longitude,timezone:p.timezone||'auto',population:p.population||0}));
+  if(!places.length){
+    status(`“${name}” 검색 결과가 없습니다. 한글 표기를 조금 바꾸거나 도시의 영문 이름을 입력해 주세요.`,'fail');
+    return;
+  }
+  places.sort((a,b)=>Number(b.countryCode==='KR')-Number(a.countryCode==='KR') || b.population-a.population);
+  // 자동 음역은 실제 검색 의도와 다를 수 있어 반드시 후보를 표시합니다.
+  if(places.length===1 && !fallback)return selectPlace(places[0]);
+  showResults(places.slice(0,10),name);
+  status(fallback?`“${name}”의 영문 음역으로 유사 후보를 찾았습니다. 국가/좌표를 확인 후 선택하세요.`:
+    `“${name}” 지역 검색 완료 · 아래 목록에서 지역을 선택하세요.`);
+}
+
+// 입력 중에도 해외 도시 유사 후보를 즉시 제시 (추가 API 요청 없음).
+el('placeInput').addEventListener('input',()=>{
+  const q=el('placeInput').value.trim();
+  if(!q||!/[가-힣]/.test(q)){hideResults();return;}
+  // 기존 국내 정확 일치 도시는 빠른 검색 흐름을 방해하지 않습니다.
+  if(matchingLocalPlaces(q).length)return;
+  const matches=foreignSuggestions(q);
+  if(matches.length)showForeignSuggestions(matches,q,true);
+  else hideResults();
+});
+el('searchForm').addEventListener('submit',event=>{event.preventDefault();searchPlace(el('placeInput').value);});
+document.querySelectorAll('[data-place]').forEach(button=>button.addEventListener('click',()=>{
+  el('placeInput').value=button.dataset.place;searchPlace(button.dataset.place);
+}));
+el('retry').addEventListener('click',()=>selectPlace(selectedPlace));
+el('dismiss').addEventListener('click',hideDialog);
+el('retryDialogButton').addEventListener('click',()=>{if(retryAction)retryAction();});
+// 첫 실행은 기존 파일과 동일하게 고흥군으로 자동 조회.
+selectPlace(selectedPlace);
+</script>
+</body>
+</html>
