@@ -200,6 +200,15 @@
     .radar-slider-area{flex:1;min-width:0;padding:0 8px}
     #radarTime{width:100%;height:23px;min-height:23px;margin:8px 0 4px;padding:0;accent-color:#e7a108}
     .radar-scale{font-size:12px;display:flex;justify-content:space-between;color:#fff}
+    /* 참고 이미지처럼 예보·관측 모두 한 줄 수치 + 얇은 가로 색상 막대로 통일 */
+    .radar-horizontal-legend{width:100%;margin:0;padding:0;border:0;box-shadow:none;overflow:hidden}
+    .radar-horizontal-legend .radar-legend-values{display:grid;align-items:center;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);column-gap:2px;padding:7px 12px 5px;line-height:1.1;white-space:nowrap;font-size:clamp(10px,2.6vw,13px);font-weight:500;text-align:center}
+    .radar-horizontal-legend .radar-legend-values>span:first-child{white-space:nowrap;text-align:left;font-weight:650}
+    .radar-horizontal-legend .radar-gradient,
+    .radar-horizontal-legend .radar-forecast-gradient{height:15px;border-radius:0;width:100%;display:block}
+    .radar-horizontal-legend .radar-gradient{background:linear-gradient(90deg,#28139b 0%,#4032b4 16%,#1380c9 31%,#06bdad 46%,#35cb6b 56%,#bcdf32 67%,#f3d62e 77%,#f28d32 86%,#dc3e52 94%,#b52269 100%)}
+    .radar-horizontal-legend .radar-forecast-gradient{background:linear-gradient(90deg,#28139b 0%,#1956b6 17%,#00a8cf 35%,#13c2a1 46%,#3bcc69 55%,#b5d834 66%,#f3d329 77%,#ee8730 88%,#bf2a62 100%)}
+    @media(max-width:460px){.radar-horizontal-legend .radar-legend-values{padding:6px 8px 4px;font-size:10px;column-gap:1px}.radar-horizontal-legend .radar-legend-values>span:first-child{font-size:9px}.radar-horizontal-legend .radar-gradient,.radar-horizontal-legend .radar-forecast-gradient{height:14px}}
     .radar-color-legend{background:#392a7e;color:white}
     .radar-legend-values{display:flex;justify-content:space-between;align-items:center;padding:5px 12px 1px;font-size:12px}
     .radar-gradient{height:20px;background:linear-gradient(90deg,#30169b,#4433ba,#1476be,#02bbaa,#1dce62,#b9e338,#f4d528,#fa9c2e,#e74849,#bb1758)}
@@ -268,11 +277,11 @@
           </div>
           <button id="radarMore" type="button" aria-expanded="false" aria-controls="radarLayerOptions" aria-label="레이더 레이어 설정">⋮</button>
         </div>
-        <div class="radar-color-legend" id="radarDbzLegend" aria-label="관측 강수 레이더 반사도 색상 범례">
+        <div class="radar-color-legend radar-horizontal-legend" id="radarDbzLegend" aria-label="실제 강수 관측 dBZ 가로 색상 범례">
           <div class="radar-legend-values"><span>dBZ</span><span>0</span><span>20</span><span>30</span><span>40</span><span>50</span><span>60</span></div>
           <div class="radar-gradient"></div>
         </div>
-        <div class="radar-color-legend radar-forecast-legend" id="radarForecastLegend" hidden>
+        <div class="radar-color-legend radar-forecast-legend radar-horizontal-legend" id="radarForecastLegend" hidden>
           <div class="radar-legend-values"><span>예보 강수 mm/h</span><span>0</span><span>0.5</span><span>2</span><span>5</span><span>10+</span></div>
           <div class="radar-forecast-gradient"></div>
         </div>
