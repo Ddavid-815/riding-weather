@@ -192,13 +192,19 @@
     .radar-time-tag span{font-size:16px;font-weight:750}.radar-time-tag strong{font-size:12px;margin-left:9px;font-weight:600}
     .radar-controls{display:flex;gap:0;margin:0;background:#36383de8;align-items:center;color:#fff;min-height:76px}
     .radar-controls button{background:transparent;border-radius:0;color:white;min-height:68px;flex:0 0 62px;font-size:27px;padding:5px}
-    .radar-controls button#radarMore{font-size:34px;flex-basis:45px}
+    .radar-controls button#radarMore{font-size:27px;flex:0 0 42px}
+    #radarPlay{flex:0 0 54px!important;width:54px;min-width:54px;max-width:54px;padding:0!important;display:flex;align-items:center;justify-content:center;white-space:nowrap;font-size:21px!important;line-height:1!important;overflow:hidden;word-break:normal}
+    #radarPlay .radar-play-glyph{display:block;font-size:21px;line-height:1;letter-spacing:0;writing-mode:horizontal-tb;white-space:nowrap}
+    .radar-controls{min-width:0}
+    .radar-slider-area{min-width:0;overflow:hidden}
     .radar-slider-area{flex:1;min-width:0;padding:0 8px}
     #radarTime{width:100%;height:23px;min-height:23px;margin:8px 0 4px;padding:0;accent-color:#e7a108}
     .radar-scale{font-size:12px;display:flex;justify-content:space-between;color:#fff}
     .radar-color-legend{background:#392a7e;color:white}
     .radar-legend-values{display:flex;justify-content:space-between;align-items:center;padding:5px 12px 1px;font-size:12px}
     .radar-gradient{height:20px;background:linear-gradient(90deg,#30169b,#4433ba,#1476be,#02bbaa,#1dce62,#b9e338,#f4d528,#fa9c2e,#e74849,#bb1758)}
+    .radar-forecast-legend{background:#334050}
+    .radar-forecast-gradient{height:17px;background:linear-gradient(90deg,#758aa4,#1554ac,#00a9ce,#31c65e,#f0d52d,#eb7832,#bd235a)}
     .radar-cloud-legend{background:#344258}
     .radar-cloud-gradient{height:16px;background:linear-gradient(90deg,#6b7c8f00,#a9bac577,#afc0d0aa,#a4bdcee0,#7ba8d1)}
     .radar-options-compact{margin:8px 4px 0;gap:8px 14px}
@@ -255,7 +261,7 @@
       <div class="radar-bottom-stack">
         <div class="radar-time-tag"><span id="radarClock">시간 확인 중…</span><strong id="radarOffset">현재</strong></div>
         <div class="radar-controls">
-          <button id="radarPlay" type="button" disabled aria-label="7시간 이동 재생">▶</button>
+          <button id="radarPlay" type="button" disabled aria-label="7시간 이동 재생"><span class="radar-play-glyph" aria-hidden="true">▶</span></button>
           <div class="radar-slider-area">
             <input id="radarTime" type="range" min="-3" max="3" step="0.25" value="0" disabled aria-label="현재 기준 앞뒤 3시간 선택">
             <div class="radar-scale"><span>3h ago</span><span>현재</span><span>Next 3h</span></div>
@@ -266,6 +272,10 @@
           <div class="radar-legend-values"><span>dBZ</span><span>0</span><span>20</span><span>30</span><span>40</span><span>50</span><span>60</span></div>
           <div class="radar-gradient"></div>
         </div>
+        <div class="radar-color-legend radar-forecast-legend" id="radarForecastLegend" hidden>
+          <div class="radar-legend-values"><span>예보 강수 mm/h</span><span>0</span><span>0.5</span><span>2</span><span>5</span><span>10+</span></div>
+          <div class="radar-forecast-gradient"></div>
+        </div>
         <div class="radar-color-legend radar-cloud-legend" id="radarCloudLegend" hidden>
           <div class="radar-legend-values"><span>ECMWF 구름량</span><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
           <div class="radar-cloud-gradient"></div>
@@ -273,12 +283,12 @@
       </div>
     </div>
     <div id="radarLayerOptions" class="radar-options radar-options-compact">
-      <label><input id="radarCloudToggle" type="checkbox" checked> ☁ ECMWF 구름 예측</label>
-      <label><input id="radarRainToggle" type="checkbox" checked> 🌧 실제 강수 관측</label>
+      <label><input id="radarCloudToggle" type="checkbox" checked> ECMWF 예보 강수·구름</label>
+      <label><input id="radarRainToggle" type="checkbox" checked> 과거 실제 강수 레이더</label>
     </div>
     <div id="radarDetails" class="radar-details">예보 구름 분포와 강수확률을 조회합니다.</div>
     <div id="radarObservation" class="radar-observation">관측 레이더를 확인하는 중입니다.</div>
-    <p class="radar-note">레이더 색상 범례(dBZ)는 RainViewer의 <strong>실제 강수 관측</strong>에만 해당합니다. ECMWF 구름은 독립적인 예보 레이어이며 별도 구름량 범례를 사용합니다. 미래 시점에는 실제 레이더가 제공되지 않습니다. 구름·강수확률과 15분 중간 프레임은 예측·보간 자료입니다.</p>
+    <p class="radar-note">과거 관측이 있는 시점은 RainViewer 레이더(dBZ), 미래는 ECMWF 기반 <strong>예보 강수 지도(mm/h)</strong>를 연속된 컬러 레이어로 표시합니다. 미래 영상은 실제 관측 레이더가 아닙니다. ECMWF 구름량은 배경으로 중첩하며 15분 중간 프레임은 예보값 사이를 보간한 것입니다.</p>
   </section>
 
   <section id="weeks" aria-label="14일 예보">
@@ -831,7 +841,7 @@ let radarRasterCache=new Map();
 
 function radarPause(){
  if(radarPlayback!==null){clearInterval(radarPlayback);radarPlayback=null;}
- el('radarPlay').textContent='▶ 재생';
+ el('radarPlay').innerHTML='<span class="radar-play-glyph" aria-hidden="true">▶</span>';
  el('radarPlay').setAttribute('aria-label','7시간 구름 이동 재생');
 }
 function radarClockLabel(timestamp,place){
@@ -943,24 +953,35 @@ function radarRasterPixels(samples,width=256,height=256){
    const gx=x/(width-1)*max,col=Math.min(max-1,Math.floor(gx)),tx=gx-col;
    const ids=[row*grid+col,row*grid+col+1,(row+1)*grid+col,(row+1)*grid+col+1];
    const ws=[(1-tx)*(1-ty),tx*(1-ty),(1-tx)*ty,tx*ty];
-   let weightCloud=0,cloud=0,weightProb=0,prob=0;
+   let weightCloud=0,cloud=0,weightProb=0,prob=0,weightRain=0,rain=0;
    for(let k=0;k<4;k++){
     const value=samples[ids[k]];
     if(value&&Number.isFinite(value.cloud)){weightCloud+=ws[k];cloud+=ws[k]*value.cloud;}
     if(value&&Number.isFinite(value.prob)){weightProb+=ws[k];prob+=ws[k]*value.prob;}
+    if(value&&Number.isFinite(value.rain)){weightRain+=ws[k];rain+=ws[k]*value.rain;}
    }
    if(!weightCloud)continue;
    cloud=Math.max(0,Math.min(100,cloud/weightCloud));
    prob=weightProb?Math.max(0,Math.min(100,prob/weightProb)):0;
-   // 흰 회색 계열=예측 구름량, 옅은 청색 계열=앙상블 강수확률이 높은 구역.
-   const wet=Math.max(0,Math.min(1,(prob-20)/65));
+   // 구름은 회색 반투명, 예보 강수량은 레이더형 색상 띠로 구분합니다.
    const coverage=Math.max(0,Math.min(1,(cloud-8)/85));
-   const alpha=Math.round(Math.min(185,Math.pow(coverage,1.18)*153+wet*43));
+   const rainfall=weightRain?Math.max(0,rain/weightRain):0;
+   const chance=Math.max(0,Math.min(1,prob/100));
    const i=(y*width+x)*4;
-   pixels[i]=Math.round(219*(1-wet)+70*wet);
-   pixels[i+1]=Math.round(228*(1-wet)+145*wet);
-   pixels[i+2]=Math.round(236*(1-wet)+215*wet);
-   pixels[i+3]=alpha;
+   let rgba=[176,194,207,Math.round(coverage*91)];
+   if(rainfall>=0.1){
+    const bands=[
+     [0.1,[51,99,193]],[0.5,[12,164,194]],[1.5,[31,191,93]],
+     [3,[208,219,44]],[5,[240,153,42]],[10,[208,59,53]],[20,[160,39,112]]
+    ];
+    let rgb=bands[0][1];
+    for(const [threshold,color] of bands)if(rainfall>=threshold)rgb=color;
+    rgba=[rgb[0],rgb[1],rgb[2],Math.round(Math.min(225,135+Math.log1p(rainfall)*43))];
+   }else if(chance>=.25 && coverage>.15){
+    // 비가 시작되지 않은 구름도 낮은 불투명도의 청록 계열로 표시합니다.
+    rgba=[105,154,187,Math.round(coverage*(75+chance*44))];
+   }
+   pixels[i]=rgba[0];pixels[i+1]=rgba[1];pixels[i+2]=rgba[2];pixels[i+3]=rgba[3];
   }
  }
  return pixels;
@@ -1015,20 +1036,6 @@ function radarFrameDraw(){
  });
  // 원형 격자 마커 대신 공간 보간된 단일 반투명 래스터 레이어를 표시합니다.
  radarRenderCloudImage(target,cloudOn);
- if(cloudOn && radarPoints.length===RADAR_GRID_SIZE*RADAR_GRID_SIZE){
-  // 확률 숫자는 겹치지 않도록 격자 중심 부근의 최대 9개 지점에만 표시합니다.
-  for(let row=1;row<=3;row++)for(let col=1;col<=3;col++){
-   const index=row*RADAR_GRID_SIZE+col,point=radarPoints[index];
-   const data=radarSample(point.data,target);
-   if(!data || data.prob===null || data.prob<15)continue;
-   leaflet.marker([point.latitude,point.longitude],{
-    icon:leaflet.divIcon({className:'radar-prob-marker',
-     html:'<span class="radar-cloud-symbol"><span class="radar-rain-label">🌧 '+Math.round(data.prob)+'%</span></span>',
-     iconSize:[68,25],iconAnchor:[34,12]}),
-    interactive:false,keyboard:false,zIndexOffset:240
-   }).addTo(radarCloudLayer);
-  }
- }
  let meanCloud=null,meanProb=null,meanRain=null;
  if(stats.length){
   const average=key=>{
@@ -1049,7 +1056,7 @@ function radarFrameDraw(){
  const radarText=!el('radarRainToggle').checked?'강수 레이더 표시를 껐습니다.':
    actualFrame?'실제 강수 레이더 관측: '+radarClockLabel(actualFrame.time*1000,radarDisplayedPlace)+
      ' (선택 시점과 수 분 차이 가능)':
-   radarOffset>0?'미래 시간대는 실제 레이더가 없으므로 ECMWF 구름 예측만 표시합니다.':
+   radarOffset>0?'미래는 ECMWF 예보 강수 영상(mm/h)입니다. 실제 레이더 관측이 아닙니다.':
    '선택한 시각의 실제 레이더 관측 영상이 없습니다 (무료 API 약 2시간 이내).';
  el('radarObservation').textContent=radarText;
  radarUpdateLegend();
@@ -1160,7 +1167,8 @@ function radarUpdateLegend(){
  const actual=el('radarRainToggle').checked && radarOffset<=0 &&
   !!radarSelectObservedFrame(radarBaseHour+radarOffset*3600000);
  el('radarDbzLegend').hidden=!actual;
- el('radarCloudLegend').hidden=actual||!cloud;
+ el('radarForecastLegend').hidden=actual||!cloud;
+ el('radarCloudLegend').hidden=true;
 }
 function radarInitControls(){
  el('radarTime').addEventListener('input',()=>{
@@ -1171,7 +1179,7 @@ function radarInitControls(){
  el('radarPlay').addEventListener('click',()=>{
   if(radarPlayback!==null){radarPause();return;}
   if(!radarPoints.length)return;
-  el('radarPlay').textContent='Ⅱ 일시정지';
+  el('radarPlay').innerHTML='<span class="radar-play-glyph" aria-hidden="true">Ⅱ</span>';
   el('radarPlay').setAttribute('aria-label','구름 이동 재생 일시정지');
   if(radarOffset>=3)radarOffset=-3;
   else if(radarOffset===0)radarOffset=-3;
