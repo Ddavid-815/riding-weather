@@ -131,7 +131,37 @@
     .hour-wind .wind-arrow{font-size:15px}
     .hour-foot{margin:0;padding:11px 18px;color:#64748b;font-size:12px;line-height:1.6;border-top:1px solid #e2e8f0}
     @media(max-width:460px){.hourly-overlay{padding:6px}.hour-dialog{border-radius:13px;max-height:calc(100dvh - 12px)}.hour-dialog-head{padding:13px 13px 9px}.hour-summary,.hour-foot{padding:10px 13px}.hour-dialog-head h2{font-size:17px}.hour-table th,.hour-table td{padding:9px 7px}}
+
+    /* ECMWF 구름 격자 + RainViewer 과거 강수 레이더 지도 */
+    .radar-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .radar-heading h2{margin:0}
+    .radar-heading .muted{margin:6px 0 10px}
+    .radar-heading button{min-height:38px;padding:8px 12px}
+    .radar-status{font-size:13px;line-height:1.5;color:#45627e;margin:3px 0 9px;min-height:18px}
+    #weatherRadarMap{height:360px;min-height:260px;background:#e9f1fb;border:1px solid #d3deed;border-radius:12px;overflow:hidden;z-index:0}
+    .radar-map-fallback{font-size:13px;color:#62758c;text-align:center;padding:90px 12px}
+    .radar-controls{display:flex;align-items:center;gap:12px;margin-top:12px}
+    .radar-controls button{flex:0 0 80px}
+    .radar-slider-area{flex:1;min-width:0}
+    .radar-time-row{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:#274d79;margin-bottom:4px}
+    .radar-time-row span{font-size:12px;color:#566f89;white-space:nowrap}
+    #radarTime{width:100%;max-width:none;display:block;padding:0;margin:7px 0;accent-color:#2372bb;height:22px;min-height:22px;cursor:pointer}
+    .radar-scale{display:flex;justify-content:space-between;color:#66798d;font-size:11px}
+    .radar-options{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:12px}
+    .radar-options label{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#3c5976;cursor:pointer}
+    .radar-options input{accent-color:#2372bb;width:16px;height:16px}
+    .radar-details{margin-top:12px;padding:10px 12px;border-radius:10px;background:#eaf3fd;color:#284d72;font-size:13px;line-height:1.7}
+    .radar-observation{font-size:12px;color:#62758a;line-height:1.6;margin:7px 0}
+    .radar-note{color:#65758a;font-size:12px;line-height:1.65;margin:10px 0 0}
+    .radar-cloud-symbol{display:flex;align-items:center;gap:3px;width:max-content;pointer-events:none;filter:drop-shadow(0 1px 2px #223e5a40)}
+    .radar-cloud-icon{font-size:24px;line-height:1;opacity:var(--cloud-alpha,.85)}
+    .radar-rain-label{font-size:10px;line-height:1.3;font-weight:800;color:#fff;background:#176cad;border-radius:5px;padding:3px 4px;white-space:nowrap}
+    .radar-center-dot{width:13px;height:13px;border:3px solid white;border-radius:50%;background:#f26d3d;box-shadow:0 0 0 2px #e65a30,0 1px 7px #0005}
+    .radar-map-legend{background:#fffdf1df;padding:5px 8px;border-radius:7px;font-size:11px;color:#304b67;box-shadow:0 1px 6px #0003}
+    @media(max-width:460px){#weatherRadarMap{height:300px}.radar-controls{gap:8px}.radar-controls button{flex-basis:67px;padding:8px}.radar-heading button{font-size:12px}.radar-rain-label{font-size:9px}.radar-cloud-icon{font-size:21px}}
+
   </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body>
 <main>
@@ -161,6 +191,34 @@
       <button id="retry" type="button">↻ 현재 지역 다시 조회</button>
       <a class="link secondary" id="source" href="https://open-meteo.com/en/docs/ecmwf-api" target="_blank" rel="noopener noreferrer">↗ ECMWF 원본 데이터 확인</a>
     </div>
+  </section>
+
+
+  <section class="panel" aria-labelledby="radarTitle" id="radarPanel">
+    <div class="radar-heading">
+      <div><h2 id="radarTitle">🛰️ 구름 이동 · 강수 레이더</h2>
+        <p class="muted">현재 기준 앞뒤 3시간 · ECMWF 구름량 예측 + RainViewer 과거 강수 관측</p></div>
+      <button id="radarRefresh" type="button" class="secondary">↻ 지도 갱신</button>
+    </div>
+    <div id="radarStatus" class="radar-status" role="status" aria-live="polite">선택된 지역의 구름·강수 자료를 준비 중입니다.</div>
+    <div id="weatherRadarMap" role="region" aria-label="지역별 구름 예측 및 관측 강수 레이더 지도">
+      <p class="radar-map-fallback">지도를 불러오는 중입니다. 인터넷 연결을 확인해 주세요.</p>
+    </div>
+    <div class="radar-controls">
+      <button id="radarPlay" type="button" class="secondary" disabled aria-label="7시간 구름 이동 재생">▶ 재생</button>
+      <div class="radar-slider-area">
+        <div class="radar-time-row"><strong id="radarOffset">현재</strong><span id="radarClock">시간 확인 중…</span></div>
+        <input id="radarTime" type="range" min="-3" max="3" step="1" value="0" disabled aria-label="현재 기준 마이너스 3시간부터 플러스 3시간까지 선택">
+        <div class="radar-scale"><span>−3시간</span><span>현재</span><span>+3시간</span></div>
+      </div>
+    </div>
+    <div class="radar-options">
+      <label><input id="radarCloudToggle" type="checkbox" checked> ☁️ ECMWF 구름 예측</label>
+      <label><input id="radarRainToggle" type="checkbox" checked> 🌧️ 실제 강수 레이더 (과거만)</label>
+    </div>
+    <div id="radarDetails" class="radar-details">구름 이동 예측과 강수 확률을 표시합니다.</div>
+    <div id="radarObservation" class="radar-observation">RainViewer 관측 자료를 확인하는 중입니다.</div>
+    <p class="radar-note">구름은 ECMWF 격자점 구름량을 원형으로 시각화한 <strong>예측 지도</strong>이며 위성영상이 아닙니다. 구름의 분포 변화로 이동 방향을 참고할 수 있지만 실제 개별 구름의 이동 경로는 아닙니다. 🌧️ 표시의 숫자는 해당 위치·시간대의 예보 강수확률이며, 값이 없는 경우 표시하지 않습니다. <strong>실제 레이더는 과거 약 2시간</strong>만 지원하고 미래 3시간의 레이더 관측은 존재하지 않습니다. 지도 © OpenStreetMap, 레이더 © RainViewer.</p>
   </section>
 
   <section id="weeks" aria-label="14일 예보">
@@ -226,6 +284,7 @@
   </section>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 'use strict';
 const el = id => document.getElementById(id);
