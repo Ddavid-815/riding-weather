@@ -166,7 +166,6 @@
     <div id="results" class="results" aria-label="지역 검색 결과"><div class="results-head" id="resultsHead">지역을 선택하세요</div><div id="resultItems"></div></div>
     <div id="status" class="status compact-status" role="status" aria-live="polite">현재 위치 및 예보를 확인 중입니다.</div>
     <div class="compact-actions">
-      <button id="retry" type="button" class="secondary">↻ 다시 조회</button>
       <a class="link secondary" id="source" href="https://open-meteo.com/en/docs/ecmwf-api" target="_blank" rel="noopener noreferrer">↗ 예보 원본</a>
     </div>
   </section>
@@ -548,7 +547,7 @@ let forecastTimeZone=null, forecastUtcOffsetSeconds=null;
 let locationSelectionSerial=0, locationRequestSerial=0;
 function hideDialog(){el('retryDialog').classList.remove('open');}
 function showDialog(message){el('dialogDesc').textContent=message;el('retryDialog').classList.add('open');}
-function setBusy(busy){el('retry').disabled=busy;el('searchButton').disabled=busy;}
+function setBusy(busy){el('searchButton').disabled=busy;}
 
 function hourlyValue(data,key,i){
  const v=Array.isArray(data[key])?data[key][i]:null;
@@ -932,7 +931,6 @@ document.querySelectorAll('[data-place]').forEach(button=>button.addEventListene
   el('placeInput').value=button.dataset.place;searchPlace(button.dataset.place);
 }));
 el('currentLocationButton').addEventListener('click',()=>{locationSelectionSerial++;locateCurrentWeather();});
-el('retry').addEventListener('click',()=>selectPlace(selectedPlace));
 el('dismiss').addEventListener('click',hideDialog);
 el('retryDialogButton').addEventListener('click',()=>{if(retryAction)retryAction();});
 initHourlyModalEvents();
