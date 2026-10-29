@@ -103,25 +103,26 @@
 <main>
   <header class="hero">
     <h1>🌤️ 지역별 ECMWF 14일 라이딩 예보</h1>
-    <div class="location" id="location">📍 기본 지역: 고흥군</div>
+    <div class="location" id="location">📍 현재 위치 확인 준비 중…</div>
     <small id="locationDetails">ECMWF IFS 단독 · 오늘부터 14일 · 한국시간(KST)</small>
   </header>
 
   <section class="panel" aria-labelledby="searchTitle">
     <h2 id="searchTitle">🔎 지역 이름으로 검색</h2>
     <form id="searchForm" autocomplete="off">
-      <input id="placeInput" name="place" type="search" aria-label="날씨를 조회할 지역 이름" placeholder="예: 고흥, 경주, 서울, 제주" value="고흥" enterkeyhint="search" maxlength="90" required>
+      <input id="placeInput" name="place" type="search" aria-label="날씨를 조회할 지역 이름" placeholder="예: 고흥, 경주, 서울, 제주" value="" enterkeyhint="search" maxlength="90" required>
       <button id="searchButton" type="submit">날씨 검색</button>
     </form>
+    <p class="muted">처음 접속하면 브라우저 위치 권한을 요청합니다. 허용 시 현재 위치 기준으로 예보를 조회합니다. 위치 권한을 허용하지 않아도 도시를 검색해 이용할 수 있습니다.</p>
     <p class="muted">해외 도시도 한글로 검색할 수 있습니다. 예: 런던, 파리, 비엔나, 뉴욕, 도쿄. 일부 오타·부분 입력은 유사 지명 후보를 제시하며, 원하는 도시를 선택하면 실제 위치를 확인합니다.</p>
-    <div class="quick"><strong>빠른 선택</strong><button type="button" data-place="고흥">고흥</button><button type="button" data-place="경주">경주</button><button type="button" data-place="광양">광양</button><button type="button" data-place="고창">고창</button><button type="button" data-place="제주">제주</button></div>
+    <div class="quick"><strong>빠른 선택</strong><button type="button" id="currentLocationButton" aria-label="현재 위치의 날씨 다시 조회">📍 현재 위치</button><button type="button" data-place="고흥">고흥</button><button type="button" data-place="경주">경주</button><button type="button" data-place="광양">광양</button><button type="button" data-place="고창">고창</button><button type="button" data-place="제주">제주</button></div>
     <div id="results" class="results" aria-label="지역 검색 결과"><div class="results-head" id="resultsHead">지역을 선택하세요</div><div id="resultItems"></div></div>
   </section>
 
   <section class="panel" aria-labelledby="forecastTitle">
     <h2 id="forecastTitle">예보 데이터 불러오기</h2>
     <p class="muted">검색한 지역의 ECMWF IFS 기상예보를 조회합니다. 풍향과 풍속은 10m 높이의 주풍향 및 일 최대풍속(m/s)입니다. 네트워크 요청이 10초 동안 완료되지 않으면 재시도 알림이 표시됩니다.</p>
-    <div id="status" class="status" role="status" aria-live="polite">고흥의 예보를 자동 조회합니다.</div>
+    <div id="status" class="status" role="status" aria-live="polite">현재 위치 확인을 시작합니다. 브라우저에서 위치 접근을 허용해 주세요.</div>
     <div class="actions">
       <button id="retry" type="button">↻ 현재 지역 다시 조회</button>
       <a class="link secondary" id="source" href="https://open-meteo.com/en/docs/ecmwf-api" target="_blank" rel="noopener noreferrer">↗ ECMWF 원본 데이터 확인</a>
@@ -458,6 +459,8 @@ function buildForecastUrl(p){
   return 'https://api.open-meteo.com/v1/forecast?'+params.toString();
 }
 let selectedPlace=LOCAL_PLACES[0], activeController=null, retryAction=null, operationId=0;
+// 사용자가 직접 검색/지역 선택을 시작하면 대기 중인 자동 위치 탐지 결과로 덮어쓰지 않습니다.
+let locationSelectionSerial=0, locationRequestSerial=0;
 function hideDialog(){el('retryDialog').classList.remove('open');}
 function showDialog(message){el('dialogDesc').textContent=message;el('retryDialog').classList.add('open');}
 function setBusy(busy){el('retry').disabled=busy;el('searchButton').disabled=busy;}
@@ -492,25 +495,71 @@ async function selectPlace(place){
   selectedPlace=place;hideResults();
   el('placeInput').value=place.ko || place.name;
   el('location').textContent='📍 '+placeLabel(place);
-  el('locationDetails').textContent=formatCoords(place)+' · ECMWF IFS 단독 · 오늘부터 14일 · '+(place.timezone || '현지시간');
+  el('locationDetails').textContent=formatCoords(place)+' · ECMWF IFS 단독 · 오늘부터 14일 · '+(place.timezone==='auto'?'현지시간 자동':place.timezone || '현지시간');
   el('weeks').style.display='none';
   const url=buildForecastUrl(place);
   el('source').href=url;
   const action=()=>selectPlace(place);
   const json=await requestJson(url,action,placeLabel(place)+' · ECMWF IFS 예보 조회 중… (최대 10초)');
-  if(!json)return;
+  if(!json)return false;
   try{
     const count=renderForecast(json);
     status('✅ '+placeLabel(place)+' · '+count+'일 예보 조회 완료','ok');
+    return true;
   }catch(error){
     status('⚠️ 수신 데이터에 오류가 있어 예보를 표시하지 못했습니다.','fail');
     retryAction=action;
     showDialog('기상 데이터 형식이 올바르지 않습니다. 다시 시도하시겠습니까?');
+    return false;
   }
 }
 
+// 브라우저 위치 권한을 받은 뒤 현재 좌표를 ECMWF 예보 API에 직접 적용합니다.
+// GitHub Pages의 HTTPS 주소에서 실행하며, 위치 정보를 별도 서버에 저장하지 않습니다.
+function locateCurrentWeather(){
+  const requestId=++locationRequestSerial;
+  const selectionId=locationSelectionSerial;
+  const isCurrentRequest=()=>requestId===locationRequestSerial && selectionId===locationSelectionSerial;
+  hideResults();
+  el('location').textContent='📍 현재 위치 확인 중…';
+  status('📍 브라우저 위치 접근을 허용하면 현재 위치의 14일 예보를 불러옵니다. 위치 확인 중…');
+  async function showDefault(reason){
+    if(!isCurrentRequest())return;
+    const ok=await selectPlace(LOCAL_PLACES[0]);
+    if(ok && isCurrentRequest()){
+      status('⚠️ '+reason+' 현재 위치 대신 기본 지역인 고흥군의 예보를 표시합니다. 도시를 직접 검색하거나 📍 현재 위치 버튼으로 다시 시도할 수 있습니다.');
+    }
+  }
+  if(!window.isSecureContext || !navigator.geolocation){
+    showDefault('이 브라우저에서는 위치정보를 사용할 수 없습니다. HTTPS 접속 및 위치 권한을 확인하세요.');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    position=>{
+      if(!isCurrentRequest())return;
+      const latitude=position.coords.latitude;
+      const longitude=position.coords.longitude;
+      if(!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude)>90 || Math.abs(longitude)>180){
+        showDefault('위치 좌표가 올바르지 않습니다.');
+        return;
+      }
+      selectPlace({name:'현재 위치',latitude,longitude,timezone:'auto',currentLocation:true});
+    },
+    error=>{
+      if(!isCurrentRequest())return;
+      const reason=error.code===1?'위치 접근이 허용되지 않았습니다.':
+        error.code===2?'현재 위치를 확인할 수 없습니다.':
+        error.code===3?'위치 확인 시간이 초과되었습니다.':'위치정보를 가져오지 못했습니다.';
+      showDefault(reason);
+    },
+    {enableHighAccuracy:false,timeout:10000,maximumAge:300000}
+  );
+}
+
 async function searchPlace(query){
+  locationSelectionSerial++;
   const name=query.trim();
+  if(name==='현재 위치')return locateCurrentWeather();
   if(!name){status('지역 이름을 입력해 주세요.','fail');el('placeInput').focus();return;}
   hideResults();
   const locals=matchingLocalPlaces(name);
@@ -560,6 +609,7 @@ async function searchPlace(query){
 
 // 입력 중에도 해외 도시 유사 후보를 즉시 제시 (추가 API 요청 없음).
 el('placeInput').addEventListener('input',()=>{
+  locationSelectionSerial++;
   const q=el('placeInput').value.trim();
   if(!q||!/[가-힣]/.test(q)){hideResults();return;}
   // 기존 국내 정확 일치 도시는 빠른 검색 흐름을 방해하지 않습니다.
@@ -572,11 +622,12 @@ el('searchForm').addEventListener('submit',event=>{event.preventDefault();search
 document.querySelectorAll('[data-place]').forEach(button=>button.addEventListener('click',()=>{
   el('placeInput').value=button.dataset.place;searchPlace(button.dataset.place);
 }));
+el('currentLocationButton').addEventListener('click',()=>{locationSelectionSerial++;locateCurrentWeather();});
 el('retry').addEventListener('click',()=>selectPlace(selectedPlace));
 el('dismiss').addEventListener('click',hideDialog);
 el('retryDialogButton').addEventListener('click',()=>{if(retryAction)retryAction();});
-// 첫 실행은 기존 파일과 동일하게 고흥군으로 자동 조회.
-selectPlace(selectedPlace);
+// 첫 실행은 브라우저 위치 권한을 요청하여 현재 좌표 기준 예보 조회. 거부/실패 시 고흥으로 대체.
+locateCurrentWeather();
 </script>
 </body>
 </html>
