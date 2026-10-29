@@ -218,7 +218,7 @@
     </div>
     <div id="radarDetails" class="radar-details">구름 이동 예측과 강수 확률을 표시합니다.</div>
     <div id="radarObservation" class="radar-observation">RainViewer 관측 자료를 확인하는 중입니다.</div>
-    <p class="radar-note">구름은 ECMWF 격자점 구름량을 원형으로 시각화한 <strong>예측 지도</strong>이며 위성영상이 아닙니다. 구름의 분포 변화로 이동 방향을 참고할 수 있지만 실제 개별 구름의 이동 경로는 아닙니다. 🌧️ 표시의 숫자는 해당 위치·시간대의 예보 강수확률이며, 값이 없는 경우 표시하지 않습니다. <strong>실제 레이더는 과거 약 2시간</strong>만 지원하고 미래 3시간의 레이더 관측은 존재하지 않습니다. 지도 © OpenStreetMap, 레이더 © RainViewer.</p>
+    <p class="radar-note">구름은 ECMWF 격자점 구름량을 원형으로 시각화한 <strong>예측 지도</strong>이며 위성영상이 아닙니다. 구름의 분포 변화로 이동 방향을 참고할 수 있지만 실제 개별 구름의 이동 경로는 아닙니다. 🌧️ 표시의 숫자는 Open-Meteo 앙상블의 해당 위치·시간대 강수확률이며, 값이 없는 경우 표시하지 않습니다. <strong>실제 레이더는 과거 약 2시간</strong>만 지원하고 미래 3시간의 레이더 관측은 존재하지 않습니다. 지도 © OpenStreetMap, 레이더 © RainViewer.</p>
   </section>
 
   <section id="weeks" aria-label="14일 예보">
@@ -907,7 +907,7 @@ function radarFrameDraw(){
  const info=[];
  info.push('ECMWF '+(radarOffset>0?'예보':radarOffset<0?'과거 모델값':'현재 시점 모델값'));
  info.push(meanCloud===null?'구름량 정보 없음':'주변 구름량 평균 '+Math.round(meanCloud)+'%');
- info.push(meanProb===null?'강수확률 자료 없음':'주변 강수확률 평균 '+Math.round(meanProb)+'%');
+ info.push(meanProb===null?'강수확률 자료 없음':'주변 강수확률(앙상블) 평균 '+Math.round(meanProb)+'%');
  if(meanRain!==null)info.push('평균 시간강수량 '+meanRain.toFixed(1)+' mm');
  info.push('구름 분포 변화: '+(radarPoints.length?radarDriftLabel(radarOffset):'조회 불가'));
  el('radarDetails').textContent=info.join(' · ');
@@ -929,7 +929,6 @@ function radarEnsureMap(place){
   leaflet.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
    {maxZoom:12,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'})
    .addTo(radarMap);
-  leaflet.control({position:'bottomleft'});
  }else{radarMap.setView(coords,7);}
  if(radarPin)radarMap.removeLayer(radarPin);
  radarPin=leaflet.marker(coords,{
@@ -953,16 +952,27 @@ async function radarLoadForPlace(place){
   latitude:points.map(p=>p.latitude).join(','),
   longitude:points.map(p=>p.longitude).join(','),
   models:'ecmwf_ifs',
-  hourly:'cloud_cover,precipitation_probability,precipitation',
+  hourly:'cloud_cover,precipitation',
   past_hours:'5',forecast_hours:'7',timezone:'UTC'
  });
  radarBaseHour=Math.floor(Date.now()/3600000)*3600000;
  const url='https://api.open-meteo.com/v1/forecast?'+params.toString();
+ // 확률은 ECMWF 단일 결정론 모델의 구름량이 아니라 별도 Open-Meteo 앙상블 자료입니다.
+ const probabilityParams=new URLSearchParams({
+  latitude:params.get('latitude'),longitude:params.get('longitude'),
+  hourly:'precipitation_probability',
+  past_hours:'5',forecast_hours:'7',timezone:'UTC'
+ });
+ const probabilityUrl='https://api.open-meteo.com/v1/forecast?'+probabilityParams.toString();
  const timeout=setTimeout(()=>radarController.abort(),16000);
  try{
   const results=await Promise.allSettled([
    fetch(url,{signal,cache:'no-store'}).then(async response=>{
     if(!response.ok)throw Error('ECMWF HTTP '+response.status);
+    return response.json();
+   }),
+   fetch(probabilityUrl,{signal,cache:'no-store'}).then(async response=>{
+    if(!response.ok)throw Error('강수확률 HTTP '+response.status);
     return response.json();
    }),
    fetch('https://api.rainviewer.com/public/weather-maps.json',{signal,cache:'no-store'})
@@ -972,14 +982,28 @@ async function radarLoadForPlace(place){
   if(results[0].status==='fulfilled'){
    const received=results[0].value;
    if(!Array.isArray(received)||received.length!==points.length)throw Error('ECMWF 격자점 수가 다릅니다.');
+   // 수치 예보(ECMWF IFS)와 강수 확률(앙상블)은 시간값 기준으로 결합합니다.
+   if(results[1].status==='fulfilled' && Array.isArray(results[1].value)
+      && results[1].value.length===points.length){
+    for(let i=0;i<received.length;i++){
+     const extra=results[1].value[i]&&results[1].value[i].hourly;
+     if(!extra || !Array.isArray(extra.time) || !Array.isArray(extra.precipitation_probability))continue;
+     const base=received[i]&&received[i].hourly;
+     if(!base || !Array.isArray(base.time))continue;
+     const lookup=new Map(extra.time.map((t,j)=>[t,extra.precipitation_probability[j]]));
+     base.precipitation_probability=base.time.map(t=>{
+      const v=lookup.get(t);return Number.isFinite(v)?v:null;
+     });
+    }
+   }
    radarPoints=points.map((coord,index)=>({...coord,data:received[index]}));
    el('radarTime').disabled=false;el('radarPlay').disabled=false;
    el('radarStatus').textContent='✅ ECMWF 구름 지도 준비 완료 · −3 ~ +3시간 · 1시간 간격 (주변 16개 격자점)';
   }else{
    el('radarStatus').textContent='⚠️ ECMWF 구름 자료 조회 실패 · 다시 시도해 주세요. 레이더 관측 자료가 있으면 별도로 표시됩니다.';
   }
-  if(results[1].status==='fulfilled' && results[1].value && results[1].value.radar){
-   radarManifest=results[1].value;
+  if(results[2].status==='fulfilled' && results[2].value && results[2].value.radar){
+   radarManifest=results[2].value;
   }
   radarFrameDraw();
  }catch(error){
