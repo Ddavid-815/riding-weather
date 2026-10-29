@@ -925,6 +925,9 @@ function radarEnsureMap(place){
  const leaflet=window.L;
  const coords=[Number(place.latitude),Number(place.longitude)];
  if(!radarMap){
+  // Leaflet 초기화 후 안내 문구가 지도 위에 남지 않도록 제거합니다.
+  const fallback=el('weatherRadarMap').querySelector('.radar-map-fallback');
+  if(fallback)fallback.remove();
   radarMap=leaflet.map('weatherRadarMap',{preferCanvas:true,scrollWheelZoom:false,zoomControl:true}).setView(coords,7);
   leaflet.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
    {maxZoom:12,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'})
