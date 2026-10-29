@@ -167,7 +167,51 @@
     .radar-map-legend{background:#fffdf1df;padding:5px 8px;border-radius:7px;font-size:11px;color:#304b67;box-shadow:0 1px 6px #0003}
     @media(max-width:460px){#weatherRadarMap{height:300px}.radar-controls{gap:8px}.radar-controls button{flex-basis:67px;padding:8px}.radar-heading button{font-size:12px}.radar-rain-label{font-size:9px}}
 
-  </style>
+  
+    /* 레이더 앱 스타일: 지도 위 UI + 하단 재생 바 */
+    .radar-full-panel{padding:12px;overflow:hidden}
+    .radar-full-panel .radar-heading{padding:5px 5px 7px}
+    .radar-full-panel .radar-heading h2{font-size:18px}
+    .radar-full-panel .radar-heading .muted{font-size:12px;margin:4px 0}
+    .radar-stage{position:relative;overflow:hidden;border-radius:14px;background:#53616e}
+    #weatherRadarMap{height:clamp(420px,66vh,720px);min-height:420px;border:0;border-radius:0;background:#5c6870}
+    .radar-stage .leaflet-control-zoom{display:none}
+    .radar-crosshair{position:absolute;left:50%;top:43%;transform:translate(-50%,-50%);width:54px;height:54px;z-index:510;pointer-events:none;filter:drop-shadow(0 1px 2px #0007)}
+    .radar-crosshair span{position:absolute;background:white;border-radius:2px}
+    .radar-crosshair span:nth-child(1){width:17px;height:4px;left:0;top:25px}
+    .radar-crosshair span:nth-child(2){width:17px;height:4px;right:0;top:25px}
+    .radar-crosshair span:nth-child(3){width:4px;height:17px;left:25px;top:0}
+    .radar-crosshair span:nth-child(4){width:4px;height:17px;left:25px;bottom:0}
+    .radar-crosshair i{position:absolute;left:24px;top:24px;width:6px;height:6px;border-radius:50%;background:#fff}
+    .radar-floating-tools{position:absolute;right:12px;top:28%;display:flex;flex-direction:column;gap:12px;z-index:520}
+    .radar-floating-tools button{width:45px;height:45px;min-height:45px;padding:0;background:#24333bba;color:white;border:1px solid #ffffff70;border-radius:50%;font-size:28px;box-shadow:0 2px 7px #0005}
+    .radar-bottom-stack{position:absolute;left:0;right:0;bottom:0;z-index:550;pointer-events:none}
+    .radar-bottom-stack>*{pointer-events:auto}
+    .radar-time-tag{position:relative;margin:0 auto 0;width:max-content;max-width:85%;background:#e9a308;color:white;border-radius:12px 12px 0 0;padding:7px 16px;text-align:center;font-variant-numeric:tabular-nums;box-shadow:0 -2px 8px #0004}
+    .radar-time-tag::after{content:'';position:absolute;left:calc(50% - 10px);top:100%;border-left:10px solid transparent;border-right:10px solid transparent;border-top:10px solid #e9a308;z-index:3}
+    .radar-time-tag span{font-size:16px;font-weight:750}.radar-time-tag strong{font-size:12px;margin-left:9px;font-weight:600}
+    .radar-controls{display:flex;gap:0;margin:0;background:#36383de8;align-items:center;color:#fff;min-height:76px}
+    .radar-controls button{background:transparent;border-radius:0;color:white;min-height:68px;flex:0 0 62px;font-size:27px;padding:5px}
+    .radar-controls button#radarMore{font-size:34px;flex-basis:45px}
+    .radar-slider-area{flex:1;min-width:0;padding:0 8px}
+    #radarTime{width:100%;height:23px;min-height:23px;margin:8px 0 4px;padding:0;accent-color:#e7a108}
+    .radar-scale{font-size:12px;display:flex;justify-content:space-between;color:#fff}
+    .radar-color-legend{background:#392a7e;color:white}
+    .radar-legend-values{display:flex;justify-content:space-between;align-items:center;padding:5px 12px 1px;font-size:12px}
+    .radar-gradient{height:20px;background:linear-gradient(90deg,#30169b,#4433ba,#1476be,#02bbaa,#1dce62,#b9e338,#f4d528,#fa9c2e,#e74849,#bb1758)}
+    .radar-cloud-legend{background:#344258}
+    .radar-cloud-gradient{height:16px;background:linear-gradient(90deg,#6b7c8f00,#a9bac577,#afc0d0aa,#a4bdcee0,#7ba8d1)}
+    .radar-options-compact{margin:8px 4px 0;gap:8px 14px}
+    .radar-options-compact.is-collapsed{display:none}
+    .radar-full-panel .radar-details{margin-top:9px}
+    .radar-full-panel .radar-note{padding:0 3px}
+    [hidden]{display:none!important}
+    @media(max-width:460px){.radar-full-panel{padding:7px}.radar-full-panel .radar-heading{padding:8px}
+      #weatherRadarMap{height:65vh;min-height:450px}.radar-floating-tools{right:9px;top:29%}
+      .radar-floating-tools button{width:41px;height:41px;min-height:41px;font-size:26px}
+      .radar-controls button{flex-basis:52px}.radar-time-tag span{font-size:15px}.radar-legend-values{font-size:10px}}
+
+</style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body>
@@ -194,31 +238,47 @@
     </div>
   </section>
 
-  <section class="panel" aria-labelledby="radarTitle" id="radarPanel">
-    <div class="radar-heading">
-      <div><h2 id="radarTitle">🛰️ 구름 이동 · 강수 레이더</h2>
-        <p class="muted">현재 기준 앞뒤 3시간 · ECMWF 구름량 예측 + RainViewer 과거 강수 관측</p></div>
-      <button id="radarRefresh" type="button" class="secondary">↻ 지도 갱신</button>
-    </div>
-    <div id="radarStatus" class="radar-status" role="status" aria-live="polite">선택된 지역의 구름·강수 자료를 준비 중입니다.</div>
-    <div id="weatherRadarMap" role="region" aria-label="지역별 구름 예측 및 관측 강수 레이더 지도">
-      <p class="radar-map-fallback">지도를 불러오는 중입니다. 인터넷 연결을 확인해 주세요.</p>
-    </div>
-    <div class="radar-controls">
-      <button id="radarPlay" type="button" class="secondary" disabled aria-label="7시간 구름 이동 재생">▶ 재생</button>
-      <div class="radar-slider-area">
-        <div class="radar-time-row"><strong id="radarOffset">현재</strong><span id="radarClock">시간 확인 중…</span></div>
-        <input id="radarTime" type="range" min="-3" max="3" step="0.25" value="0" disabled aria-label="현재 기준 마이너스 3시간부터 플러스 3시간까지 선택">
-        <div class="radar-scale"><span>−3시간</span><span>현재</span><span>+3시간</span></div>
+  <section class="panel radar-full-panel" aria-labelledby="radarTitle" id="radarPanel">
+    <div class="radar-heading"><div><h2 id="radarTitle">🌧 기상 레이더</h2><p class="muted">강수 관측 · ECMWF 구름 예측 · 현재 ±3시간</p></div>
+      <button id="radarRefresh" type="button" class="secondary" aria-label="레이더 자료 새로고침">↻ 갱신</button></div>
+    <div id="radarStatus" class="radar-status" role="status" aria-live="polite">레이더를 준비하고 있습니다.</div>
+    <div class="radar-stage">
+      <div id="weatherRadarMap" role="region" aria-label="날씨 레이더 지도">
+        <p class="radar-map-fallback">지도를 불러오는 중입니다.</p>
+      </div>
+      <div class="radar-crosshair" aria-hidden="true"><span></span><span></span><span></span><span></span><i></i></div>
+      <div class="radar-floating-tools">
+        <button type="button" id="radarHome" title="조회 지역으로 이동" aria-label="조회 지역으로 지도 이동">⌂</button>
+        <button type="button" id="radarZoomIn" title="확대" aria-label="지도 확대">＋</button>
+        <button type="button" id="radarZoomOut" title="축소" aria-label="지도 축소">－</button>
+      </div>
+      <div class="radar-bottom-stack">
+        <div class="radar-time-tag"><span id="radarClock">시간 확인 중…</span><strong id="radarOffset">현재</strong></div>
+        <div class="radar-controls">
+          <button id="radarPlay" type="button" disabled aria-label="7시간 이동 재생">▶</button>
+          <div class="radar-slider-area">
+            <input id="radarTime" type="range" min="-3" max="3" step="0.25" value="0" disabled aria-label="현재 기준 앞뒤 3시간 선택">
+            <div class="radar-scale"><span>3h ago</span><span>현재</span><span>Next 3h</span></div>
+          </div>
+          <button id="radarMore" type="button" aria-expanded="false" aria-controls="radarLayerOptions" aria-label="레이더 레이어 설정">⋮</button>
+        </div>
+        <div class="radar-color-legend" id="radarDbzLegend" aria-label="관측 강수 레이더 반사도 색상 범례">
+          <div class="radar-legend-values"><span>dBZ</span><span>0</span><span>20</span><span>30</span><span>40</span><span>50</span><span>60</span></div>
+          <div class="radar-gradient"></div>
+        </div>
+        <div class="radar-color-legend radar-cloud-legend" id="radarCloudLegend" hidden>
+          <div class="radar-legend-values"><span>ECMWF 구름량</span><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+          <div class="radar-cloud-gradient"></div>
+        </div>
       </div>
     </div>
-    <div class="radar-options">
-      <label><input id="radarCloudToggle" type="checkbox" checked> ☁️ ECMWF 구름 예측</label>
-      <label><input id="radarRainToggle" type="checkbox" checked> 🌧️ 실제 강수 레이더 (과거만)</label>
+    <div id="radarLayerOptions" class="radar-options radar-options-compact">
+      <label><input id="radarCloudToggle" type="checkbox" checked> ☁ ECMWF 구름 예측</label>
+      <label><input id="radarRainToggle" type="checkbox" checked> 🌧 실제 강수 관측</label>
     </div>
-    <div id="radarDetails" class="radar-details">구름 이동 예측과 강수 확률을 표시합니다.</div>
-    <div id="radarObservation" class="radar-observation">RainViewer 관측 자료를 확인하는 중입니다.</div>
-    <p class="radar-note">구름은 ECMWF 격자 예보값을 공간 보간해 <strong>끊김 없는 반투명 레이어</strong>로 표시한 예측 지도이며, 실제 위성 구름 영상이 아닙니다. 구름의 분포 변화로 이동 방향을 참고할 수 있지만 실제 개별 구름의 이동 경로는 아닙니다. 15분 재생 프레임은 1시간 예보값 사이를 시간 보간한 것입니다. 🌧️ 표시의 숫자는 Open-Meteo 앙상블의 해당 위치·시간대 강수확률이며, 값이 없는 경우 표시하지 않습니다. <strong>실제 레이더는 과거 약 2시간</strong>만 지원하고 미래 3시간의 레이더 관측은 존재하지 않습니다. 지도 © OpenStreetMap, 레이더 © RainViewer.</p>
+    <div id="radarDetails" class="radar-details">예보 구름 분포와 강수확률을 조회합니다.</div>
+    <div id="radarObservation" class="radar-observation">관측 레이더를 확인하는 중입니다.</div>
+    <p class="radar-note">레이더 색상 범례(dBZ)는 RainViewer의 <strong>실제 강수 관측</strong>에만 해당합니다. ECMWF 구름은 독립적인 예보 레이어이며 별도 구름량 범례를 사용합니다. 미래 시점에는 실제 레이더가 제공되지 않습니다. 구름·강수확률과 15분 중간 프레임은 예측·보간 자료입니다.</p>
   </section>
 
   <section id="weeks" aria-label="14일 예보">
@@ -992,6 +1052,7 @@ function radarFrameDraw(){
    radarOffset>0?'미래 시간대는 실제 레이더가 없으므로 ECMWF 구름 예측만 표시합니다.':
    '선택한 시각의 실제 레이더 관측 영상이 없습니다 (무료 API 약 2시간 이내).';
  el('radarObservation').textContent=radarText;
+ radarUpdateLegend();
 }
 function radarEnsureMap(place){
  if(!window.L){el('radarStatus').textContent='⚠️ 지도 라이브러리를 불러오지 못했습니다. 연결을 확인한 뒤 지도 갱신을 눌러 주세요.';return false;}
@@ -1001,7 +1062,7 @@ function radarEnsureMap(place){
   // Leaflet 초기화 후 안내 문구가 지도 위에 남지 않도록 제거합니다.
   const fallback=el('weatherRadarMap').querySelector('.radar-map-fallback');
   if(fallback)fallback.remove();
-  radarMap=leaflet.map('weatherRadarMap',{preferCanvas:true,scrollWheelZoom:false,zoomControl:true}).setView(coords,11);
+  radarMap=leaflet.map('weatherRadarMap',{preferCanvas:true,scrollWheelZoom:false,zoomControl:false}).setView(coords,11);
   radarMap.createPane('rainRadarPane').style.zIndex='450';
   leaflet.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
    {maxZoom:14,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'})
@@ -1094,6 +1155,13 @@ async function radarLoadForPlace(place){
   clearTimeout(timeout);
  }
 }
+function radarUpdateLegend(){
+ const cloud=el('radarCloudToggle').checked;
+ const actual=el('radarRainToggle').checked && radarOffset<=0 &&
+  !!radarSelectObservedFrame(radarBaseHour+radarOffset*3600000);
+ el('radarDbzLegend').hidden=!actual;
+ el('radarCloudLegend').hidden=actual||!cloud;
+}
 function radarInitControls(){
  el('radarTime').addEventListener('input',()=>{
   radarPause();
@@ -1115,7 +1183,15 @@ function radarInitControls(){
    radarFrameDraw();
   },450);
  });
- el('radarRefresh').addEventListener('click',()=>radarLoadForPlace(selectedPlace));
+ el('radarHome').addEventListener('click',()=>{if(radarMap && radarDisplayedPlace)radarMap.setView([radarDisplayedPlace.latitude,radarDisplayedPlace.longitude],11);});
+ el('radarZoomIn').addEventListener('click',()=>{if(radarMap)radarMap.zoomIn();});
+ el('radarZoomOut').addEventListener('click',()=>{if(radarMap)radarMap.zoomOut();});
+ el('radarMore').addEventListener('click',()=>{
+  const options=el('radarLayerOptions');
+  const collapsed=options.classList.toggle('is-collapsed');
+  el('radarMore').setAttribute('aria-expanded',String(!collapsed));
+ });
+  el('radarRefresh').addEventListener('click',()=>radarLoadForPlace(selectedPlace));
  ['radarCloudToggle','radarRainToggle'].forEach(id=>{
    el(id).addEventListener('change',radarFrameDraw);
  });
