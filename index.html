@@ -160,13 +160,12 @@
     .radar-details{margin-top:12px;padding:10px 12px;border-radius:10px;background:#eaf3fd;color:#284d72;font-size:13px;line-height:1.7}
     .radar-observation{font-size:12px;color:#62758a;line-height:1.6;margin:7px 0}
     .radar-note{color:#65758a;font-size:12px;line-height:1.65;margin:10px 0 0}
-    .radar-cloud-symbol{display:flex;align-items:center;gap:3px;width:max-content;pointer-events:none;filter:drop-shadow(0 1px 2px #223e5a40)}
-    .radar-cloud-icon{font-size:24px;line-height:1;opacity:var(--cloud-alpha,.85)}
-    .radar-rain-label{font-size:10px;line-height:1.3;font-weight:800;color:#fff;background:#176cad;border-radius:5px;padding:3px 4px;white-space:nowrap}
+    .radar-cloud-symbol{display:flex;align-items:center;justify-content:center;pointer-events:none;filter:drop-shadow(0 1px 2px #223e5a40)}
+    .radar-rain-label{font-size:10px;line-height:1.3;font-weight:800;color:#fff;background:#176cad;border:1px solid #e1effb;border-radius:5px;padding:3px 5px;white-space:nowrap;box-shadow:0 1px 4px #0003}
     .radar-cloud-raster{image-rendering:auto;pointer-events:none}
     .radar-center-dot{width:13px;height:13px;border:3px solid white;border-radius:50%;background:#f26d3d;box-shadow:0 0 0 2px #e65a30,0 1px 7px #0005}
     .radar-map-legend{background:#fffdf1df;padding:5px 8px;border-radius:7px;font-size:11px;color:#304b67;box-shadow:0 1px 6px #0003}
-    @media(max-width:460px){#weatherRadarMap{height:300px}.radar-controls{gap:8px}.radar-controls button{flex-basis:67px;padding:8px}.radar-heading button{font-size:12px}.radar-rain-label{font-size:9px}.radar-cloud-icon{font-size:21px}}
+    @media(max-width:460px){#weatherRadarMap{height:300px}.radar-controls{gap:8px}.radar-controls button{flex-basis:67px;padding:8px}.radar-heading button{font-size:12px}.radar-rain-label{font-size:9px}}
 
   </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -861,10 +860,72 @@ function radarApplyObservedRadar(frame){
  const host=radarManifest && radarManifest.host;
  if(typeof host!=='string' || !/^https:\/\/(?:[a-z0-9-]+\.)*rainviewer\.com$/i.test(host))return;
  const url=host+frame.path+'/256/{z}/{x}/{y}/2/1_1.png';
- radarTileLayer=window.L.tileLayer(url,{opacity:.72,maxNativeZoom:7,maxZoom:12,
+ radarTileLayer=window.L.tileLayer(url,{opacity:.76,maxNativeZoom:7,maxZoom:14,pane:'rainRadarPane',
    attribution:'Radar © RainViewer',tileSize:256,updateWhenIdle:true});
  radarTileLayer.addTo(radarMap);
 }
+function radarRasterPixels(samples,width=256,height=256){
+ // 5x5 ECMWF 격자의 구름량·강수확률을 쌍선형 보간해 연속적인 픽셀 영상으로 만듭니다.
+ const pixels=new Uint8ClampedArray(width*height*4);
+ const grid=RADAR_GRID_SIZE, max=grid-1;
+ for(let y=0;y<height;y++){
+  const gy=y/(height-1)*max,row=Math.min(max-1,Math.floor(gy)),ty=gy-row;
+  for(let x=0;x<width;x++){
+   const gx=x/(width-1)*max,col=Math.min(max-1,Math.floor(gx)),tx=gx-col;
+   const ids=[row*grid+col,row*grid+col+1,(row+1)*grid+col,(row+1)*grid+col+1];
+   const ws=[(1-tx)*(1-ty),tx*(1-ty),(1-tx)*ty,tx*ty];
+   let weightCloud=0,cloud=0,weightProb=0,prob=0;
+   for(let k=0;k<4;k++){
+    const value=samples[ids[k]];
+    if(value&&Number.isFinite(value.cloud)){weightCloud+=ws[k];cloud+=ws[k]*value.cloud;}
+    if(value&&Number.isFinite(value.prob)){weightProb+=ws[k];prob+=ws[k]*value.prob;}
+   }
+   if(!weightCloud)continue;
+   cloud=Math.max(0,Math.min(100,cloud/weightCloud));
+   prob=weightProb?Math.max(0,Math.min(100,prob/weightProb)):0;
+   // 흰 회색 계열=예측 구름량, 옅은 청색 계열=앙상블 강수확률이 높은 구역.
+   const wet=Math.max(0,Math.min(1,(prob-20)/65));
+   const coverage=Math.max(0,Math.min(1,(cloud-8)/85));
+   const alpha=Math.round(Math.min(185,Math.pow(coverage,1.18)*153+wet*43));
+   const i=(y*width+x)*4;
+   pixels[i]=Math.round(219*(1-wet)+70*wet);
+   pixels[i+1]=Math.round(228*(1-wet)+145*wet);
+   pixels[i+2]=Math.round(236*(1-wet)+215*wet);
+   pixels[i+3]=alpha;
+  }
+ }
+ return pixels;
+}
+function radarRenderCloudImage(targetMs,visible){
+ if(!radarMap || !window.L)return;
+ if(!visible || radarPoints.length!==RADAR_GRID_SIZE*RADAR_GRID_SIZE || !radarBounds){
+  if(radarCloudImageLayer){radarMap.removeLayer(radarCloudImageLayer);radarCloudImageLayer=null;}
+  return;
+ }
+ const key=String(targetMs);
+ let url=radarRasterCache.get(key);
+ if(!url){
+  const samples=radarPoints.map(point=>radarSample(point.data,targetMs));
+  if(!samples.some(value=>value && value.cloud!==null))return;
+  const canvas=document.createElement('canvas');
+  canvas.width=256;canvas.height=256;
+  const ctx=canvas.getContext('2d');
+  if(!ctx){el('radarStatus').textContent='⚠️ 브라우저가 구름 영상 렌더링을 지원하지 않습니다.';return;}
+  const raster=ctx.createImageData(canvas.width,canvas.height);
+  raster.data.set(radarRasterPixels(samples,canvas.width,canvas.height));
+  ctx.putImageData(raster,0,0);
+  url=canvas.toDataURL('image/png');
+  radarRasterCache.set(key,url);
+ }
+ if(radarCloudImageLayer){
+  radarCloudImageLayer.setUrl(url);
+ }else{
+  radarCloudImageLayer=window.L.imageOverlay(url,radarBounds,{
+   opacity:.89,interactive:false,className:'radar-cloud-raster'
+  }).addTo(radarMap);
+ }
+}
+
 function radarFrameDraw(){
  if(!radarMap || !window.L || !radarDisplayedPlace)return;
  const leaflet=window.L;
@@ -876,31 +937,26 @@ function radarFrameDraw(){
  if(radarCloudLayer)radarMap.removeLayer(radarCloudLayer);
  radarCloudLayer=leaflet.layerGroup().addTo(radarMap);
  const stats=[];
- let pointsWithProbability=0;
- radarPoints.forEach((point,index)=>{
+ radarPoints.forEach(point=>{
   const values=radarSample(point.data,target);
-  if(!values)return;
-  const cloud=values.cloud;
-  if(cloud===null)return;
-  stats.push(values);
-  if(!cloudOn || (cloud<8 && !(values.prob!==null && values.prob>0)))return;
-  const cloudFactor=Math.max(0,Math.min(1,cloud/100));
-  leaflet.circle([point.latitude,point.longitude],{
-   radius:43000,color:'#6b7c8f',weight:0,fillColor:'#8091a7',
-   fillOpacity:Math.max(.02,Math.min(.30,cloudFactor*.28)),interactive:false
-  }).addTo(radarCloudLayer);
-  if(cloud<22 && !(values.prob!==null && values.prob>0))return;
-  const rainLabel=values.prob!==null&&values.prob>0?Math.round(values.prob)+'%':null;
-  if(rainLabel!==null)pointsWithProbability++;
-  // 16개 모든 격자점의 구름량을 표현하되 확률 수치는 실제 자료가 있을 때만 표시합니다.
-  const label='<span class="radar-cloud-symbol" style="--cloud-alpha:'+Math.max(.45,cloudFactor).toFixed(2)+'">'+
-    '<span class="radar-cloud-icon">☁️</span>'+
-    (rainLabel!==null?'<span class="radar-rain-label">🌧 '+rainLabel+'</span>':'')+'</span>';
-  leaflet.marker([point.latitude,point.longitude],{
-    icon:leaflet.divIcon({className:'radar-cloud-marker',html:label,iconSize:[83,31],iconAnchor:[41,16]}),
-    interactive:false,keyboard:false,zIndexOffset:200
-  }).addTo(radarCloudLayer);
+  if(values&&values.cloud!==null)stats.push(values);
  });
+ // 원형 격자 마커 대신 공간 보간된 단일 반투명 래스터 레이어를 표시합니다.
+ radarRenderCloudImage(target,cloudOn);
+ if(cloudOn && radarPoints.length===RADAR_GRID_SIZE*RADAR_GRID_SIZE){
+  // 확률 숫자는 겹치지 않도록 격자 중심 부근의 최대 9개 지점에만 표시합니다.
+  for(let row=1;row<=3;row++)for(let col=1;col<=3;col++){
+   const index=row*RADAR_GRID_SIZE+col,point=radarPoints[index];
+   const data=radarSample(point.data,target);
+   if(!data || data.prob===null || data.prob<15)continue;
+   leaflet.marker([point.latitude,point.longitude],{
+    icon:leaflet.divIcon({className:'radar-prob-marker',
+     html:'<span class="radar-cloud-symbol"><span class="radar-rain-label">🌧 '+Math.round(data.prob)+'%</span></span>',
+     iconSize:[68,25],iconAnchor:[34,12]}),
+    interactive:false,keyboard:false,zIndexOffset:240
+   }).addTo(radarCloudLayer);
+  }
+ }
  let meanCloud=null,meanProb=null,meanRain=null;
  if(stats.length){
   const average=key=>{
@@ -934,6 +990,7 @@ function radarEnsureMap(place){
   const fallback=el('weatherRadarMap').querySelector('.radar-map-fallback');
   if(fallback)fallback.remove();
   radarMap=leaflet.map('weatherRadarMap',{preferCanvas:true,scrollWheelZoom:false,zoomControl:true}).setView(coords,11);
+  radarMap.createPane('rainRadarPane').style.zIndex='450';
   leaflet.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
    {maxZoom:14,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'})
    .addTo(radarMap);
@@ -952,6 +1009,10 @@ async function radarLoadForPlace(place){
  radarController=new AbortController();
  const signal=radarController.signal;
  radarDisplayedPlace=place;radarOffset=0;radarManifest=null;radarPoints=[];
+ radarRasterCache.clear();
+ if(radarCloudImageLayer&&radarMap){radarMap.removeLayer(radarCloudImageLayer);radarCloudImageLayer=null;}
+ if(radarCloudLayer&&radarMap){radarMap.removeLayer(radarCloudLayer);radarCloudLayer=null;}
+ if(radarTileLayer&&radarMap){radarMap.removeLayer(radarTileLayer);radarTileLayer=null;}
  el('radarTime').value='0';el('radarTime').disabled=true;el('radarPlay').disabled=true;
  el('radarStatus').textContent='ECMWF 구름 격자와 실제 강수 레이더 메타데이터를 조회 중…';
  if(!radarEnsureMap(place))return;
