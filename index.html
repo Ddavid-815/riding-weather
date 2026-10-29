@@ -149,7 +149,7 @@
     .radar-scale{display:flex;justify-content:space-between;color:#66798d;font-size:11px}
     .radar-options{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:12px}
     .radar-options label{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#3c5976;cursor:pointer}
-    .radar-options input{accent-color:#2372bb;width:16px;height:16px}
+    .radar-options input{accent-color:#2372bb;width:16px;height:16px;flex:0 0 16px;min-width:16px;padding:0;border:0}
     .radar-details{margin-top:12px;padding:10px 12px;border-radius:10px;background:#eaf3fd;color:#284d72;font-size:13px;line-height:1.7}
     .radar-observation{font-size:12px;color:#62758a;line-height:1.6;margin:7px 0}
     .radar-note{color:#65758a;font-size:12px;line-height:1.65;margin:10px 0 0}
@@ -878,13 +878,13 @@ function radarFrameDraw(){
   const cloud=values.cloud;
   if(cloud===null)return;
   stats.push(values);
-  if(!cloudOn || cloud<8)return;
+  if(!cloudOn || (cloud<8 && !(values.prob!==null && values.prob>0)))return;
   const cloudFactor=Math.max(0,Math.min(1,cloud/100));
   leaflet.circle([point.latitude,point.longitude],{
    radius:43000,color:'#6b7c8f',weight:0,fillColor:'#8091a7',
    fillOpacity:Math.max(.02,Math.min(.30,cloudFactor*.28)),interactive:false
   }).addTo(radarCloudLayer);
-  if(cloud<22)return;
+  if(cloud<22 && !(values.prob!==null && values.prob>0))return;
   const rainLabel=values.prob!==null&&values.prob>0?Math.round(values.prob)+'%':null;
   if(rainLabel!==null)pointsWithProbability++;
   // 16개 모든 격자점의 구름량을 표현하되 확률 수치는 실제 자료가 있을 때만 표시합니다.
