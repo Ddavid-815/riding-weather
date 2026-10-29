@@ -761,7 +761,263 @@ async function requestJson(url, action, loadingText){
   }
 }
 
+
+/* 지도형 구름 예측은 ECMWF IFS 공간 격자의 예보이며, 실제 관측 레이더와 구분합니다. */
+let radarMap=null, radarCloudLayer=null, radarPin=null, radarTileLayer=null;
+let radarPoints=[], radarManifest=null, radarBaseHour=0, radarOffset=0;
+let radarActiveRequest=0, radarController=null, radarPlayback=null, radarDisplayedPlace=null;
+
+function radarPause(){
+ if(radarPlayback!==null){clearInterval(radarPlayback);radarPlayback=null;}
+ el('radarPlay').textContent='▶ 재생';
+ el('radarPlay').setAttribute('aria-label','7시간 구름 이동 재생');
+}
+function radarClockLabel(timestamp,place){
+ const timeZone=place && place.timezone && place.timezone!=='auto'
+   ?place.timezone:(forecastTimeZone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
+ try {
+  return new Intl.DateTimeFormat('ko-KR',{timeZone,month:'2-digit',day:'2-digit',
+   hour:'2-digit',minute:'2-digit',hour12:false,hourCycle:'h23'}).format(new Date(timestamp));
+ }catch(error){return new Date(timestamp).toISOString().slice(5,16).replace('T',' ');}
+}
+function radarGridCoordinates(place){
+ const lat0=Math.max(-85,Math.min(85,Number(place.latitude)));
+ const lon0=Number(place.longitude);
+ const lonRadius=Math.min(3.0,1.0/Math.max(.25,Math.cos(lat0*Math.PI/180)));
+ const locations=[];
+ for(const y of [-1,-1/3,1/3,1]){
+  for(const x of [-1,-1/3,1/3,1]){
+   const lat=Math.max(-85,Math.min(85,lat0+y*1.0));
+   let lon=lon0+x*lonRadius;
+   while(lon>180)lon-=360;
+   while(lon< -180)lon+=360;
+   locations.push({latitude:Number(lat.toFixed(4)),longitude:Number(lon.toFixed(4))});
+  }
+ }
+ return locations;
+}
+function radarHourlyValue(point,key,index){
+ const data=point && point.hourly && point.hourly[key];
+ const v=Array.isArray(data)?data[index]:null;
+ return typeof v==='number'&&Number.isFinite(v)?v:null;
+}
+function radarTimeIndex(point,targetMs){
+ if(!point || !point.hourly || !Array.isArray(point.hourly.time))return -1;
+ const key=new Date(targetMs).toISOString().slice(0,16);
+ return point.hourly.time.indexOf(key);
+}
+function radarSample(point,targetMs){
+ const i=radarTimeIndex(point,targetMs);
+ return i<0?null:{
+  cloud:radarHourlyValue(point,'cloud_cover',i),
+  prob:radarHourlyValue(point,'precipitation_probability',i),
+  rain:radarHourlyValue(point,'precipitation',i)
+ };
+}
+function radarCloudCentroid(targetMs){
+ let total=0,lat=0,lon=0;
+ radarPoints.forEach(point=>{
+  const entry=radarSample(point.data,targetMs);
+  const weight=entry&&entry.cloud!==null?Math.pow(Math.max(0,entry.cloud-30)/70,2):0;
+  if(weight>0){total+=weight;lat+=weight*point.latitude;lon+=weight*point.longitude;}
+ });
+ return total>0.1?{lat:lat/total,lon:lon/total}:null;
+}
+function radarDriftLabel(offset){
+ const thisTime=radarBaseHour+offset*3600000;
+ const nextOffset=offset<3?offset+1:offset-1;
+ const a=radarCloudCentroid(thisTime);
+ const b=radarCloudCentroid(radarBaseHour+nextOffset*3600000);
+ if(!a||!b)return '이동 추정 불가';
+ let east=(b.lon-a.lon)*Math.cos((a.lat+b.lat)/2*Math.PI/180);
+ let north=b.lat-a.lat;
+ if(nextOffset<offset){east=-east;north=-north;}
+ if(Math.hypot(east,north)<0.045)return '뚜렷한 이동 없음';
+ const bearing=(Math.atan2(east,north)*180/Math.PI+360)%360;
+ const dirs=['북쪽 ↑','북동쪽 ↗','동쪽 →','남동쪽 ↘','남쪽 ↓','남서쪽 ↙','서쪽 ←','북서쪽 ↖'];
+ return dirs[Math.round(bearing/45)%8]+' 방향 (분포 변화 기반 추정)';
+}
+function radarSelectObservedFrame(targetMs){
+ const items=radarManifest&&radarManifest.radar&&radarManifest.radar.past;
+ if(!Array.isArray(items) || !items.length || targetMs>Date.now()+600000)return null;
+ let selected=null,minDistance=Infinity;
+ for(const frame of items){
+  if(!frame || !Number.isFinite(frame.time) || typeof frame.path!=='string'
+    || !/^\/v2\/radar\/[a-zA-Z0-9_-]+$/.test(frame.path))continue;
+  const distance=Math.abs(frame.time*1000-targetMs);
+  if(distance<minDistance){minDistance=distance;selected=frame;}
+ }
+ return minDistance<=25*60000?selected:null;
+}
+function radarApplyObservedRadar(frame){
+ if(!radarMap || !window.L)return;
+ if(radarTileLayer){radarMap.removeLayer(radarTileLayer);radarTileLayer=null;}
+ if(!frame || !el('radarRainToggle').checked)return;
+ const host=radarManifest && radarManifest.host;
+ if(typeof host!=='string' || !/^https:\/\/(?:[a-z0-9-]+\.)*rainviewer\.com$/i.test(host))return;
+ const url=host+frame.path+'/256/{z}/{x}/{y}/2/1_1.png';
+ radarTileLayer=window.L.tileLayer(url,{opacity:.72,maxNativeZoom:7,maxZoom:12,
+   attribution:'Radar © RainViewer',tileSize:256,updateWhenIdle:true});
+ radarTileLayer.addTo(radarMap);
+}
+function radarFrameDraw(){
+ if(!radarMap || !window.L || !radarDisplayedPlace)return;
+ const leaflet=window.L;
+ const target=radarBaseHour+radarOffset*3600000;
+ const cloudOn=el('radarCloudToggle').checked;
+ const offsetText=radarOffset===0?'현재 (0시간)':radarOffset>0?'+'+radarOffset+'시간':'−'+Math.abs(radarOffset)+'시간';
+ el('radarOffset').textContent=offsetText;
+ el('radarClock').textContent=radarClockLabel(target,radarDisplayedPlace);
+ if(radarCloudLayer)radarMap.removeLayer(radarCloudLayer);
+ radarCloudLayer=leaflet.layerGroup().addTo(radarMap);
+ const stats=[];
+ let pointsWithProbability=0;
+ radarPoints.forEach((point,index)=>{
+  const values=radarSample(point.data,target);
+  if(!values)return;
+  const cloud=values.cloud;
+  if(cloud===null)return;
+  stats.push(values);
+  if(!cloudOn || cloud<8)return;
+  const cloudFactor=Math.max(0,Math.min(1,cloud/100));
+  leaflet.circle([point.latitude,point.longitude],{
+   radius:43000,color:'#6b7c8f',weight:0,fillColor:'#8091a7',
+   fillOpacity:Math.max(.02,Math.min(.30,cloudFactor*.28)),interactive:false
+  }).addTo(radarCloudLayer);
+  if(cloud<22)return;
+  const rainLabel=values.prob!==null&&values.prob>0?Math.round(values.prob)+'%':null;
+  if(rainLabel!==null)pointsWithProbability++;
+  // 16개 모든 격자점의 구름량을 표현하되 확률 수치는 실제 자료가 있을 때만 표시합니다.
+  const label='<span class="radar-cloud-symbol" style="--cloud-alpha:'+Math.max(.45,cloudFactor).toFixed(2)+'">'+
+    '<span class="radar-cloud-icon">☁️</span>'+
+    (rainLabel!==null?'<span class="radar-rain-label">🌧 '+rainLabel+'</span>':'')+'</span>';
+  leaflet.marker([point.latitude,point.longitude],{
+    icon:leaflet.divIcon({className:'radar-cloud-marker',html:label,iconSize:[83,31],iconAnchor:[41,16]}),
+    interactive:false,keyboard:false,zIndexOffset:200
+  }).addTo(radarCloudLayer);
+ });
+ let meanCloud=null,meanProb=null,meanRain=null;
+ if(stats.length){
+  const average=key=>{
+   const vals=stats.map(x=>x[key]).filter(Number.isFinite);
+   return vals.length?vals.reduce((sum,v)=>sum+v,0)/vals.length:null;
+  };
+  meanCloud=average('cloud');meanProb=average('prob');meanRain=average('rain');
+ }
+ const info=[];
+ info.push('ECMWF '+(radarOffset>0?'예보':radarOffset<0?'과거 모델값':'현재 시점 모델값'));
+ info.push(meanCloud===null?'구름량 정보 없음':'주변 구름량 평균 '+Math.round(meanCloud)+'%');
+ info.push(meanProb===null?'강수확률 자료 없음':'주변 강수확률 평균 '+Math.round(meanProb)+'%');
+ if(meanRain!==null)info.push('평균 시간강수량 '+meanRain.toFixed(1)+' mm');
+ info.push('구름 분포 변화: '+(radarPoints.length?radarDriftLabel(radarOffset):'조회 불가'));
+ el('radarDetails').textContent=info.join(' · ');
+ const actualFrame=radarOffset<=0?radarSelectObservedFrame(target):null;
+ radarApplyObservedRadar(actualFrame);
+ const radarText=!el('radarRainToggle').checked?'강수 레이더 표시를 껐습니다.':
+   actualFrame?'실제 강수 레이더 관측: '+radarClockLabel(actualFrame.time*1000,radarDisplayedPlace)+
+     ' (선택 시점과 수 분 차이 가능)':
+   radarOffset>0?'미래 시간대는 실제 레이더가 없으므로 ECMWF 구름 예측만 표시합니다.':
+   '선택한 시각의 실제 레이더 관측 영상이 없습니다 (무료 API 약 2시간 이내).';
+ el('radarObservation').textContent=radarText;
+}
+function radarEnsureMap(place){
+ if(!window.L){el('radarStatus').textContent='⚠️ 지도 라이브러리를 불러오지 못했습니다. 연결을 확인한 뒤 지도 갱신을 눌러 주세요.';return false;}
+ const leaflet=window.L;
+ const coords=[Number(place.latitude),Number(place.longitude)];
+ if(!radarMap){
+  radarMap=leaflet.map('weatherRadarMap',{preferCanvas:true,scrollWheelZoom:false,zoomControl:true}).setView(coords,7);
+  leaflet.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+   {maxZoom:12,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'})
+   .addTo(radarMap);
+  leaflet.control({position:'bottomleft'});
+ }else{radarMap.setView(coords,7);}
+ if(radarPin)radarMap.removeLayer(radarPin);
+ radarPin=leaflet.marker(coords,{
+   icon:leaflet.divIcon({className:'',html:'<div class="radar-center-dot" title="예보 기준 위치"></div>',iconSize:[18,18],iconAnchor:[9,9]})
+  }).addTo(radarMap);
+ if(typeof radarMap.invalidateSize==='function')setTimeout(()=>radarMap.invalidateSize(),40);
+ return true;
+}
+async function radarLoadForPlace(place){
+ const requestId=++radarActiveRequest;
+ radarPause();
+ if(radarController)radarController.abort();
+ radarController=new AbortController();
+ const signal=radarController.signal;
+ radarDisplayedPlace=place;radarOffset=0;radarManifest=null;radarPoints=[];
+ el('radarTime').value='0';el('radarTime').disabled=true;el('radarPlay').disabled=true;
+ el('radarStatus').textContent='ECMWF 구름 격자와 실제 강수 레이더 메타데이터를 조회 중…';
+ if(!radarEnsureMap(place))return;
+ const points=radarGridCoordinates(place);
+ const params=new URLSearchParams({
+  latitude:points.map(p=>p.latitude).join(','),
+  longitude:points.map(p=>p.longitude).join(','),
+  models:'ecmwf_ifs',
+  hourly:'cloud_cover,precipitation_probability,precipitation',
+  past_hours:'5',forecast_hours:'7',timezone:'UTC'
+ });
+ radarBaseHour=Math.floor(Date.now()/3600000)*3600000;
+ const url='https://api.open-meteo.com/v1/forecast?'+params.toString();
+ const timeout=setTimeout(()=>radarController.abort(),16000);
+ try{
+  const results=await Promise.allSettled([
+   fetch(url,{signal,cache:'no-store'}).then(async response=>{
+    if(!response.ok)throw Error('ECMWF HTTP '+response.status);
+    return response.json();
+   }),
+   fetch('https://api.rainviewer.com/public/weather-maps.json',{signal,cache:'no-store'})
+    .then(async response=>{if(!response.ok)throw Error('Radar HTTP '+response.status);return response.json();})
+  ]);
+  if(signal.aborted || requestId!==radarActiveRequest)return;
+  if(results[0].status==='fulfilled'){
+   const received=results[0].value;
+   if(!Array.isArray(received)||received.length!==points.length)throw Error('ECMWF 격자점 수가 다릅니다.');
+   radarPoints=points.map((coord,index)=>({...coord,data:received[index]}));
+   el('radarTime').disabled=false;el('radarPlay').disabled=false;
+   el('radarStatus').textContent='✅ ECMWF 구름 지도 준비 완료 · −3 ~ +3시간 · 1시간 간격 (주변 16개 격자점)';
+  }else{
+   el('radarStatus').textContent='⚠️ ECMWF 구름 자료 조회 실패 · 다시 시도해 주세요. 레이더 관측 자료가 있으면 별도로 표시됩니다.';
+  }
+  if(results[1].status==='fulfilled' && results[1].value && results[1].value.radar){
+   radarManifest=results[1].value;
+  }
+  radarFrameDraw();
+ }catch(error){
+  if(requestId!==radarActiveRequest || signal.aborted)return;
+  el('radarStatus').textContent='⚠️ 구름 지도 구성 실패: '+(error.message||'알 수 없는 오류');
+ }finally{
+  clearTimeout(timeout);
+ }
+}
+function radarInitControls(){
+ el('radarTime').addEventListener('input',()=>{
+  radarPause();
+  radarOffset=Number(el('radarTime').value);
+  radarFrameDraw();
+ });
+ el('radarPlay').addEventListener('click',()=>{
+  if(radarPlayback!==null){radarPause();return;}
+  if(!radarPoints.length)return;
+  el('radarPlay').textContent='Ⅱ 일시정지';
+  el('radarPlay').setAttribute('aria-label','구름 이동 재생 일시정지');
+  if(radarOffset>=3)radarOffset=-3;
+  else if(radarOffset===0)radarOffset=-3;
+  el('radarTime').value=String(radarOffset);
+  radarFrameDraw();
+  radarPlayback=setInterval(()=>{
+   radarOffset=radarOffset>=3?-3:radarOffset+1;
+   el('radarTime').value=String(radarOffset);
+   radarFrameDraw();
+  },1650);
+ });
+ el('radarRefresh').addEventListener('click',()=>radarLoadForPlace(selectedPlace));
+ ['radarCloudToggle','radarRainToggle'].forEach(id=>{
+   el(id).addEventListener('change',radarFrameDraw);
+ });
+}
+
 async function selectPlace(place){
+  radarLoadForPlace(place);
   closeHourlyModal();
   hourlyForecast=null;
   forecastTimeZone=null;
@@ -978,6 +1234,7 @@ el('retry').addEventListener('click',()=>selectPlace(selectedPlace));
 el('dismiss').addEventListener('click',hideDialog);
 el('retryDialogButton').addEventListener('click',()=>{if(retryAction)retryAction();});
 initHourlyModalEvents();
+radarInitControls();
 // 첫 실행은 브라우저 위치 권한을 요청하여 현재 좌표 기준 예보 조회. 거부/실패 시 서울로 대체.
 locateCurrentWeather();
 </script>
