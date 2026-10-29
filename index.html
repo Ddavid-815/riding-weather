@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#173e75">
-  <title>지역검색 · ECMWF 15일 라이딩 날씨</title>
+  <title>지역검색 · ECMWF 14일 라이딩 날씨</title>
   <style>
     :root{color-scheme:light;--blue:#1d5da5;--ink:#19283d;--muted:#64748b;--line:#dce5f0}
     *{box-sizing:border-box}
@@ -71,14 +71,14 @@
     .rain-legend strong{font-weight:750;color:#2b4f72}
     .segment-scale{font-size:11px;font-weight:600;color:#6c7a8e;white-space:nowrap;margin-left:8px}
     .rain-scroll{overflow-x:auto;overscroll-behavior-x:contain;padding:0 0 5px;scrollbar-color:#bbcce2 transparent}
-    .rain-chart{display:flex;min-width:815px}
+    .rain-chart{display:flex;min-width:750px}
     .rain-axis{position:sticky;left:0;z-index:2;flex:0 0 39px;height:231px;background:#fff;color:#6c7a8e;font-size:11px;text-align:right;padding-right:7px}
     .rain-axis span{position:absolute;right:7px;transform:translateY(-50%)}
     .rain-axis .axis-max{top:34px}.rain-axis .axis-half{top:110px}.rain-axis .axis-zero{top:186px}
-    .rain-plot{position:relative;flex:1;height:231px;min-width:765px}
+    .rain-plot{position:relative;flex:1;height:231px;min-width:700px}
     .rain-gridline{position:absolute;left:0;right:0;height:1px;background:#e9eff6;pointer-events:none}
     .rain-gridline.max{top:34px}.rain-gridline.half{top:110px}.rain-gridline.zero{top:186px;background:#aebed0}
-    .rain-bars{position:absolute;left:7px;right:7px;top:34px;bottom:45px;display:grid;grid-template-columns:repeat(15,minmax(44px,1fr));column-gap:4px}
+    .rain-bars{position:absolute;left:7px;right:7px;top:34px;bottom:45px;display:grid;grid-template-columns:repeat(14,minmax(44px,1fr));column-gap:4px}
     .rain-column{position:relative;height:100%;min-width:0;text-align:center}
     .rain-segments{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:26px;height:100%;display:flex;flex-direction:column-reverse;gap:3px}
     /* 수치는 막대 높이와 무관하게 전용 상단 행에 고정: 0mm~최댓값까지 겹침 방지 */
@@ -101,7 +101,6 @@
     .day[role="button"]{cursor:pointer;transition:border-color .15s,box-shadow .15s}
     .day[role="button"]:hover{border-color:#80a9d8;box-shadow:0 5px 18px rgba(33,88,147,.13)}
     .day[role="button"]:focus-visible{outline:3px solid #2478d0;outline-offset:3px}
-    #week3 .day{max-width:280px}
     .day-detail-hint{display:block;margin-top:9px;font-size:11px;font-weight:750;color:#2467a9}
     body.hourly-open{overflow:hidden}
     .hourly-overlay{z-index:120;padding:12px}
@@ -137,9 +136,9 @@
 <body>
 <main>
   <header class="hero">
-    <h1>🌤️ 지역별 ECMWF 15일 라이딩 예보</h1>
+    <h1>🌤️ 지역별 ECMWF 14일 라이딩 예보</h1>
     <div class="location" id="location">📍 현재 위치 확인 준비 중…</div>
-    <small id="locationDetails">ECMWF IFS 단독 · 오늘부터 최대 15일 · 한국시간(KST)</small>
+    <small id="locationDetails">ECMWF IFS 단독 · 오늘부터 14일 · 한국시간(KST)</small>
   </header>
 
   <section class="panel" aria-labelledby="searchTitle">
@@ -164,12 +163,12 @@
     </div>
   </section>
 
-  <section id="weeks" aria-label="15일 예보">
+  <section id="weeks" aria-label="14일 예보">
     <section class="panel" aria-labelledby="rainChartTitle">
-      <div class="rain-title"><h2 id="rainChartTitle">🌧️ 15일 강수량 막대그래프</h2><span class="rain-unit">일강수량 · mm</span></div>
+      <div class="rain-title"><h2 id="rainChartTitle">🌧️ 14일 강수량 막대그래프</h2><span class="rain-unit">일강수량 · mm</span></div>
       <p class="muted">날짜별 일강수량을 10칸 단색 눈금으로 비교합니다. 강수량 숫자는 막대 위에 고정 표시되며 채워진 칸 수가 많을수록 강수량이 많습니다.</p>
       <div class="rain-legend" id="rainLegend">□ 빈칸 · ■ 채워진 칸 · 전체 10칸</div>
-      <div class="rain-scroll" role="region" tabindex="0" aria-label="15일 강수량 막대그래프, 작은 화면에서는 좌우로 스크롤">
+      <div class="rain-scroll" role="region" tabindex="0" aria-label="14일 강수량 막대그래프, 작은 화면에서는 좌우로 스크롤">
         <div class="rain-chart">
           <div class="rain-axis" aria-hidden="true"><span class="axis-max" id="rainAxisMax">10</span><span class="axis-half" id="rainAxisHalf">5</span><span class="axis-zero">0</span></div>
           <div class="rain-plot">
@@ -185,7 +184,7 @@
     <p class="muted">📅 날짜 카드를 누르면 해당 날짜의 시간별 기온, 강수량, 풍향·풍속 등 상세 예보가 팝업으로 열립니다.</p>
     <section class="panel"><h2>1주차 · D+0~D+6 <span class="segment-scale" id="weekScale1"></span></h2><div id="week1" class="grid"></div></section>
     <section class="panel"><h2>2주차 · D+7~D+13 <span class="segment-scale" id="weekScale2"></span></h2><div id="week2" class="grid"></div></section>
-    <section class="panel"><h2>3주차 · D+14 <span class="segment-scale" id="weekScale3"></span></h2><div id="week3" class="grid"></div></section>
+    
   </section>
 
   <section class="panel">
@@ -449,7 +448,7 @@ function getRainScaleInfo(rainValues){
   const scaleMax=Math.ceil(maxRain/5)*5;
   return {finiteRain,maxRain,scaleMax};
 }
-// 15일 최대 강수량을 기준으로 10칸 눈금 생성. 0mm는 0칸, 양수는 최소 1칸.
+// 14일 최대 강수량을 기준으로 10칸 눈금 생성. 0mm는 0칸, 양수는 최소 1칸.
 function rainFilledCells(value, scaleMax){
   if(!(typeof value==='number'&&Number.isFinite(value)&&value>0))return 0;
   return Math.min(10,Math.max(1,Math.ceil(value/scaleMax*10)));
@@ -458,7 +457,7 @@ function rainSegmentHTML(filled){
   return Array.from({length:10},(_,i)=>`<span class="rain-segment${i<filled?' filled':''}"></span>`).join('');
 }
 function renderRainChart(d){
-  const days=d.time.slice(0,15);
+  const days=d.time.slice(0,14);
   const rainValues=days.map((_,i)=>d.precipitation_sum[i]);
   const {scaleMax}=getRainScaleInfo(rainValues);
   const perCell=scaleMax/10;
@@ -466,7 +465,6 @@ function renderRainChart(d){
   el('rainAxisHalf').textContent=String(scaleMax/2);
   el('rainLegend').innerHTML=`□ 빈칸 · ■ 채워진 칸 · <strong>1칸 ≈ ${perCell.toFixed(1)}mm</strong> · 전체 10칸 = ${scaleMax}mm`;
   el('weekScale1').textContent=`1칸 ≈ ${perCell.toFixed(1)}mm`;
-  el('weekScale3').textContent='1칸 ≈ '+perCell.toFixed(1)+'mm';
   el('weekScale2').textContent=`1칸 ≈ ${perCell.toFixed(1)}mm`;
   const weekday=['일','월','화','수','목','금','토'];
   el('rainBars').innerHTML=days.map((dateStr,i)=>{
@@ -486,11 +484,11 @@ function renderForecast(json){
   if(!d||!Array.isArray(d.time)||!d.time.length)throw Error('일별 예보 데이터가 없습니다.');
   const keys=['temperature_2m_max','temperature_2m_min','precipitation_sum','weather_code'];
   if(keys.some(k=>!Array.isArray(d[k])))throw Error('필요한 ECMWF 일별 항목이 없습니다.');
-  const chunks=[[],[],[]];
-  const days=d.time.slice(0,15);
+  const chunks=[[],[]];
+  const days=d.time.slice(0,14);
   const rainValues=days.map((_,i)=>d.precipitation_sum[i]);
   const {scaleMax}=getRainScaleInfo(rainValues);
-  for(let i=0;i<Math.min(15,d.time.length);i++){
+  for(let i=0;i<Math.min(14,d.time.length);i++){
     const dateStr=d.time[i];
     if(!/^\d{4}-\d{2}-\d{2}$/.test(dateStr))throw Error('날짜 응답 형식이 올바르지 않습니다.');
     const hi=d.temperature_2m_max[i],lo=d.temperature_2m_min[i],rain=d.precipitation_sum[i],code=d.weather_code[i];
@@ -503,18 +501,17 @@ function renderForecast(json){
     const rainValid=typeof rain==='number'&&Number.isFinite(rain)&&rain>=0;
     const rainAmount=rainValid?rain.toFixed(1):'—';
     const filled=rainValid?rainFilledCells(rain,scaleMax):0;
-    chunks[i<7?0:i<14?1:2].push(`<article class="day ${cls}" role="button" tabindex="0" data-date="${dateStr}" aria-label="${dateStr} 시간별 상세 예보 열기"><div class="head"><div class="head-main"><span class="date">${dateStr.slice(5)} (${['일','월','화','수','목','금','토'][day]})</span><p class="desc"><span class="desc-emoji" aria-hidden="true">${emoji}</span>${desc}</p></div><div class="rain-mini" aria-label="일강수량 ${rainAmount}mm, 10칸 중 ${filled}칸"><div class="rain-mini-track" aria-hidden="true">${rainSegmentHTML(filled)}</div><span class="rain-mini-value">${rainAmount}</span><span class="rain-mini-unit">mm</span></div></div><div class="temps"><span class="high">최고 ${valid?hi.toFixed(1):'—'}°</span> / <span class="low">최저 ${valid?lo.toFixed(1):'—'}°</span></div><p class="rain-line">강수량 ${rainAmount} mm</p>${renderWind(windDir,windMax)}<span class="rating ${rcls}">${rtxt}</span><span class="day-detail-hint">▤ 시간별 상세 보기</span></article>`);
+    chunks[i<7?0:1].push(`<article class="day ${cls}" role="button" tabindex="0" data-date="${dateStr}" aria-label="${dateStr} 시간별 상세 예보 열기"><div class="head"><div class="head-main"><span class="date">${dateStr.slice(5)} (${['일','월','화','수','목','금','토'][day]})</span><p class="desc"><span class="desc-emoji" aria-hidden="true">${emoji}</span>${desc}</p></div><div class="rain-mini" aria-label="일강수량 ${rainAmount}mm, 10칸 중 ${filled}칸"><div class="rain-mini-track" aria-hidden="true">${rainSegmentHTML(filled)}</div><span class="rain-mini-value">${rainAmount}</span><span class="rain-mini-unit">mm</span></div></div><div class="temps"><span class="high">최고 ${valid?hi.toFixed(1):'—'}°</span> / <span class="low">최저 ${valid?lo.toFixed(1):'—'}°</span></div><p class="rain-line">강수량 ${rainAmount} mm</p>${renderWind(windDir,windMax)}<span class="rating ${rcls}">${rtxt}</span><span class="day-detail-hint">▤ 시간별 상세 보기</span></article>`);
   }
   el('week1').innerHTML=chunks[0].join('');
   el('week2').innerHTML=chunks[1].join('');
-  el('week3').innerHTML=chunks[2].join('');
   hourlyForecast=json.hourly && Array.isArray(json.hourly.time)?json.hourly:null;
   // 'auto' 요청에서는 API 응답의 실제 IANA 시간대를 사용합니다.
   forecastTimeZone=typeof json.timezone==='string' && json.timezone.trim()?json.timezone.trim():null;
   forecastUtcOffsetSeconds=Number.isFinite(json.utc_offset_seconds)?json.utc_offset_seconds:null;
   renderRainChart(d);
   el('weeks').style.display='block';
-  return Math.min(15,d.time.length);
+  return Math.min(14,d.time.length);
 }
 
 function buildForecastUrl(p){
@@ -523,7 +520,7 @@ function buildForecastUrl(p){
     daily:'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,wind_direction_10m_dominant',
     hourly:'temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,relative_humidity_2m,cloud_cover',
     wind_speed_unit:'ms',
-    forecast_days:'15',timezone:p.timezone || 'auto'
+    forecast_days:'14',timezone:p.timezone || 'auto'
   });
   return 'https://api.open-meteo.com/v1/forecast?'+params.toString();
 }
@@ -660,7 +657,7 @@ function activateDayCard(event){
 }
 
 function initHourlyModalEvents(){
- ['week1','week2','week3'].forEach(id=>{
+ ['week1','week2'].forEach(id=>{
   const box=el(id);
   box.addEventListener('click',activateDayCard);
   box.addEventListener('keydown',activateDayCard);
@@ -713,7 +710,7 @@ async function selectPlace(place){
   selectedPlace=place;hideResults();
   el('placeInput').value=place.currentLocation?placeLabel(place):place.ko || place.name;
   el('location').textContent='📍 '+placeLabel(place);
-  el('locationDetails').textContent=formatCoords(place)+' · ECMWF IFS 단독 · 오늘부터 최대 15일 · '+(place.timezone==='auto'?'현지시간 자동':place.timezone || '현지시간');
+  el('locationDetails').textContent=formatCoords(place)+' · ECMWF IFS 단독 · 오늘부터 14일 · '+(place.timezone==='auto'?'현지시간 자동':place.timezone || '현지시간');
   el('weeks').style.display='none';
   const url=buildForecastUrl(place);
   el('source').href=url;
@@ -793,12 +790,12 @@ async function resolveCurrentLocationName(place){
       el('placeInput').value=name;
     }
     if(el('status').classList.contains('ok') && el('status').textContent.startsWith('✅ ')){
-      status('✅ '+name+' · 15일 예보 조회 완료','ok');
+      status('✅ '+name+' · 14일 예보 조회 완료','ok');
     }
   }catch(error){
     // 지명 API 접속 실패 시 기상예보는 유지하며 GPS 좌표로 위치를 식별합니다.
     if(selectedPlace===place && el('status').classList.contains('ok') && el('status').textContent.startsWith('✅ ')){
-      status('✅ GPS 좌표 기준 15일 예보 조회 완료 · 지명 확인 실패 (좌표 표시 중)','ok');
+      status('✅ GPS 좌표 기준 14일 예보 조회 완료 · 지명 확인 실패 (좌표 표시 중)','ok');
     }
   }finally{
     clearTimeout(timer);
@@ -811,7 +808,7 @@ function locateCurrentWeather(){
   const isCurrentRequest=()=>requestId===locationRequestSerial && selectionId===locationSelectionSerial;
   hideResults();
   el('location').textContent='📍 현재 위치 확인 중…';
-  status('📍 브라우저 위치 접근을 허용하면 현재 위치의 15일 예보를 불러옵니다. 위치 확인 중…');
+  status('📍 브라우저 위치 접근을 허용하면 현재 위치의 14일 예보를 불러옵니다. 위치 확인 중…');
   async function showDefault(reason){
     if(!isCurrentRequest())return;
     const ok=await selectPlace(DEFAULT_PLACE);
