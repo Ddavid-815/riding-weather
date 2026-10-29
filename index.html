@@ -133,6 +133,13 @@
     @media(max-width:460px){.hourly-overlay{padding:6px}.hour-dialog{border-radius:13px;max-height:calc(100dvh - 12px)}.hour-dialog-head{padding:13px 13px 9px}.hour-summary,.hour-foot{padding:10px 13px}.hour-dialog-head h2{font-size:17px}.hour-table th,.hour-table td{padding:9px 7px}}
 
     /* ECMWF 구름 격자 + RainViewer 과거 강수 레이더 지도 */
+    .compact-search-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:3px 12px;margin-bottom:12px}
+    .compact-search-head h2{margin:0;font-size:18px}
+    .compact-search-head span{font-size:12px;font-weight:600;color:#65768a}
+    .compact-search-panel .quick{margin-top:10px}
+    .compact-status{margin:10px 0 7px;padding:9px 11px;font-size:13px}
+    .compact-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+    .compact-actions button,.compact-actions .link{min-height:31px;padding:6px 10px;font-size:12px}
     .radar-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
     .radar-heading h2{margin:0}
     .radar-heading .muted{margin:6px 0 10px}
@@ -156,6 +163,7 @@
     .radar-cloud-symbol{display:flex;align-items:center;gap:3px;width:max-content;pointer-events:none;filter:drop-shadow(0 1px 2px #223e5a40)}
     .radar-cloud-icon{font-size:24px;line-height:1;opacity:var(--cloud-alpha,.85)}
     .radar-rain-label{font-size:10px;line-height:1.3;font-weight:800;color:#fff;background:#176cad;border-radius:5px;padding:3px 4px;white-space:nowrap}
+    .radar-cloud-raster{image-rendering:auto;pointer-events:none}
     .radar-center-dot{width:13px;height:13px;border:3px solid white;border-radius:50%;background:#f26d3d;box-shadow:0 0 0 2px #e65a30,0 1px 7px #0005}
     .radar-map-legend{background:#fffdf1df;padding:5px 8px;border-radius:7px;font-size:11px;color:#304b67;box-shadow:0 1px 6px #0003}
     @media(max-width:460px){#weatherRadarMap{height:300px}.radar-controls{gap:8px}.radar-controls button{flex-basis:67px;padding:8px}.radar-heading button{font-size:12px}.radar-rain-label{font-size:9px}.radar-cloud-icon{font-size:21px}}
@@ -171,28 +179,21 @@
     <small id="locationDetails">ECMWF IFS 단독 · 오늘부터 14일 · 한국시간(KST)</small>
   </header>
 
-  <section class="panel" aria-labelledby="searchTitle">
-    <h2 id="searchTitle">🔎 지역 이름으로 검색</h2>
+  <section class="panel compact-search-panel" aria-labelledby="searchTitle">
+    <div class="compact-search-head"><h2 id="searchTitle">🔎 지역 검색 · 14일 날씨</h2>
+      <span>ECMWF IFS · 국내·해외 지역</span></div>
     <form id="searchForm" autocomplete="off">
       <input id="placeInput" name="place" type="search" aria-label="날씨를 조회할 지역 이름" placeholder="예: 고흥, 경주, 서울, 제주" value="" enterkeyhint="search" maxlength="90" required>
       <button id="searchButton" type="submit">날씨 검색</button>
     </form>
-    <p class="muted">첫 접속 시 위치 권한을 허용하면 현재 좌표의 시·군·구 등 지명을 조회해 표시합니다. 위치 권한이 없으면 서울을 기본 지역으로 사용하며, 지역 검색도 가능합니다.</p>
-    <p class="muted">해외 도시도 한글로 검색할 수 있습니다. 예: 런던, 파리, 비엔나, 뉴욕, 도쿄. 일부 오타·부분 입력은 유사 지명 후보를 제시하며, 원하는 도시를 선택하면 실제 위치를 확인합니다.</p>
     <div class="quick"><strong>빠른 선택</strong><button type="button" id="currentLocationButton" aria-label="현재 위치의 날씨 다시 조회">📍 현재 위치</button><button type="button" data-place="고흥">고흥</button><button type="button" data-place="경주">경주</button><button type="button" data-place="광양">광양</button><button type="button" data-place="고창">고창</button><button type="button" data-place="제주">제주</button></div>
     <div id="results" class="results" aria-label="지역 검색 결과"><div class="results-head" id="resultsHead">지역을 선택하세요</div><div id="resultItems"></div></div>
-  </section>
-
-  <section class="panel" aria-labelledby="forecastTitle">
-    <h2 id="forecastTitle">예보 데이터 불러오기</h2>
-    <p class="muted">검색한 지역의 ECMWF IFS 기상예보를 조회합니다. 풍향과 풍속은 10m 높이의 주풍향 및 일 최대풍속(m/s)입니다. 네트워크 요청이 10초 동안 완료되지 않으면 재시도 알림이 표시됩니다.</p>
-    <div id="status" class="status" role="status" aria-live="polite">현재 위치 확인을 시작합니다. 브라우저에서 위치 접근을 허용해 주세요.</div>
-    <div class="actions">
-      <button id="retry" type="button">↻ 현재 지역 다시 조회</button>
-      <a class="link secondary" id="source" href="https://open-meteo.com/en/docs/ecmwf-api" target="_blank" rel="noopener noreferrer">↗ ECMWF 원본 데이터 확인</a>
+    <div id="status" class="status compact-status" role="status" aria-live="polite">현재 위치 및 예보를 확인 중입니다.</div>
+    <div class="compact-actions">
+      <button id="retry" type="button" class="secondary">↻ 다시 조회</button>
+      <a class="link secondary" id="source" href="https://open-meteo.com/en/docs/ecmwf-api" target="_blank" rel="noopener noreferrer">↗ 예보 원본</a>
     </div>
   </section>
-
 
   <section class="panel" aria-labelledby="radarTitle" id="radarPanel">
     <div class="radar-heading">
@@ -218,7 +219,7 @@
     </div>
     <div id="radarDetails" class="radar-details">구름 이동 예측과 강수 확률을 표시합니다.</div>
     <div id="radarObservation" class="radar-observation">RainViewer 관측 자료를 확인하는 중입니다.</div>
-    <p class="radar-note">구름은 ECMWF 격자점 구름량을 원형으로 시각화한 <strong>예측 지도</strong>이며 위성영상이 아닙니다. 구름의 분포 변화로 이동 방향을 참고할 수 있지만 실제 개별 구름의 이동 경로는 아닙니다. 🌧️ 표시의 숫자는 Open-Meteo 앙상블의 해당 위치·시간대 강수확률이며, 값이 없는 경우 표시하지 않습니다. <strong>실제 레이더는 과거 약 2시간</strong>만 지원하고 미래 3시간의 레이더 관측은 존재하지 않습니다. 지도 © OpenStreetMap, 레이더 © RainViewer.</p>
+    <p class="radar-note">구름은 ECMWF 격자 예보값을 공간 보간해 <strong>끊김 없는 반투명 레이어</strong>로 표시한 예측 지도이며, 실제 위성 구름 영상이 아닙니다. 구름의 분포 변화로 이동 방향을 참고할 수 있지만 실제 개별 구름의 이동 경로는 아닙니다. 🌧️ 표시의 숫자는 Open-Meteo 앙상블의 해당 위치·시간대 강수확률이며, 값이 없는 경우 표시하지 않습니다. <strong>실제 레이더는 과거 약 2시간</strong>만 지원하고 미래 3시간의 레이더 관측은 존재하지 않습니다. 지도 © OpenStreetMap, 레이더 © RainViewer.</p>
   </section>
 
   <section id="weeks" aria-label="14일 예보">
@@ -763,9 +764,11 @@ async function requestJson(url, action, loadingText){
 
 
 /* 지도형 구름 예측은 ECMWF IFS 공간 격자의 예보이며, 실제 관측 레이더와 구분합니다. */
-let radarMap=null, radarCloudLayer=null, radarPin=null, radarTileLayer=null;
+let radarMap=null, radarCloudLayer=null, radarCloudImageLayer=null, radarPin=null, radarTileLayer=null, radarBounds=null;
 let radarPoints=[], radarManifest=null, radarBaseHour=0, radarOffset=0;
 let radarActiveRequest=0, radarController=null, radarPlayback=null, radarDisplayedPlace=null;
+const RADAR_GRID_SIZE=5, RADAR_RADIUS_LAT=.30;
+let radarRasterCache=new Map();
 
 function radarPause(){
  if(radarPlayback!==null){clearInterval(radarPlayback);radarPlayback=null;}
@@ -781,20 +784,22 @@ function radarClockLabel(timestamp,place){
  }catch(error){return new Date(timestamp).toISOString().slice(5,16).replace('T',' ');}
 }
 function radarGridCoordinates(place){
- const lat0=Math.max(-85,Math.min(85,Number(place.latitude)));
- const lon0=Number(place.longitude);
- const lonRadius=Math.min(3.0,1.0/Math.max(.25,Math.cos(lat0*Math.PI/180)));
- const locations=[];
- for(const y of [-1,-1/3,1/3,1]){
-  for(const x of [-1,-1/3,1/3,1]){
-   const lat=Math.max(-85,Math.min(85,lat0+y*1.0));
-   let lon=lon0+x*lonRadius;
-   while(lon>180)lon-=360;
-   while(lon< -180)lon+=360;
-   locations.push({latitude:Number(lat.toFixed(4)),longitude:Number(lon.toFixed(4))});
-  }
+ const latitude=Math.max(-85,Math.min(85,Number(place.latitude)));
+ const longitude=Number(place.longitude);
+ const lonRadius=Math.min(1.2,RADAR_RADIUS_LAT/Math.max(.28,Math.cos(latitude*Math.PI/180)));
+ const north=Math.min(85,latitude+RADAR_RADIUS_LAT),south=Math.max(-85,latitude-RADAR_RADIUS_LAT);
+ const west=longitude-lonRadius,east=longitude+lonRadius;
+ const points=[];
+ // 북서→남동 순서의 5x5 격자. 각 셀 사이를 보간해 연속된 영상으로 표시합니다.
+ for(let row=0;row<RADAR_GRID_SIZE;row++)for(let col=0;col<RADAR_GRID_SIZE;col++){
+  const lat=north+(south-north)*row/(RADAR_GRID_SIZE-1);
+  let lon=west+(east-west)*col/(RADAR_GRID_SIZE-1);
+  while(lon>180)lon-=360;
+  while(lon< -180)lon+=360;
+  points.push({latitude:Number(lat.toFixed(4)),longitude:Number(lon.toFixed(4))});
  }
- return locations;
+ radarBounds=[[south,west],[north,east]];
+ return points;
 }
 function radarHourlyValue(point,key,index){
  const data=point && point.hourly && point.hourly[key];
@@ -928,11 +933,11 @@ function radarEnsureMap(place){
   // Leaflet 초기화 후 안내 문구가 지도 위에 남지 않도록 제거합니다.
   const fallback=el('weatherRadarMap').querySelector('.radar-map-fallback');
   if(fallback)fallback.remove();
-  radarMap=leaflet.map('weatherRadarMap',{preferCanvas:true,scrollWheelZoom:false,zoomControl:true}).setView(coords,7);
+  radarMap=leaflet.map('weatherRadarMap',{preferCanvas:true,scrollWheelZoom:false,zoomControl:true}).setView(coords,11);
   leaflet.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-   {maxZoom:12,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'})
+   {maxZoom:14,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'})
    .addTo(radarMap);
- }else{radarMap.setView(coords,7);}
+ }else{radarMap.setView(coords,11);}
  if(radarPin)radarMap.removeLayer(radarPin);
  radarPin=leaflet.marker(coords,{
    icon:leaflet.divIcon({className:'',html:'<div class="radar-center-dot" title="예보 기준 위치"></div>',iconSize:[18,18],iconAnchor:[9,9]})
@@ -1001,7 +1006,7 @@ async function radarLoadForPlace(place){
    }
    radarPoints=points.map((coord,index)=>({...coord,data:received[index]}));
    el('radarTime').disabled=false;el('radarPlay').disabled=false;
-   el('radarStatus').textContent='✅ ECMWF 구름 지도 준비 완료 · −3 ~ +3시간 · 1시간 간격 (주변 16개 격자점)';
+   el('radarStatus').textContent='✅ ECMWF 구름 지도 준비 완료 · −3 ~ +3시간 · 1시간 간격 (주변 25개 격자점)';
   }else{
    el('radarStatus').textContent='⚠️ ECMWF 구름 자료 조회 실패 · 다시 시도해 주세요. 레이더 관측 자료가 있으면 별도로 표시됩니다.';
   }
