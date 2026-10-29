@@ -458,7 +458,8 @@ function buildForecastUrl(p){
   });
   return 'https://api.open-meteo.com/v1/forecast?'+params.toString();
 }
-let selectedPlace=LOCAL_PLACES[0], activeController=null, retryAction=null, operationId=0;
+const DEFAULT_PLACE=LOCAL_PLACES.find(place=>place.name==='서울특별시');
+let selectedPlace=DEFAULT_PLACE, activeController=null, retryAction=null, operationId=0;
 // 사용자가 직접 검색/지역 선택을 시작하면 대기 중인 자동 위치 탐지 결과로 덮어쓰지 않습니다.
 let locationSelectionSerial=0, locationRequestSerial=0;
 function hideDialog(){el('retryDialog').classList.remove('open');}
@@ -525,9 +526,9 @@ function locateCurrentWeather(){
   status('📍 브라우저 위치 접근을 허용하면 현재 위치의 14일 예보를 불러옵니다. 위치 확인 중…');
   async function showDefault(reason){
     if(!isCurrentRequest())return;
-    const ok=await selectPlace(LOCAL_PLACES[0]);
+    const ok=await selectPlace(DEFAULT_PLACE);
     if(ok && isCurrentRequest()){
-      status('⚠️ '+reason+' 현재 위치 대신 기본 지역인 고흥군의 예보를 표시합니다. 도시를 직접 검색하거나 📍 현재 위치 버튼으로 다시 시도할 수 있습니다.');
+      status('⚠️ '+reason+' 현재 위치 대신 기본 지역인 서울특별시의 예보를 표시합니다. 도시를 직접 검색하거나 📍 현재 위치 버튼으로 다시 시도할 수 있습니다.');
     }
   }
   if(!window.isSecureContext || !navigator.geolocation){
@@ -626,7 +627,7 @@ el('currentLocationButton').addEventListener('click',()=>{locationSelectionSeria
 el('retry').addEventListener('click',()=>selectPlace(selectedPlace));
 el('dismiss').addEventListener('click',hideDialog);
 el('retryDialogButton').addEventListener('click',()=>{if(retryAction)retryAction();});
-// 첫 실행은 브라우저 위치 권한을 요청하여 현재 좌표 기준 예보 조회. 거부/실패 시 고흥으로 대체.
+// 첫 실행은 브라우저 위치 권한을 요청하여 현재 좌표 기준 예보 조회. 거부/실패 시 서울로 대체.
 locateCurrentWeather();
 </script>
 </body>
