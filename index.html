@@ -442,7 +442,7 @@ function getRainScaleInfo(rainValues){
   const scaleMax=Math.ceil(maxRain/5)*5;
   return {finiteRain,maxRain,scaleMax};
 }
-// 14일 최대 강수량을 기준으로 10칸 눈금 생성. 0mm는 0칸, 양수는 최소 1칸.
+// 15일 최대 강수량을 기준으로 10칸 눈금 생성. 0mm는 0칸, 양수는 최소 1칸.
 function rainFilledCells(value, scaleMax){
   if(!(typeof value==='number'&&Number.isFinite(value)&&value>0))return 0;
   return Math.min(10,Math.max(1,Math.ceil(value/scaleMax*10)));
@@ -526,6 +526,109 @@ function hideDialog(){el('retryDialog').classList.remove('open');}
 function showDialog(message){el('dialogDesc').textContent=message;el('retryDialog').classList.add('open');}
 function setBusy(busy){el('retry').disabled=busy;el('searchButton').disabled=busy;}
 
+function hourlyValue(data,key,i){
+ const v=Array.isArray(data[key])?data[key][i]:null;
+ return typeof v==='number'&&Number.isFinite(v)?v:null;
+}
+
+function hourlyWindHTML(direction){
+ if(direction===null)return '—';
+ const fromBearing=((direction%360)+360)%360;
+ const toBearing=(fromBearing+180)%360;
+ return `<span class="hour-wind"><span class="wind-arrow" aria-hidden="true" style="--wind-deg:${toBearing.toFixed(1)}deg">↑</span>${windLabel(direction)}</span>`;
+}
+
+function fmtHourly(value,digits=1,suffix=''){
+ return value===null?'—':value.toFixed(digits)+suffix;
+}
+
+function buildHourlyRows(data,dateStr){
+ if(!data||!Array.isArray(data.time))return {count:0,html:''};
+ const rows=[];
+ for(let i=0;i<data.time.length;i++){
+  const time=data.time[i];
+  if(typeof time!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(time)||!time.startsWith(dateStr+'T'))continue;
+  const temp=hourlyValue(data,'temperature_2m',i);
+  const feels=hourlyValue(data,'apparent_temperature',i);
+  const rain=hourlyValue(data,'precipitation',i);
+  const direction=hourlyValue(data,'wind_direction_10m',i);
+  const speed=hourlyValue(data,'wind_speed_10m',i);
+  const gust=hourlyValue(data,'wind_gusts_10m',i);
+  const humidity=hourlyValue(data,'relative_humidity_2m',i);
+  const cloud=hourlyValue(data,'cloud_cover',i);
+  const code=hourlyValue(data,'weather_code',i);
+  const w=code===null?['❔','자료 없음']:wx(code);
+  const wet=rain!==null&&rain>0;
+  rows.push(`<tr${wet?' class="hour-wet"':''}><td>${time.slice(11,16)}</td>`+
+  `<td title="${w[1]}"><span class="hour-wx">${w[0]}</span>${w[1]}</td>`+
+  `<td>${fmtHourly(temp,1,'°C')}</td><td>${fmtHourly(feels,1,'°C')}</td>`+
+  `<td${wet?' class="hour-rain"':''}>${fmtHourly(rain,1,' mm')}</td>`+
+  `<td>${hourlyWindHTML(direction)}</td><td>${fmtHourly(speed,1,' m/s')}</td>`+
+  `<td>${fmtHourly(gust,1,' m/s')}</td><td>${fmtHourly(humidity,0,'%')}</td>`+
+  `<td>${fmtHourly(cloud,0,'%')}</td></tr>`);
+ }
+ return {count:rows.length,html:rows.join('')};
+}
+
+function closeHourlyModal(){
+ const modal=el('hourlyDialog');
+ if(!modal.classList.contains('open'))return;
+ modal.classList.remove('open');
+ modal.setAttribute('aria-hidden','true');
+ document.body.classList.remove('hourly-open');
+ if(previousModalFocus&&previousModalFocus.isConnected)previousModalFocus.focus();
+ previousModalFocus=null;
+}
+
+function openHourlyModal(dateStr,trigger){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(dateStr))return;
+ const date=new Date(dateStr+'T12:00:00Z');
+ const weekdays=['일','월','화','수','목','금','토'];
+ const result=buildHourlyRows(hourlyForecast,dateStr);
+ el('hourlyDialogTitle').textContent='🕒 '+dateStr.slice(5).replace('-','/')+' ('+weekdays[date.getUTCDay()]+') 시간별 예보';
+ el('hourlyDialogDesc').textContent='📍 '+placeLabel(selectedPlace)+' · ECMWF IFS · 현지시간 기준';
+ el('hourlySummary').textContent=result.count?
+   result.count+'개 시간대 · 기온(°C) · 강수(mm) · 풍속/순간풍속(m/s) · 습도/운량(%)':
+   '선택한 날짜의 시간별 자료가 제공되지 않습니다.';
+ el('hourlyBody').innerHTML=result.count?result.html:'<tr><td colspan="10">시간별 자료가 없습니다. 다른 날짜를 선택하거나 다시 조회해 주세요.</td></tr>';
+ const modal=el('hourlyDialog');
+ previousModalFocus=trigger||document.activeElement;
+ modal.classList.add('open');
+ modal.setAttribute('aria-hidden','false');
+ document.body.classList.add('hourly-open');
+ const view=modal.querySelector('.hour-table-viewport');
+ view.scrollTop=0;view.scrollLeft=0;
+ el('closeHourly').focus();
+}
+
+function activateDayCard(event){
+ const target=event.target.closest('.day[data-date]');
+ if(!target||!event.currentTarget.contains(target))return;
+ if(event.type==='keydown'&&event.key!=='Enter'&&event.key!==' ')return;
+ if(event.type==='keydown')event.preventDefault();
+ openHourlyModal(target.dataset.date,target);
+}
+
+function initHourlyModalEvents(){
+ ['week1','week2','week3'].forEach(id=>{
+  const box=el(id);
+  box.addEventListener('click',activateDayCard);
+  box.addEventListener('keydown',activateDayCard);
+ });
+ el('closeHourly').addEventListener('click',closeHourlyModal);
+ el('hourlyDialog').addEventListener('click',event=>{
+  if(event.target===el('hourlyDialog'))closeHourlyModal();
+ });
+ el('hourlyDialog').addEventListener('keydown',event=>{
+  if(event.key==='Escape'){event.preventDefault();closeHourlyModal();return;}
+  if(event.key!=='Tab')return;
+  const focusables=[el('closeHourly'),el('hourlyDialog').querySelector('.hour-table-viewport')];
+  const first=focusables[0],last=focusables[focusables.length-1];
+  if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+  else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+ });
+}
+
 async function requestJson(url, action, loadingText){
   if(activeController)activeController.abort();
   hideDialog();setBusy(true);status(loadingText);
@@ -553,6 +656,8 @@ async function requestJson(url, action, loadingText){
 }
 
 async function selectPlace(place){
+  closeHourlyModal();
+  hourlyForecast=null;
   selectedPlace=place;hideResults();
   el('placeInput').value=place.currentLocation?placeLabel(place):place.ko || place.name;
   el('location').textContent='📍 '+placeLabel(place);
@@ -764,6 +869,7 @@ el('currentLocationButton').addEventListener('click',()=>{locationSelectionSeria
 el('retry').addEventListener('click',()=>selectPlace(selectedPlace));
 el('dismiss').addEventListener('click',hideDialog);
 el('retryDialogButton').addEventListener('click',()=>{if(retryAction)retryAction();});
+initHourlyModalEvents();
 // 첫 실행은 브라우저 위치 권한을 요청하여 현재 좌표 기준 예보 조회. 거부/실패 시 서울로 대체.
 locateCurrentWeather();
 </script>
