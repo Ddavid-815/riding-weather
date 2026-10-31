@@ -362,6 +362,24 @@ main{max-width:800px}
 .rider-avatar.avatar-startled .avatar-startle-hand-left{animation:rider-wave-left 850ms ease-out both;transform-origin:56px 134px}
 .rider-avatar.avatar-startled .avatar-startle-hand-right{animation:rider-wave-right 850ms ease-out both;transform-origin:104px 134px}
 @media(prefers-reduced-motion:reduce){.rider-avatar.avatar-startled .avatar-startle-hand-left,.rider-avatar.avatar-startled .avatar-startle-hand-right{animation:none}}
+
+/* Confident cyclist victory pose: chest up, hand on hip, raised fist. */
+@keyframes rider-victory-body{0%,100%{transform:translateY(0) rotate(0)}18%{transform:translateY(3px) rotate(-2deg)}40%{transform:translateY(-7px) rotate(3deg)}65%{transform:translateY(-5px) rotate(2deg)}85%{transform:translateY(-2px) rotate(1deg)}}
+@keyframes rider-victory-head{0%,100%{transform:rotate(0)}35%,65%{transform:rotate(-8deg) translateY(-2px)}}
+@keyframes rider-victory-fist{0%,100%{transform:translateY(10px) rotate(0);opacity:0}25%{transform:translateY(-12px) rotate(-6deg);opacity:1}50%,77%{transform:translateY(-8px) rotate(3deg);opacity:1}90%{opacity:0}}
+@keyframes rider-victory-hip{0%,100%{opacity:0;transform:translateY(7px)}22%,77%{opacity:1;transform:translateY(0)}90%{opacity:0}}
+.rider-avatar .avatar-victory-arms{opacity:0;pointer-events:none}
+.rider-avatar.avatar-confident .avatar-victory-arms{opacity:1}
+.rider-avatar.avatar-confident .avatar-victory-right{animation:rider-victory-fist 1150ms ease-out both;transform-origin:104px 134px}
+.rider-avatar.avatar-confident .avatar-victory-left{animation:rider-victory-hip 1150ms ease-out both}
+.rider-avatar.avatar-confident .avatar-bob{animation:rider-victory-body 1150ms ease-in-out both}
+.rider-avatar.avatar-confident .avatar-head,.rider-avatar.avatar-confident .avatar-back-head{animation:rider-victory-head 1150ms ease-in-out both;transform-origin:80px 118px}
+.rider-avatar.avatar-confident .avatar-surprised-face{display:none!important}
+.rider-avatar.avatar-confident.avatar-back-active>.avatar-back-view{animation:rider-victory-body 1150ms ease-in-out both}
+.avatar-stage[data-outfit="winter"] .avatar-victory-arms path{stroke:#293e55}
+.avatar-stage[data-outfit="cold"] .avatar-victory-arms path{stroke:#d5ecd9}
+.avatar-stage[data-outfit="cool"] .avatar-victory-arms path,.avatar-stage[data-outfit="mild"] .avatar-victory-arms path,.avatar-stage[data-outfit="hot"] .avatar-victory-arms path{stroke:#f5fbff}
+@media(prefers-reduced-motion:reduce){.rider-avatar.avatar-confident .avatar-bob,.rider-avatar.avatar-confident .avatar-head,.rider-avatar.avatar-confident .avatar-victory-right,.rider-avatar.avatar-confident .avatar-victory-left{animation:none}}
 </style>
 </head>
 <body>
@@ -414,10 +432,10 @@ main{max-width:800px}
   <path d="M50 67 Q59 62 67 67 M93 67 Q101 62 110 67" fill="none" stroke="#543a35" stroke-width="2.1" stroke-linecap="round"/>
  </g>
  </g>
- <g class="avatar-startle-hands" aria-hidden="true">
-  <g class="avatar-startle-hand-left"><path d="M57 134 Q38 124 25 106" stroke="#f5fbff" stroke-width="14" stroke-linecap="round" fill="none"/><circle cx="25" cy="104" r="9" fill="#efba99"/></g>
-  <g class="avatar-startle-hand-right"><path d="M103 134 Q122 124 135 106" stroke="#f5fbff" stroke-width="14" stroke-linecap="round" fill="none"/><circle cx="135" cy="104" r="9" fill="#efba99"/></g>
- </g></g>
+ <g class="avatar-victory-arms" aria-hidden="true">
+  <g class="avatar-victory-left"><path d="M57 137 Q40 142 39 163 Q38 176 52 174" fill="none" stroke="#f5fbff" stroke-width="14" stroke-linecap="round"/><ellipse cx="52" cy="173" rx="8" ry="7" fill="#edb391"/></g>
+  <g class="avatar-victory-right"><path d="M103 134 Q119 119 124 96 L128 68" fill="none" stroke="#f5fbff" stroke-width="15" stroke-linecap="round"/><path d="M118 70 Q114 59 120 55 Q126 49 133 54 Q140 57 139 67 Q136 77 128 78 Q120 79 118 70" fill="#edb391" stroke="#c98d71" stroke-width="1.5"/><path d="M121 60 Q128 57 134 61" stroke="#c98d71" stroke-width="1.4" fill="none"/></g>
+ </g></g></g>
 <g class="avatar-back-view" aria-hidden="true"><g class="outfit-scene outfit-winter"><path d="M56 178 H79 L75 228 H56 Z M83 178 H103 L104 228 H89 Z" fill="#182c44" stroke="#172c47" stroke-width="2"/><path d="M54 225 H74 Q79 230 76 235 H49 Q43 233 48 229 Z M89 225 H106 Q116 230 114 235 H87 Q84 233 89 225" fill="#fff" stroke="#8da2b7" stroke-width="2"/><g class="avatar-arms"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" fill="#435d78" stroke="#accbd1" stroke-width="1.6"/><ellipse cx="33" cy="179" rx="9" ry="9" fill="#f7bfa3"/><ellipse cx="127" cy="179" rx="9" ry="9" fill="#f7bfa3"/><path d="M26 176 Q34 173 41 176 L41 184 Q33 190 26 183 Z M119 176 Q127 173 134 176 L134 183 Q126 190 120 184 Z" fill="#263b55"/></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" fill="#547c9b" stroke="#abcad0" stroke-width="1.8"/><path d="M61 165 Q80 171 100 165 L99 178 Q80 186 61 178 Z" fill="#476987" stroke="#abc9d0" stroke-width="1"/><text x="80" y="151" text-anchor="middle" font-size="10" font-weight="900" fill="white">UAE</text></g></g>
 <g class="outfit-scene outfit-cold"><path d="M56 178 H79 L75 228 H56 Z M83 178 H103 L104 228 H89 Z" fill="#283b55" stroke="#172c47" stroke-width="2"/><path d="M54 225 H74 Q79 230 76 235 H49 Q43 233 48 229 Z M89 225 H106 Q116 230 114 235 H87 Q84 233 89 225" fill="#fff" stroke="#8da2b7" stroke-width="2"/><g class="avatar-arms"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" fill="#e7f0f6" stroke="#accbd1" stroke-width="1.6"/><ellipse cx="33" cy="179" rx="9" ry="9" fill="#f7bfa3"/><ellipse cx="127" cy="179" rx="9" ry="9" fill="#f7bfa3"/><path d="M26 176 Q34 173 41 176 L41 184 Q33 190 26 183 Z M119 176 Q127 173 134 176 L134 183 Q126 190 120 184 Z" fill="#263b55"/></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" fill="#f5faff" stroke="#abcad0" stroke-width="1.8"/><path d="M61 165 Q80 171 100 165 L99 178 Q80 186 61 178 Z" fill="#e1ebf0" stroke="#abc9d0" stroke-width="1"/><text x="80" y="151" text-anchor="middle" font-size="10" font-weight="900" fill="#344c61">UAE</text></g></g>
 <g class="outfit-scene outfit-cool"><path d="M56 179 L79 179 L75 228 H57 Z M83 179 H103 L104 228 H89 Z" fill="#f7bfa3" stroke="#d69c84" stroke-width="1.5"/><path d="M56 178 H79 L77 196 H56 Z M83 178 H103 L104 196 H87 Z" fill="#263b55" stroke="#182d47" stroke-width="1.5"/><path d="M54 225 H74 Q79 230 76 235 H49 Q43 233 48 229 Z M89 225 H106 Q116 230 114 235 H87 Q84 233 89 225" fill="#fff" stroke="#8da2b7" stroke-width="2"/><g class="avatar-arms"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" fill="#f9fbff" stroke="#adbfcc" stroke-width="1.6"/><path d="M29 168 L42 173 M118 173 L131 168" fill="none" stroke="#2a91bc" stroke-width="2"/><ellipse cx="33" cy="179" rx="9" ry="9" fill="#f7bfa3"/><ellipse cx="127" cy="179" rx="9" ry="9" fill="#f7bfa3"/></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" fill="#f7fcff" stroke="#abcad0" stroke-width="1.8"/><path d="M61 165 Q80 171 100 165 L99 178 Q80 186 61 178 Z" fill="#e1ebf0" stroke="#abc9d0" stroke-width="1"/><text x="80" y="151" text-anchor="middle" font-size="10" font-weight="900" fill="#344c61">UAE</text></g></g>
@@ -836,11 +854,11 @@ function riderTapFeedback(){
  const avatar=document.getElementById('riderAvatar');
  if(!avatar)return;
  clearTimeout(riderStartleTimer);
- avatar.classList.remove('avatar-startled');
+ avatar.classList.remove('avatar-confident');
  // Restart animation even for rapid repeated taps.
  void avatar.getBoundingClientRect();
- avatar.classList.add('avatar-startled');
- riderStartleTimer=setTimeout(()=>avatar.classList.remove('avatar-startled'),780);
+ avatar.classList.add('avatar-confident');
+ riderStartleTimer=setTimeout(()=>avatar.classList.remove('avatar-confident'),1180);
 }
 document.addEventListener('DOMContentLoaded',()=>{
  const button=document.getElementById('avatarTurn'),avatar=document.getElementById('riderAvatar');
