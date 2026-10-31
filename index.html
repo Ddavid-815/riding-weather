@@ -288,6 +288,29 @@ main{max-width:800px}
 .avatar-stage .outfit-scene .avatar-vest{display:none}
 .avatar-stage .outfit-scene .avatar-legwarmers{display:none}
 
+
+/* UCI 월드투어 캘린더: 상단의 작은 정보 스트립 */
+.uci-strip{margin:0 0 12px;background:#fff;border-radius:16px;padding:13px 15px;box-shadow:0 2px 12px #18365b0a}
+.uci-strip-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.uci-strip-title{font-size:14px;font-weight:850;color:#193b68}
+.uci-strip-sub{font-size:12px;color:#657990}
+.uci-small-btn{min-height:34px;padding:6px 10px;background:#edf3fb;color:#245b99;font-size:12px}
+.uci-schedule{display:grid;gap:8px;margin-top:10px}
+.uci-event{width:100%;text-align:left;display:flex;justify-content:space-between;gap:8px;align-items:center;background:#f0f5fc;color:#193b68;border:1px solid #d8e5f5;padding:10px 12px;min-height:48px}
+.uci-event strong{display:block;font-size:13px}.uci-event small{font-size:11px;color:#657990}
+.uci-empty{font-size:13px;color:#64748b;padding:7px 0}
+.uci-detail{margin-top:10px;border-top:1px solid #e2e9f3;padding-top:11px;display:none}
+.uci-detail.show{display:block}
+.uci-detail h3{font-size:15px;margin:0 0 6px;color:#193b68}
+.uci-weather{font-size:13px;line-height:1.65;color:#33516e}
+.uci-riders{display:flex;gap:9px;overflow-x:auto;padding:10px 0 3px}
+.uci-rider{flex:0 0 108px;background:#f4f7fc;border-radius:12px;padding:8px 6px;text-align:center}
+.uci-rider-art{height:64px;display:grid;place-items:center;font-size:28px;background:linear-gradient(140deg,#d5e7ff,#e7f4fe);border-radius:10px}
+.uci-rider-name{font-size:11px;font-weight:800;line-height:1.35;margin-top:5px;color:#284969}
+.uci-rider-team{font-size:10px;color:#64748b;line-height:1.35;margin-top:3px}
+.uci-note{font-size:11px;color:#718299;line-height:1.5}
+.uci-link{display:inline-block;margin-top:8px;color:#1a62aa;font-weight:750;font-size:12px}
+@media(max-width:420px){.uci-strip{padding:11px 12px}.uci-strip-title{font-size:13px}.uci-strip-sub{font-size:11px}}
 </style>
 </head>
 <body>
@@ -298,7 +321,16 @@ main{max-width:800px}
     <small id="locationDetails">ECMWF IFS 단독 · 오늘부터 14일 · 한국시간(KST)</small>
   </header>
 
-  <section class="now-panel" aria-labelledby="nowHeading">
+  
+<section class="uci-strip" aria-label="이번 주 UCI 월드투어 경기">
+  <div class="uci-strip-head">
+    <div><div class="uci-strip-title">🚴 이번 주 UCI 월드투어</div><div id="uciWeek" class="uci-strip-sub">공식 일정 확인</div></div>
+    <button type="button" class="uci-small-btn" id="uciArchiveToggle">최근 경기 ▾</button>
+  </div>
+  <div id="uciSchedule" class="uci-schedule"></div>
+  <div id="uciDetail" class="uci-detail" aria-live="polite"></div>
+</section>
+<section class="now-panel" aria-labelledby="nowHeading">
     <div class="now-top"><span class="now-kicker">● LIVE FORECAST <span id="nowTime">현지시간 기준</span></span><button type="button" id="toggleSearch" class="now-location-btn" aria-controls="searchPanel" aria-expanded="false">⌕ 지역 변경</button></div>
     <div id="nowPlace" class="now-place">서울 · 날씨 불러오는 중</div>
     <div class="now-main"><div><div id="nowTemp" class="now-temp">--<span>°</span></div><div id="nowDesc" class="now-desc">현재 시간대 예보 조회 중</div><div id="nowFeels" class="now-feels">체감온도 --°</div></div><div class="avatar-stage" aria-label="기온에 맞춘 움직이는 라이더 아바타">
@@ -371,8 +403,8 @@ main{max-width:800px}
   <section id="weeks" aria-label="14일 예보">
     <section class="panel" aria-labelledby="rainChartTitle">
       <div class="rain-title"><h2 id="rainChartTitle">🌧️ 14일 강수량 막대그래프</h2><span class="rain-unit">일강수량 · mm</span></div>
-      <p class="muted">날짜별 일강수량을 10칸 단색 눈금으로 비교합니다. 강수량 숫자는 막대 위에 고정 표시되며 채워진 칸 수가 많을수록 강수량이 많습니다.</p>
-      <div class="rain-legend" id="rainLegend">□ 빈칸 · ■ 채워진 칸 · 전체 10칸</div>
+      
+      <div class="rain-legend" id="rainLegend">□ 빈칸 · ■ 1칸 ≈ 1mm · 10칸 = 10mm</div>
       <div class="rain-scroll" role="region" tabindex="0" aria-label="14일 강수량 막대그래프, 작은 화면에서는 좌우로 스크롤">
         <div class="rain-chart">
           <div class="rain-axis" aria-hidden="true"><span class="axis-max" id="rainAxisMax">10</span><span class="axis-half" id="rainAxisHalf">5</span><span class="axis-zero">0</span></div>
@@ -384,7 +416,7 @@ main{max-width:800px}
           </div>
         </div>
       </div>
-      <p class="rain-foot">모든 날짜에 동일한 10칸 눈금을 사용합니다. 강수량이 증가할수록 아래 칸부터 채워지며, 0mm는 빈칸 10개로 표시합니다. 모바일에서는 좌우로 밀어 확인하세요.</p>
+      
     </section>
     <p class="muted">📅 날짜 카드를 누르면 해당 날짜의 시간별 기온, 강수량, 풍향·풍속 등 상세 예보가 팝업으로 열립니다.</p>
     <section class="panel"><h2>1주차 · D+0~D+6 <span class="segment-scale" id="weekScale1"></span></h2><div id="week1" class="grid"></div></section>
@@ -1210,6 +1242,83 @@ el('retryDialogButton').addEventListener('click',()=>{if(retryAction)retryAction
 initHourlyModalEvents();
 // 첫 실행은 브라우저 위치 권한을 요청하여 현재 좌표 기준 예보 조회. 거부/실패 시 서울로 대체.
 locateCurrentWeather();
+
+/* UCI 남녀 월드투어 2026: 공식 발표 일정. 경기별 출발 시간 미확인 시 표시하지 않음. */
+const UCI_EVENTS=[
+ {id:'lombardia26',name:'일 롬바르디아',start:'2026-10-10',end:'2026-10-10',city:'베르가모',country:'이탈리아',lat:45.6983,lon:9.6773,tz:'Europe/Rome',startTime:null,url:'https://www.ilombardia.it/en/',riders:[['Remco Evenepoel','Red Bull–BORA–hansgrohe'],['Isaac del Toro','UAE Team Emirates–XRG'],['Brandon McNulty','UAE Team Emirates–XRG']]},
+ {id:'guangxi26',name:'투어 오브 광시',start:'2026-10-13',end:'2026-10-18',city:'충쭤',country:'중국',lat:22.4044,lon:107.3539,tz:'Asia/Shanghai',startTime:null,url:'https://www.uci.org/discipline/road/6TBjsDD8902tud440iv1Cu?tab=calendar',riders:[['Paul Magnier','Soudal Quick-Step'],['Olav Kooij','Decathlon CMA CGM'],['Juan Ayuso','Lidl–Trek'],['Kaden Groves','Alpecin–Premier Tech']]},
+ {id:'guangxiwomen26',name:'투어 오브 광시 (여자)',start:'2026-10-18',end:'2026-10-18',city:'난닝',country:'중국',lat:22.817,lon:108.3669,tz:'Asia/Shanghai',startTime:null,url:'https://www.uci.org/discipline/road/6TBjsDD8902tud440iv1Cu?tab=calendar',riders:[]}
+];
+const UCI_NOW=new Date();
+function uciDate(d){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(d);}
+function uciWeekRange(){
+ const ymd=uciDate(new Date()),[y,m,d]=ymd.split('-').map(Number);
+ const day=new Date(Date.UTC(y,m-1,d)),mon=(day.getUTCDay()+6)%7;
+ const a=new Date(day.getTime()-mon*86400000),b=new Date(a.getTime()+6*86400000);
+ return [a.toISOString().slice(0,10),b.toISOString().slice(0,10)];
+}
+function uciShort(s){return s.slice(5).replace('-','/');}
+function uciRender(){
+ const [a,b]=uciWeekRange(),events=UCI_EVENTS.filter(e=>e.start<=b&&e.end>=a);
+ document.getElementById('uciWeek').textContent=uciShort(a)+' ~ '+uciShort(b)+' · 남녀 WorldTour';
+ const box=document.getElementById('uciSchedule');
+ box.replaceChildren();
+ if(events.length){events.forEach(e=>box.appendChild(uciRaceButton(e)));}
+ else{const p=document.createElement('div');p.className='uci-empty';p.textContent='이번 주 경기 없음 · 2026 로드 월드투어 시즌 종료';box.appendChild(p);}
+}
+function uciRaceButton(e){
+ const b=document.createElement('button');b.className='uci-event';b.type='button';
+ const t=document.createElement('span'),title=document.createElement('strong'),sub=document.createElement('small');
+ title.textContent=e.name;sub.textContent=uciShort(e.start)+(e.start===e.end?'':' ~ '+uciShort(e.end))+' · '+e.country+' '+e.city;
+ t.append(title,sub);const arrow=document.createElement('span');arrow.textContent='›';b.append(t,arrow);
+ b.addEventListener('click',()=>uciShowRace(e));return b;
+}
+async function uciShowRace(e){
+ const detail=document.getElementById('uciDetail');detail.classList.add('show');detail.replaceChildren();
+ const heading=document.createElement('h3');heading.textContent=e.name+' · '+e.city;detail.append(heading);
+ const weather=document.createElement('div');weather.className='uci-weather';weather.textContent='ECMWF IFS 경기 지역 예보 확인 중…';detail.append(weather);
+ const link=document.createElement('a');link.className='uci-link';link.href=e.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='대회·공식 일정 확인 ↗';detail.append(link);
+ const label=document.createElement('div');label.className='uci-note';label.style.marginTop='10px';
+ label.textContent='주요 출전 선수 · 확정 명단에 있는 선수 (캐릭터는 스타일화한 아이콘)';
+ detail.append(label);
+ if(e.riders.length){
+   const row=document.createElement('div');row.className='uci-riders';
+   e.riders.forEach(([name,team],i)=>{
+     const card=document.createElement('div');card.className='uci-rider';
+     const art=document.createElement('div');art.className='uci-rider-art';art.textContent=['🚴🏻','🚴🏽','🚴🏼','🚴'][i%4];
+     const n=document.createElement('div');n.className='uci-rider-name';n.textContent=name;
+     const t=document.createElement('div');t.className='uci-rider-team';t.textContent=team;
+     card.append(art,n,t);row.append(card);
+   });detail.append(row);
+ }else{const p=document.createElement('p');p.className='uci-note';p.textContent='확정 참가 선수 정보가 확인되지 않아 표시하지 않습니다.';detail.append(p);}
+ const when=e.startTime?('경기 시작 '+e.startTime+' (현지시간)'):'경기 시작 시각 미확인';
+ const today=uciDate(new Date()),end=uciDate(new Date(Date.now()+13*86400000));
+ if(e.end<today||e.start>end){
+   weather.textContent=when+' · 14일 예보 범위 밖이므로 경기 시각 날씨를 표시할 수 없습니다.';return;
+ }
+ if(!e.startTime){weather.textContent='경기 시작 시각이 확인되지 않았습니다. 해당 지역의 경기 날짜 예보를 조회합니다.';}
+ try{
+   const api='https://api.open-meteo.com/v1/forecast?'+new URLSearchParams({
+    latitude:String(e.lat),longitude:String(e.lon),models:'ecmwf_ifs',
+    hourly:'temperature_2m,precipitation,weather_code,wind_speed_10m',
+    timezone:e.tz,wind_speed_unit:'ms',forecast_days:'14'});
+   const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),10000);
+   let resp;try{resp=await fetch(api,{signal:controller.signal});}finally{clearTimeout(timer);}
+   if(!resp.ok)throw Error('HTTP '+resp.status);
+   const json=await resp.json(),times=json.hourly?.time||[],idx=times.findIndex(t=>t.startsWith(e.start)&&(e.startTime?t.slice(11,16)===e.startTime:t.slice(11,13)==='12'));
+   if(idx<0){weather.textContent=when+' · 해당 시각 예보 자료가 없습니다.';return;}
+   const h=json.hourly;weather.textContent=(e.startTime?'경기 시작':'경기 날짜 12:00 기준')+' · '+e.city+' 현지 '+times[idx].replace('T',' ')+' | '+Number(h.temperature_2m[idx]).toFixed(1)+'°C · 강수 '+Number(h.precipitation[idx]).toFixed(1)+'mm/h · 풍속 '+Number(h.wind_speed_10m[idx]).toFixed(1)+'m/s (ECMWF IFS)';
+ }catch(err){weather.textContent=when+' · 기상 API 연결 실패. 잠시 후 다시 선택해 주세요.';}
+}
+document.getElementById('uciArchiveToggle').addEventListener('click',()=>{
+ const box=document.getElementById('uciSchedule'),open=box.dataset.archive==='yes';
+ box.dataset.archive=open?'no':'yes';
+ document.getElementById('uciArchiveToggle').textContent=open?'최근 경기 ▾':'접기 ▴';
+ if(open){uciRender();document.getElementById('uciDetail').classList.remove('show');return;}
+ box.replaceChildren();
+ UCI_EVENTS.slice().reverse().forEach(e=>box.appendChild(uciRaceButton(e)));
+});
+uciRender();
 </script>
 </body>
 </html>
