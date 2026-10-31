@@ -227,6 +227,16 @@ main{max-width:800px}
 @keyframes avatar-glow{0%,100%{opacity:.5;transform:scale(.94)}50%{opacity:1;transform:scale(1.05)}}
 @media(max-width:460px){.now-main{min-height:216px}.avatar-stage{height:219px;flex-basis:47%}.rider-avatar{height:204px;width:142px}.avatar-outfit{font-size:9px;padding:4px 6px}.now-temp{font-size:clamp(66px,19vw,94px)}.now-icon{display:none}}
 @media(prefers-reduced-motion:reduce){.avatar-bob,.avatar-torso,.avatar-head,.avatar-leftarm,.avatar-rightarm,.avatar-ground,.avatar-halo{animation:none}}
+/* Warm village-life game character proportions */
+.rider-avatar{height:228px;width:158px;filter:drop-shadow(0 8px 6px #0b24524d)}
+.avatar-stage{height:244px}
+.avatar-head{transform-origin:80px 118px;animation:avatar-look 5.3s ease-in-out infinite}
+.avatar-torso{animation:avatar-breathe 3.2s ease-in-out infinite;transform-origin:80px 154px}
+.avatar-stage[data-outfit="winter"] .avatar-vest{fill:#547c9b;opacity:1}
+.avatar-stage[data-outfit="cold"] .avatar-vest{fill:#d5eaf2;opacity:.84}
+.avatar-stage[data-outfit="cool"] .avatar-vest{opacity:.25}
+.avatar-stage[data-outfit="mild"] .avatar-vest,.avatar-stage[data-outfit="hot"] .avatar-vest{opacity:0}
+@media(max-width:460px){.avatar-stage{height:226px}.rider-avatar{height:214px;width:148px}}
 </style>
 </head>
 <body>
@@ -242,69 +252,55 @@ main{max-width:800px}
     <div id="nowPlace" class="now-place">서울 · 날씨 불러오는 중</div>
     <div class="now-main"><div><div id="nowTemp" class="now-temp">--<span>°</span></div><div id="nowDesc" class="now-desc">현재 시간대 예보 조회 중</div><div id="nowFeels" class="now-feels">체감온도 --°</div></div><div class="avatar-stage" aria-label="기온에 맞춘 움직이는 라이더 아바타">
   <div class="avatar-halo"></div><span id="nowIcon" class="avatar-weather" aria-hidden="true">🌤️</span>
-  <svg id="riderAvatar" class="rider-avatar" viewBox="0 0 160 255" role="img" aria-label="포가차르 스타일의 라이딩 캐릭터" xmlns="http://www.w3.org/2000/svg">
-    <defs><clipPath id="jerseyClip"><path d="M60 88 Q82 79 102 88 L106 129 Q82 140 57 129 Z"/></clipPath><linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffe2ca"/><stop offset="1" stop-color="#dba17e"/></linearGradient><linearGradient id="jersey" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fcfff4"/><stop offset=".55" stop-color="#e6f8da"/><stop offset="1" stop-color="#b4dfb8"/></linearGradient><linearGradient id="shoe" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#252e40"/><stop offset="1" stop-color="#0a1426"/></linearGradient><filter id="avshadow"><feDropShadow dx="1" dy="4" stdDeviation="3" flood-color="#071c3d" flood-opacity=".32"/></filter></defs>
-    <ellipse class="avatar-ground" cx="80" cy="238" rx="48" ry="9" fill="#0c326c" opacity=".28"/>
-    <g class="avatar-bob" filter="url(#avshadow)">
-      <g class="avatar-legs">
-        <path d="M60 142 L81 142 L78 184 L72 223 L58 223 L56 182 Z" fill="#263747"/>
-        <path d="M84 142 L104 142 L101 183 L106 223 L91 223 L86 185 Z" fill="#263747"/>
-        <path class="avatar-legwarmers" d="M56 174 H79 L72 223 H58 Z M87 174 H103 L106 223 H91 Z" fill="#182b40"/>
-        <path d="M58 219 H75 L80 232 Q80 236 72 236 H48 Q44 232 51 225 Z M92 219 H108 L118 229 Q120 235 113 236 H89 Q85 233 92 219" fill="url(#shoe)"/>
-        <path d="M52 231 H78 M90 231 H115" stroke="#99eae0" stroke-width="2"/>
-      </g>
-      <g class="avatar-torso">
-        <path d="M60 87 Q80 80 103 87 L110 139 Q107 150 94 153 H65 Q54 149 55 138 Z" fill="#182b40"/>
-        <path d="M60 88 Q82 79 102 88 L106 129 Q82 140 57 129 Z" fill="#fbfcff"/>
-        <path d="M80 86 L82 134" stroke="#408c87" stroke-width="2.3"/>
-        <g class="rainbow-jersey" clip-path="url(#jerseyClip)">
-          <path d="M55 110 Q82 117 110 110" fill="none" stroke="#2b96cf" stroke-width="4"/>
-          <path d="M55 115 Q82 122 110 115" fill="none" stroke="#e94f56" stroke-width="4"/>
-          <path d="M55 120 Q82 127 110 120" fill="none" stroke="#151b28" stroke-width="4"/>
-          <path d="M55 125 Q82 132 110 125" fill="none" stroke="#f2cb35" stroke-width="4"/>
-          <path d="M55 130 Q82 137 110 130" fill="none" stroke="#3ba45b" stroke-width="4"/>
-        </g>
-        <path d="M81 87 L82 135" stroke="#c7d0d9" stroke-width="1.3"/>
-        <text x="82" y="106" font-size="8" font-weight="900" fill="#27323c" text-anchor="middle">UAE</text>
-        <path d="M74 86 Q82 89 90 86" stroke="#232a33" stroke-width="3" fill="none"/>
-        <path class="avatar-vest" d="M58 92 L72 87 L76 122 L58 128 Z M89 85 L104 92 L105 128 L88 122 Z" fill="#edf7f1" opacity="0"/>
-        <path d="M63 110 L73 110 M91 110 L100 110" stroke="#75ac9a" stroke-width="2"/>
-        <path d="M72 81 H91 L91 96 Q82 103 72 95 Z" fill="url(#skin)"/>
-      </g>
-      <g class="avatar-arms">
-        <g class="avatar-leftarm"><path d="M59 90 Q46 92 43 112 L37 144 Q39 151 46 150 L57 115 Z" fill="#fbfcff"/><path class="avatar-sleeves" d="M45 110 L57 114 L47 139 L38 136 Z" fill="#fbfcff"/><path d="M38 139 L46 142 L45 154 Q39 160 35 152 Z" fill="url(#skin)"/><path class="avatar-gloves" d="M37 146 L46 146 L45 154 Q38 159 35 152 Z" fill="#263747"/></g>
-        <g class="avatar-rightarm"><path d="M102 90 Q116 91 120 112 L127 139 Q128 149 121 151 L108 116 Z" fill="#e7f6e5"/><path class="avatar-sleeves" d="M115 110 L108 115 L120 139 L128 135 Z" fill="#edf7ed"/><path d="M120 139 L127 136 L132 150 Q129 158 122 152 Z" fill="url(#skin)"/><path class="avatar-gloves" d="M122 144 L130 143 L132 150 Q129 158 122 152 Z" fill="#263747"/></g>
-        <path d="M39 123 L49 126 M38 127 L48 130 M37 131 L47 134 M36 135 L46 138 M35 139 L45 142" stroke-width="2.1" stroke-linecap="round" fill="none" stroke="#43a96c"/>
-        <path d="M39 120 L49 123 M38 124 L48 127 M37 128 L47 131 M36 132 L46 135" stroke-width="2.1" stroke-linecap="round" fill="none" stroke="#e5bd38"/>
-        <path d="M118 123 L127 120 M119 127 L128 124 M120 131 L129 128 M121 135 L130 132 M122 139 L131 136" stroke-width="2.1" stroke-linecap="round" fill="none" stroke="#e94f56"/>
-      </g>
-      <g class="avatar-head-scale" transform="translate(-17,-15) scale(1.22)">
-       <g class="avatar-head">
-        <!-- Rounded, storybook animated-film character face -->
-        <ellipse cx="62" cy="64" rx="5" ry="9" fill="#e9b18d"/>
-        <ellipse cx="104" cy="64" rx="5" ry="9" fill="#e9b18d"/>
-        <path d="M60 51 Q59 27 83 27 Q108 27 106 53 L105 72 Q102 91 84 94 Q65 92 60 75 Z" fill="url(#skin)" stroke="#e4a783" stroke-width=".8"/>
-        <ellipse cx="72" cy="73" rx="9" ry="5" fill="#ec957e" opacity=".24"/>
-        <ellipse cx="96" cy="73" rx="9" ry="5" fill="#ec957e" opacity=".24"/>
-        <path d="M61 51 Q55 32 67 28 Q65 19 80 21 Q92 16 100 26 Q113 27 106 54 L103 49 Q103 39 97 39 Q88 45 80 40 Q71 47 64 43 Z" fill="#5a3428"/>
-        <path d="M66 43 Q76 28 88 33 Q97 37 103 35" stroke="#79503c" stroke-width="4" fill="none" stroke-linecap="round"/>
-        <path d="M67 59 Q73 55 79 58 M89 58 Q95 55 101 59" stroke="#563c34" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <ellipse cx="74" cy="65" rx="5" ry="6.3" fill="#fff"/>
-        <ellipse cx="95" cy="65" rx="5" ry="6.3" fill="#fff"/>
-        <ellipse cx="75" cy="65" rx="3.05" ry="4.1" fill="#527968"/>
-        <ellipse cx="94" cy="65" rx="3.05" ry="4.1" fill="#527968"/>
-        <circle cx="75.6" cy="63.4" r="1.35" fill="#fff"/><circle cx="94.5" cy="63.4" r="1.35" fill="#fff"/>
-        <path d="M82 69 Q85 73 87 70" stroke="#ce8e71" stroke-width="1.7" fill="none" stroke-linecap="round"/>
-        <path d="M73 79 Q84 91 96 79 Q85 84 73 79" fill="#a95358" stroke="#ab655a" stroke-width="1"/>
-        <path d="M78 82 Q85 86 91 82" stroke="#fff1e8" stroke-width="2" fill="none" stroke-linecap="round"/>
-        <path d="M60 50 Q58 31 70 25 Q82 19 96 26 Q105 31 107 45 Q94 39 78 40 Q66 42 60 50 Z" fill="#fcfff9" stroke="#a5cfc4" stroke-width="1.8"/>
-        <path d="M61 41 Q82 31 106 40" stroke="#47a48e" stroke-width="3.8" fill="none"/>
-        <path d="M70 27 L73 37 M84 23 L84 35 M97 28 L94 38" stroke="#bfd6d0" stroke-width="2"/>
-        <ellipse cx="71" cy="50" rx="12" ry="5" fill="#fff" opacity=".16"/>
-       </g>
-      </g>
-    </g>
-  </svg>
+  <svg id="riderAvatar" class="rider-avatar" viewBox="0 0 160 255" role="img" aria-label="동물의 숲 감성의 귀여운 라이더 캐릭터" xmlns="http://www.w3.org/2000/svg">
+<defs>
+ <linearGradient id="acSkin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffe7d0"/><stop offset="1" stop-color="#f7bca0"/></linearGradient>
+ <linearGradient id="acTop" x1="0" y1="0" x2="0.8" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#e4eff0"/></linearGradient>
+ <clipPath id="acShirtClip"><path d="M63 125 Q80 119 99 125 L109 177 Q80 187 51 177 Z"/></clipPath>
+</defs>
+<ellipse class="avatar-ground" cx="80" cy="240" rx="47" ry="9" fill="#102e62" opacity=".26"/>
+<g class="avatar-bob">
+ <g class="avatar-legs">
+  <path d="M58 178 L79 178 L75 209 L72 229 L56 229 L55 204 Z" fill="#263b55" stroke="#172c47" stroke-width="2"/>
+  <path d="M83 178 L104 178 L105 203 L105 229 L89 229 L85 210 Z" fill="#263b55" stroke="#172c47" stroke-width="2"/>
+  <path class="avatar-legwarmers" d="M55 196 L77 196 L72 229 L56 229 Z M87 196 H105 V229 H89 Z" fill="#19304b"/>
+  <path d="M54 225 H74 Q78 229 76 235 H49 Q43 233 48 229 Z M89 225 H106 Q116 229 114 235 H87 Q84 233 89 225" fill="#fff" stroke="#8da2b7" stroke-width="2"/>
+ </g>
+ <g class="avatar-arms">
+  <g class="avatar-leftarm"><path d="M60 131 Q46 124 40 140 L30 169 Q28 180 37 181 Q45 181 49 169 L64 147 Z" fill="url(#acTop)" stroke="#b6d5d2" stroke-width="2"/><path class="avatar-sleeves" d="M43 155 L55 158 L45 172 L32 167 Z" fill="#d9ecee"/><ellipse cx="33" cy="178" rx="9" ry="10" fill="url(#acSkin)"/><path class="avatar-gloves" d="M26 176 Q34 171 41 176 L40 181 Q34 190 26 182 Z" fill="#2e485e"/></g>
+  <g class="avatar-rightarm"><path d="M101 131 Q115 124 120 140 L130 169 Q132 180 123 181 Q115 181 111 169 L97 147 Z" fill="url(#acTop)" stroke="#b6d5d2" stroke-width="2"/><path class="avatar-sleeves" d="M118 155 L105 158 L115 172 L128 167 Z" fill="#d9ecee"/><ellipse cx="127" cy="178" rx="9" ry="10" fill="url(#acSkin)"/><path class="avatar-gloves" d="M119 176 Q127 171 134 176 L134 182 Q126 190 120 181 Z" fill="#2e485e"/></g>
+ </g>
+ <g class="avatar-torso">
+  <path d="M63 125 Q80 119 99 125 L109 177 Q80 187 51 177 Z" fill="url(#acTop)" stroke="#abcad0" stroke-width="2"/>
+  <g class="rainbow-jersey" clip-path="url(#acShirtClip)">
+   <path d="M49 151 Q79 158 110 151" stroke="#27a6d6" stroke-width="5" fill="none"/>
+   <path d="M49 156 Q79 163 110 156" stroke="#ec5761" stroke-width="5" fill="none"/>
+   <path d="M49 161 Q79 168 110 161" stroke="#252c37" stroke-width="5" fill="none"/>
+   <path d="M49 166 Q79 173 110 166" stroke="#efc843" stroke-width="5" fill="none"/>
+   <path d="M49 171 Q79 178 110 171" stroke="#46ac6f" stroke-width="5" fill="none"/>
+  </g>
+  <path d="M80 124 V180" stroke="#bbd0d2" stroke-width="1.5"/>
+  <text x="80" y="146" text-anchor="middle" fill="#303c4c" font-size="11" font-weight="900">UAE</text>
+  <path class="avatar-vest" d="M61 128 L71 124 L74 152 L54 151 Z M89 124 L99 128 L106 151 L87 152 Z" fill="#d4e8ef" opacity="0"/>
+ </g>
+ <g class="avatar-head">
+  <rect x="73" y="113" width="15" height="15" rx="6" fill="#f3b396"/>
+  <ellipse cx="43" cy="81" rx="10" ry="14" fill="#f5bea2"/>
+  <ellipse cx="117" cy="81" rx="10" ry="14" fill="#f5bea2"/>
+  <path d="M34 65 C34 32 53 17 80 17 C107 17 126 34 126 65 V89 C125 118 106 132 80 132 C54 132 35 117 34 89 Z" fill="url(#acSkin)" stroke="#deac93" stroke-width="1.8"/>
+  <ellipse cx="57" cy="98" rx="13" ry="7" fill="#f4a4a0" opacity=".53"/>
+  <ellipse cx="103" cy="98" rx="13" ry="7" fill="#f4a4a0" opacity=".53"/>
+  <path d="M34 65 Q25 39 44 24 Q52 5 78 11 Q100 1 117 22 Q136 39 126 70 L119 53 Q103 51 96 41 Q76 60 50 53 L40 72 Z" fill="#5f4233"/>
+  <path d="M42 39 Q66 22 88 34 Q105 18 119 39" fill="none" stroke="#825c45" stroke-width="8" stroke-linecap="round"/>
+  <ellipse cx="60" cy="83" rx="4.6" ry="6.7" fill="#2d3538"/>
+  <ellipse cx="101" cy="83" rx="4.6" ry="6.7" fill="#2d3538"/>
+  <circle cx="61.6" cy="80.4" r="1.7" fill="#fff"/>
+  <circle cx="102.5" cy="80.4" r="1.7" fill="#fff"/>
+  <path d="M77 96 Q80 99 83 96" stroke="#d48d76" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M70 106 Q80 116 91 106" stroke="#a66560" stroke-width="3" fill="none" stroke-linecap="round"/>
+ </g>
+</g>
+</svg>
   <div class="avatar-outfit" id="avatarOutfit">간절기 라이딩 복장</div>
   <button class="avatar-turn" type="button" id="avatarTurn" aria-label="캐릭터 방향 바꾸기">↻</button>
 </div></div>
