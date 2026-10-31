@@ -275,6 +275,19 @@ main{max-width:800px}
 .avatar-stage[data-outfit="mild"] .avatar-sleeves,
 .avatar-stage[data-outfit="hot"] .avatar-sleeves{display:none}
 
+
+/* Stable outfit scene system: a single full-body outfit is visible for each temperature tier. */
+.outfit-scene{display:none}
+.avatar-stage[data-outfit="winter"] .outfit-winter,
+.avatar-stage[data-outfit="cold"] .outfit-cold,
+.avatar-stage[data-outfit="cool"] .outfit-cool,
+.avatar-stage[data-outfit="mild"] .outfit-mild,
+.avatar-stage[data-outfit="hot"] .outfit-hot{display:block}
+.avatar-stage .outfit-scene .avatar-torso{animation:none}
+.avatar-stage .outfit-scene .avatar-arms{animation:none}
+.avatar-stage .outfit-scene .avatar-vest{display:none}
+.avatar-stage .outfit-scene .avatar-legwarmers{display:none}
+
 </style>
 </head>
 <body>
@@ -290,40 +303,14 @@ main{max-width:800px}
     <div id="nowPlace" class="now-place">서울 · 날씨 불러오는 중</div>
     <div class="now-main"><div><div id="nowTemp" class="now-temp">--<span>°</span></div><div id="nowDesc" class="now-desc">현재 시간대 예보 조회 중</div><div id="nowFeels" class="now-feels">체감온도 --°</div></div><div class="avatar-stage" aria-label="기온에 맞춘 움직이는 라이더 아바타">
   <div class="avatar-halo"></div><span id="nowIcon" class="avatar-weather" aria-hidden="true">🌤️</span>
-  <svg id="riderAvatar" class="rider-avatar" viewBox="0 0 160 255" role="img" aria-label="동물의 숲 감성의 귀여운 라이더 캐릭터" xmlns="http://www.w3.org/2000/svg">
-<defs>
- <linearGradient id="acSkin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffe7d0"/><stop offset="1" stop-color="#f7bca0"/></linearGradient>
- <linearGradient id="acTop" x1="0" y1="0" x2="0.8" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#e4eff0"/></linearGradient>
- <clipPath id="acShirtClip"><path d="M63 125 Q80 119 99 125 L109 177 Q80 187 51 177 Z"/></clipPath>
-</defs>
+  <svg id="riderAvatar" class="rider-avatar" viewBox="0 0 160 255" role="img" aria-label="기온에 따른 라이딩 복장 캐릭터" xmlns="http://www.w3.org/2000/svg">
+<defs><clipPath id="acShirtClip"><path d="M63 125 Q80 119 99 125 L109 177 Q80 187 51 177 Z"/></clipPath><linearGradient id="acSkin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffe7d0"/><stop offset="1" stop-color="#f7bca0"/></linearGradient></defs>
 <ellipse class="avatar-ground" cx="80" cy="240" rx="47" ry="9" fill="#102e62" opacity=".26"/>
-<g class="avatar-bob">
- <g class="avatar-legs">
-  <path d="M58 178 L79 178 L75 209 L72 229 L56 229 L55 204 Z" fill="#263b55" stroke="#172c47" stroke-width="2"/>
-  <path d="M83 178 L104 178 L105 203 L105 229 L89 229 L85 210 Z" fill="#263b55" stroke="#172c47" stroke-width="2"/>
-  <path class="avatar-legwarmers" d="M55 196 L77 196 L72 229 L56 229 Z M87 196 H105 V229 H89 Z" fill="#19304b"/>
-  <path d="M54 225 H74 Q78 229 76 235 H49 Q43 233 48 229 Z M89 225 H106 Q116 229 114 235 H87 Q84 233 89 225" fill="#fff" stroke="#8da2b7" stroke-width="2"/>
- </g>
-  <path class="avatar-bib-shorts" d="M56 178 L79 178 L77 197 L55 197 Z M83 178 L104 178 L105 197 L86 197 Z" fill="#263b55" stroke="#172c47" stroke-width="1.5"/>
- <g class="avatar-arms">
-  <g class="avatar-leftarm"><path d="M60 131 Q46 124 40 140 L30 169 Q28 180 37 181 Q45 181 49 169 L64 147 Z" fill="url(#acTop)" stroke="#b6d5d2" stroke-width="2"/><path class="avatar-sleeves" d="M43 155 L55 158 L45 172 L32 167 Z" fill="#d9ecee"/><ellipse cx="33" cy="178" rx="9" ry="10" fill="url(#acSkin)"/><path class="avatar-gloves" d="M26 176 Q34 171 41 176 L40 181 Q34 190 26 182 Z" fill="#2e485e"/></g>
-  <g class="avatar-rightarm"><path d="M101 131 Q115 124 120 140 L130 169 Q132 180 123 181 Q115 181 111 169 L97 147 Z" fill="url(#acTop)" stroke="#b6d5d2" stroke-width="2"/><path class="avatar-sleeves" d="M118 155 L105 158 L115 172 L128 167 Z" fill="#d9ecee"/><ellipse cx="127" cy="178" rx="9" ry="10" fill="url(#acSkin)"/><path class="avatar-gloves" d="M119 176 Q127 171 134 176 L134 182 Q126 190 120 181 Z" fill="#2e485e"/></g>
- </g>
- <path class="avatar-short-sleeves" d="M60 131 Q48 126 41 140 L39 149 L52 155 L64 147 Z M101 131 Q113 126 119 140 L121 149 L108 155 L97 147 Z" fill="#f5fcff" stroke="#b6d5d2" stroke-width="1.5"/>
- <g class="avatar-torso">
-  <path d="M63 125 Q80 119 99 125 L109 177 Q80 187 51 177 Z" fill="url(#acTop)" stroke="#abcad0" stroke-width="2"/>
-  <g class="rainbow-jersey" clip-path="url(#acShirtClip)">
-   <path d="M49 151 Q79 158 110 151" stroke="#27a6d6" stroke-width="5" fill="none"/>
-   <path d="M49 156 Q79 163 110 156" stroke="#ec5761" stroke-width="5" fill="none"/>
-   <path d="M49 161 Q79 168 110 161" stroke="#252c37" stroke-width="5" fill="none"/>
-   <path d="M49 166 Q79 173 110 166" stroke="#efc843" stroke-width="5" fill="none"/>
-   <path d="M49 171 Q79 178 110 171" stroke="#46ac6f" stroke-width="5" fill="none"/>
-  </g>
-  <path d="M80 124 V180" stroke="#bbd0d2" stroke-width="1.5"/>
-  <text x="80" y="146" text-anchor="middle" fill="#303c4c" font-size="11" font-weight="900">UAE</text>
-  <path class="avatar-vest" d="M61 128 L71 124 L74 152 L54 151 Z M89 124 L99 128 L106 151 L87 152 Z" fill="#d4e8ef" opacity="0"/>
- </g>
- <g class="avatar-head">
+<g class="avatar-bob"><g class="outfit-scene outfit-winter"><path d="M56 178 H79 L75 228 H56 Z M83 178 H103 L104 228 H89 Z" fill="#182c44" stroke="#172c47" stroke-width="2"/><path d="M54 225 H74 Q79 230 76 235 H49 Q43 233 48 229 Z M89 225 H106 Q116 230 114 235 H87 Q84 233 89 225" fill="#fff" stroke="#8da2b7" stroke-width="2"/><g class="avatar-arms"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" fill="#435d78" stroke="#accbd1" stroke-width="1.6"/><ellipse cx="33" cy="179" rx="9" ry="9" fill="#f7bfa3"/><ellipse cx="127" cy="179" rx="9" ry="9" fill="#f7bfa3"/><path d="M26 176 Q34 173 41 176 L41 184 Q33 190 26 183 Z M119 176 Q127 173 134 176 L134 183 Q126 190 120 184 Z" fill="#263b55"/></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" fill="#547c9b" stroke="#abcad0" stroke-width="1.8"/><path d="M80 124 V179" stroke="#abc8de" stroke-width="2"/><path d="M63 127 L73 125 L80 138 L87 125 L99 127" stroke="#2e4d6d" stroke-width="3" fill="none"/><path d="M57 154 H67 M94 154 H103" stroke="#c5d9e7" stroke-width="2"/><text x="80" y="151" text-anchor="middle" fill="white" font-size="10" font-weight="900">UAE</text></g></g>
+<g class="outfit-scene outfit-cold"><path d="M56 178 H79 L75 228 H56 Z M83 178 H103 L104 228 H89 Z" fill="#283b55" stroke="#172c47" stroke-width="2"/><path d="M54 225 H74 Q79 230 76 235 H49 Q43 233 48 229 Z M89 225 H106 Q116 230 114 235 H87 Q84 233 89 225" fill="#fff" stroke="#8da2b7" stroke-width="2"/><g class="avatar-arms"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" fill="#e7f0f6" stroke="#accbd1" stroke-width="1.6"/><ellipse cx="33" cy="179" rx="9" ry="9" fill="#f7bfa3"/><ellipse cx="127" cy="179" rx="9" ry="9" fill="#f7bfa3"/><path d="M26 176 Q34 173 41 176 L41 184 Q33 190 26 183 Z M119 176 Q127 173 134 176 L134 183 Q126 190 120 184 Z" fill="#263b55"/></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" fill="#f5faff" stroke="#abcad0" stroke-width="1.8"/><g clip-path="url(#acShirtClip)"><path d="M49 153 Q80 160 110 153" stroke="#27a6d6" stroke-width="5"/><path d="M49 158 Q80 165 110 158" stroke="#ec5761" stroke-width="5"/><path d="M49 163 Q80 170 110 163" stroke="#252c37" stroke-width="5"/><path d="M49 168 Q80 175 110 168" stroke="#efc843" stroke-width="5"/><path d="M49 173 Q80 180 110 173" stroke="#46ac6f" stroke-width="5"/></g><path d="M61 128 L72 124 L74 158 L54 157 Z M88 124 L99 128 L106 157 L86 158 Z" fill="#a8cbdc" stroke="#82abc0" stroke-width="1"/><text x="80" y="146" text-anchor="middle" fill="#303c4c" font-size="11" font-weight="900">UAE</text><path d="M80 127 V179" stroke="#b4ccd3" stroke-width="1"/></g></g>
+<g class="outfit-scene outfit-cool"><path d="M56 179 L79 179 L75 228 H57 Z M83 179 H103 L104 228 H89 Z" fill="#f7bfa3" stroke="#d69c84" stroke-width="1.5"/><path d="M56 178 H79 L77 196 H56 Z M83 178 H103 L104 196 H87 Z" fill="#263b55" stroke="#182d47" stroke-width="1.5"/><path d="M54 225 H74 Q79 230 76 235 H49 Q43 233 48 229 Z M89 225 H106 Q116 230 114 235 H87 Q84 233 89 225" fill="#fff" stroke="#8da2b7" stroke-width="2"/><g class="avatar-arms"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" fill="#f6faff" stroke="#accbd1" stroke-width="1.6"/><path d="M38 158 L51 161 L47 173 L30 173 Z M122 158 L109 161 L113 173 L130 173 Z" fill="#283b55"/><ellipse cx="33" cy="179" rx="9" ry="9" fill="#f7bfa3"/><ellipse cx="127" cy="179" rx="9" ry="9" fill="#f7bfa3"/></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" fill="#f7fcff" stroke="#abcad0" stroke-width="1.8"/><g clip-path="url(#acShirtClip)"><path d="M49 153 Q80 160 110 153" stroke="#27a6d6" stroke-width="5"/><path d="M49 158 Q80 165 110 158" stroke="#ec5761" stroke-width="5"/><path d="M49 163 Q80 170 110 163" stroke="#252c37" stroke-width="5"/><path d="M49 168 Q80 175 110 168" stroke="#efc843" stroke-width="5"/><path d="M49 173 Q80 180 110 173" stroke="#46ac6f" stroke-width="5"/></g><text x="80" y="146" text-anchor="middle" fill="#303c4c" font-size="11" font-weight="900">UAE</text><path d="M80 127 V179" stroke="#b4ccd3" stroke-width="1"/></g></g>
+<g class="outfit-scene outfit-mild"><path d="M56 179 L79 179 L75 228 H57 Z M83 179 H103 L104 228 H89 Z" fill="#f7bfa3" stroke="#d69c84" stroke-width="1.5"/><path d="M56 178 H79 L77 196 H56 Z M83 178 H103 L104 196 H87 Z" fill="#263b55" stroke="#182d47" stroke-width="1.5"/><path d="M54 225 H74 Q79 230 76 235 H49 Q43 233 48 229 Z M89 225 H106 Q116 230 114 235 H87 Q84 233 89 225" fill="#fff" stroke="#8da2b7" stroke-width="2"/><g class="avatar-arms"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" fill="#f7bfa3" stroke="#d69c84" stroke-width="1.6"/><path d="M61 131 Q47 126 41 141 L39 151 L52 156 L65 147 Z M99 131 Q113 126 119 141 L121 151 L108 156 L95 147 Z" fill="#f7fcff" stroke="#a9cbd1" stroke-width="1.6"/><ellipse cx="33" cy="179" rx="9" ry="9" fill="#f7bfa3"/><ellipse cx="127" cy="179" rx="9" ry="9" fill="#f7bfa3"/></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" fill="#f7fcff" stroke="#abcad0" stroke-width="1.8"/><g clip-path="url(#acShirtClip)"><path d="M49 153 Q80 160 110 153" stroke="#27a6d6" stroke-width="5"/><path d="M49 158 Q80 165 110 158" stroke="#ec5761" stroke-width="5"/><path d="M49 163 Q80 170 110 163" stroke="#252c37" stroke-width="5"/><path d="M49 168 Q80 175 110 168" stroke="#efc843" stroke-width="5"/><path d="M49 173 Q80 180 110 173" stroke="#46ac6f" stroke-width="5"/></g><text x="80" y="146" text-anchor="middle" fill="#303c4c" font-size="11" font-weight="900">UAE</text><path d="M80 127 V179" stroke="#b4ccd3" stroke-width="1"/></g></g>
+<g class="outfit-scene outfit-hot"><path d="M56 179 L79 179 L75 228 H57 Z M83 179 H103 L104 228 H89 Z" fill="#f7bfa3" stroke="#d69c84" stroke-width="1.5"/><path d="M56 178 H79 L77 196 H56 Z M83 178 H103 L104 196 H87 Z" fill="#263b55" stroke="#182d47" stroke-width="1.5"/><path d="M54 225 H74 Q79 230 76 235 H49 Q43 233 48 229 Z M89 225 H106 Q116 230 114 235 H87 Q84 233 89 225" fill="#fff" stroke="#8da2b7" stroke-width="2"/><g class="avatar-arms"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" fill="#f7bfa3" stroke="#d69c84" stroke-width="1.6"/><path d="M61 131 Q47 126 41 141 L39 151 L52 156 L65 147 Z M99 131 Q113 126 119 141 L121 151 L108 156 L95 147 Z" fill="#e3f8fa" stroke="#a9cbd1" stroke-width="1.6"/><ellipse cx="33" cy="179" rx="9" ry="9" fill="#f7bfa3"/><ellipse cx="127" cy="179" rx="9" ry="9" fill="#f7bfa3"/></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" fill="#e3f8fa" stroke="#abcad0" stroke-width="1.8"/><g clip-path="url(#acShirtClip)"><path d="M49 153 Q80 160 110 153" stroke="#27a6d6" stroke-width="5"/><path d="M49 158 Q80 165 110 158" stroke="#ec5761" stroke-width="5"/><path d="M49 163 Q80 170 110 163" stroke="#252c37" stroke-width="5"/><path d="M49 168 Q80 175 110 168" stroke="#efc843" stroke-width="5"/><path d="M49 173 Q80 180 110 173" stroke="#46ac6f" stroke-width="5"/></g><text x="80" y="146" text-anchor="middle" fill="#303c4c" font-size="11" font-weight="900">UAE</text><path d="M80 127 V179" stroke="#b4ccd3" stroke-width="1"/></g></g> <g class="avatar-head">
   <rect x="73" y="113" width="15" height="15" rx="6" fill="#f3b396"/>
   <ellipse cx="43" cy="81" rx="10" ry="14" fill="#f5bea2"/>
   <ellipse cx="117" cy="81" rx="10" ry="14" fill="#f5bea2"/>
@@ -338,39 +325,19 @@ main{max-width:800px}
   <circle cx="102.5" cy="80.4" r="1.7" fill="#fff"/>
   <path d="M77 96 Q80 99 83 96" stroke="#d48d76" stroke-width="2" fill="none" stroke-linecap="round"/>
   <path d="M70 106 Q80 116 91 106" stroke="#a66560" stroke-width="3" fill="none" stroke-linecap="round"/>
- </g>
-</g>
-<g class="avatar-back-view" aria-hidden="true">
- <g class="avatar-back-legs">
-  <path d="M58 178 H79 L74 229 H56 Z M83 178 H104 L105 229 H89 Z" fill="#253c59" stroke="#152a43" stroke-width="2"/>
-  <path class="avatar-legwarmers" d="M56 197 H76 L73 229 H56 Z M87 197 H105 V229 H89 Z" fill="#192d47"/>
-  <path d="M54 225 H74 Q80 234 75 235 H48 Q44 233 49 228 Z M89 225 H106 Q117 234 113 235 H87 Q84 232 89 225" fill="#f9fdff" stroke="#91a9c3" stroke-width="2"/>
- </g>
-  <path class="avatar-bib-shorts" d="M58 178 H79 L77 197 H56 Z M83 178 H104 L105 197 H86 Z" fill="#263b55" stroke="#172c47" stroke-width="1.5"/>
- <g class="avatar-back-arms">
-  <path d="M61 130 Q46 127 41 142 L29 173 Q28 181 36 183 L48 170 L65 148 Z M99 130 Q114 127 119 142 L131 173 Q132 181 124 183 L112 170 L95 148 Z" fill="#f7fbff" stroke="#a9ced0" stroke-width="2"/>
-  <path class="avatar-sleeves" d="M39 156 L51 160 L44 173 L31 170 Z M121 156 L109 160 L116 173 L129 170 Z" fill="#d9ecee"/>
-  <ellipse cx="33" cy="180" rx="9" ry="10" fill="#f7bfa3"/><ellipse cx="127" cy="180" rx="9" ry="10" fill="#f7bfa3"/>
-  <path class="avatar-gloves" d="M26 177 Q34 174 41 177 L40 185 Q31 190 26 182 Z M119 177 Q127 174 134 177 L134 183 Q127 190 120 185 Z" fill="#2c425e"/>
- </g>
- <path class="avatar-short-sleeves" d="M61 130 Q46 127 41 142 L39 150 L52 155 L65 148 Z M99 130 Q114 127 119 142 L121 150 L108 155 L95 148 Z" fill="#f5fcff" stroke="#b6d5d2" stroke-width="1.5"/>
- <g class="avatar-back-torso">
-  <path d="M63 125 Q80 119 99 125 L109 177 Q80 187 51 177 Z" fill="#f7fbff" stroke="#b6d2d8" stroke-width="2"/>
-  <path d="M59 149 Q80 153 102 149" fill="none" stroke="#edf1f3" stroke-width="2"/>
-  <path d="M61 166 L61 177 M99 166 L99 177" stroke="#b2cad1" stroke-width="1.5"/>
-  <path d="M60 166 Q80 171 100 166 L99 177 Q80 185 61 177 Z" fill="#e4eaf0" stroke="#aec9d1" stroke-width="1.5"/>
-  <text x="80" y="153" text-anchor="middle" font-size="12" font-weight="900" fill="#2d455c">UAE</text>
-  <path class="avatar-vest" d="M62 129 L74 126 V163 L57 161 Z M86 126 L99 129 L104 161 L86 163 Z" fill="#d4e8ef" opacity="0"/>
- </g>
- <g class="avatar-back-head">
+ </g></g>
+<g class="avatar-back-view" aria-hidden="true"><g class="outfit-scene outfit-winter"><path d="M56 178 H79 L75 228 H56 Z M83 178 H103 L104 228 H89 Z" fill="#182c44" stroke="#172c47" stroke-width="2"/><path d="M54 225 H74 Q79 230 76 235 H49 Q43 233 48 229 Z M89 225 H106 Q116 230 114 235 H87 Q84 233 89 225" fill="#fff" stroke="#8da2b7" stroke-width="2"/><g class="avatar-arms"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" fill="#435d78" stroke="#accbd1" stroke-width="1.6"/><ellipse cx="33" cy="179" rx="9" ry="9" fill="#f7bfa3"/><ellipse cx="127" cy="179" rx="9" ry="9" fill="#f7bfa3"/><path d="M26 176 Q34 173 41 176 L41 184 Q33 190 26 183 Z M119 176 Q127 173 134 176 L134 183 Q126 190 120 184 Z" fill="#263b55"/></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" fill="#547c9b" stroke="#abcad0" stroke-width="1.8"/><path d="M61 165 Q80 171 100 165 L99 178 Q80 186 61 178 Z" fill="#476987" stroke="#abc9d0" stroke-width="1"/><text x="80" y="151" text-anchor="middle" font-size="10" font-weight="900" fill="white">UAE</text></g></g>
+<g class="outfit-scene outfit-cold"><path d="M56 178 H79 L75 228 H56 Z M83 178 H103 L104 228 H89 Z" fill="#283b55" stroke="#172c47" stroke-width="2"/><path d="M54 225 H74 Q79 230 76 235 H49 Q43 233 48 229 Z M89 225 H106 Q116 230 114 235 H87 Q84 233 89 225" fill="#fff" stroke="#8da2b7" stroke-width="2"/><g class="avatar-arms"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" fill="#e7f0f6" stroke="#accbd1" stroke-width="1.6"/><ellipse cx="33" cy="179" rx="9" ry="9" fill="#f7bfa3"/><ellipse cx="127" cy="179" rx="9" ry="9" fill="#f7bfa3"/><path d="M26 176 Q34 173 41 176 L41 184 Q33 190 26 183 Z M119 176 Q127 173 134 176 L134 183 Q126 190 120 184 Z" fill="#263b55"/></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" fill="#f5faff" stroke="#abcad0" stroke-width="1.8"/><path d="M61 165 Q80 171 100 165 L99 178 Q80 186 61 178 Z" fill="#e1ebf0" stroke="#abc9d0" stroke-width="1"/><text x="80" y="151" text-anchor="middle" font-size="10" font-weight="900" fill="#344c61">UAE</text></g></g>
+<g class="outfit-scene outfit-cool"><path d="M56 179 L79 179 L75 228 H57 Z M83 179 H103 L104 228 H89 Z" fill="#f7bfa3" stroke="#d69c84" stroke-width="1.5"/><path d="M56 178 H79 L77 196 H56 Z M83 178 H103 L104 196 H87 Z" fill="#263b55" stroke="#182d47" stroke-width="1.5"/><path d="M54 225 H74 Q79 230 76 235 H49 Q43 233 48 229 Z M89 225 H106 Q116 230 114 235 H87 Q84 233 89 225" fill="#fff" stroke="#8da2b7" stroke-width="2"/><g class="avatar-arms"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" fill="#f6faff" stroke="#accbd1" stroke-width="1.6"/><path d="M38 158 L51 161 L47 173 L30 173 Z M122 158 L109 161 L113 173 L130 173 Z" fill="#283b55"/><ellipse cx="33" cy="179" rx="9" ry="9" fill="#f7bfa3"/><ellipse cx="127" cy="179" rx="9" ry="9" fill="#f7bfa3"/></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" fill="#f7fcff" stroke="#abcad0" stroke-width="1.8"/><path d="M61 165 Q80 171 100 165 L99 178 Q80 186 61 178 Z" fill="#e1ebf0" stroke="#abc9d0" stroke-width="1"/><text x="80" y="151" text-anchor="middle" font-size="10" font-weight="900" fill="#344c61">UAE</text></g></g>
+<g class="outfit-scene outfit-mild"><path d="M56 179 L79 179 L75 228 H57 Z M83 179 H103 L104 228 H89 Z" fill="#f7bfa3" stroke="#d69c84" stroke-width="1.5"/><path d="M56 178 H79 L77 196 H56 Z M83 178 H103 L104 196 H87 Z" fill="#263b55" stroke="#182d47" stroke-width="1.5"/><path d="M54 225 H74 Q79 230 76 235 H49 Q43 233 48 229 Z M89 225 H106 Q116 230 114 235 H87 Q84 233 89 225" fill="#fff" stroke="#8da2b7" stroke-width="2"/><g class="avatar-arms"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" fill="#f7bfa3" stroke="#d69c84" stroke-width="1.6"/><path d="M61 131 Q47 126 41 141 L39 151 L52 156 L65 147 Z M99 131 Q113 126 119 141 L121 151 L108 156 L95 147 Z" fill="#f7fcff" stroke="#a9cbd1" stroke-width="1.6"/><ellipse cx="33" cy="179" rx="9" ry="9" fill="#f7bfa3"/><ellipse cx="127" cy="179" rx="9" ry="9" fill="#f7bfa3"/></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" fill="#f7fcff" stroke="#abcad0" stroke-width="1.8"/><path d="M61 165 Q80 171 100 165 L99 178 Q80 186 61 178 Z" fill="#e1ebf0" stroke="#abc9d0" stroke-width="1"/><text x="80" y="151" text-anchor="middle" font-size="10" font-weight="900" fill="#344c61">UAE</text></g></g>
+<g class="outfit-scene outfit-hot"><path d="M56 179 L79 179 L75 228 H57 Z M83 179 H103 L104 228 H89 Z" fill="#f7bfa3" stroke="#d69c84" stroke-width="1.5"/><path d="M56 178 H79 L77 196 H56 Z M83 178 H103 L104 196 H87 Z" fill="#263b55" stroke="#182d47" stroke-width="1.5"/><path d="M54 225 H74 Q79 230 76 235 H49 Q43 233 48 229 Z M89 225 H106 Q116 230 114 235 H87 Q84 233 89 225" fill="#fff" stroke="#8da2b7" stroke-width="2"/><g class="avatar-arms"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" fill="#f7bfa3" stroke="#d69c84" stroke-width="1.6"/><path d="M61 131 Q47 126 41 141 L39 151 L52 156 L65 147 Z M99 131 Q113 126 119 141 L121 151 L108 156 L95 147 Z" fill="#e3f8fa" stroke="#a9cbd1" stroke-width="1.6"/><ellipse cx="33" cy="179" rx="9" ry="9" fill="#f7bfa3"/><ellipse cx="127" cy="179" rx="9" ry="9" fill="#f7bfa3"/></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" fill="#e3f8fa" stroke="#abcad0" stroke-width="1.8"/><path d="M61 165 Q80 171 100 165 L99 178 Q80 186 61 178 Z" fill="#e1ebf0" stroke="#abc9d0" stroke-width="1"/><text x="80" y="151" text-anchor="middle" font-size="10" font-weight="900" fill="#344c61">UAE</text></g></g> <g class="avatar-back-head">
   <rect x="73" y="116" width="15" height="13" rx="6" fill="#eeb594"/>
   <ellipse cx="43" cy="82" rx="9" ry="13" fill="#e9ab8b"/><ellipse cx="117" cy="82" rx="9" ry="13" fill="#e9ab8b"/>
   <path d="M34 65 C34 32 53 17 80 17 C107 17 126 34 126 65 V91 C125 120 106 132 80 132 C54 132 35 117 34 91 Z" fill="#654634" stroke="#523827" stroke-width="2"/>
   <path d="M39 63 Q43 28 80 24 Q117 29 121 63 Q114 83 80 86 Q47 83 39 63" fill="#79533a"/>
   <path d="M52 51 Q81 36 108 53 M51 77 Q80 90 108 76 M59 101 Q80 111 101 101" fill="none" stroke="#8b6248" stroke-width="5" stroke-linecap="round" opacity=".7"/>
   <path d="M55 118 Q80 137 105 118" fill="none" stroke="#523827" stroke-width="8" stroke-linecap="round"/>
- </g>
-</g>
+ </g></g>
 </svg>
   <div class="avatar-outfit" id="avatarOutfit">간절기 라이딩 복장</div>
   <button class="avatar-turn" type="button" id="avatarTurn" aria-label="캐릭터 뒷모습 보기" aria-pressed="false">↻</button>
