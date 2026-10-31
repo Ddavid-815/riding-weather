@@ -221,6 +221,15 @@ main{max-width:800px}
 .avatar-stage[data-outfit="cold"] .avatar-vest{fill:#e9f1f5;opacity:.78}
 .avatar-stage[data-outfit="winter"] .avatar-vest{fill:#e9f1f5;opacity:.85}
 .avatar-stage[data-outfit="mild"] .avatar-vest,.avatar-stage[data-outfit="hot"] .avatar-vest{opacity:0}
+/* Tap reaction: a quick startled hop, head recoil and arms flinch. */
+@keyframes rider-startle-hop{0%{transform:translateY(0) scale(1) rotate(0)}12%{transform:translateY(4px) scale(1.06,.92) rotate(-3deg)}33%{transform:translateY(-19px) scale(.98,1.06) rotate(5deg)}57%{transform:translateY(-10px) rotate(-3deg)}78%{transform:translateY(2px) scale(1.03,.97) rotate(1deg)}100%{transform:translateY(0) scale(1) rotate(0)}}
+@keyframes rider-startle-head{0%,100%{transform:rotate(0)}20%{transform:rotate(-15deg) translateY(-3px)}44%{transform:rotate(12deg) translateY(-5px)}70%{transform:rotate(-4deg)}}
+@keyframes rider-startle-arm{0%,100%{transform:rotate(0)}30%{transform:rotate(-23deg)}55%{transform:rotate(12deg)}}
+.rider-avatar.avatar-startled .avatar-bob{animation:rider-startle-hop 760ms cubic-bezier(.22,.75,.3,1) both}
+.rider-avatar.avatar-startled .avatar-head{animation:rider-startle-head 760ms ease-out both}
+.rider-avatar.avatar-startled .avatar-leftarm{animation:rider-startle-arm 760ms ease-out both}
+.rider-avatar.avatar-startled .avatar-rightarm{animation:rider-startle-arm 760ms ease-out reverse both}
+@media(prefers-reduced-motion:reduce){.rider-avatar.avatar-startled .avatar-bob{animation-duration:180ms}.rider-avatar.avatar-startled .avatar-head,.rider-avatar.avatar-startled .avatar-leftarm,.rider-avatar.avatar-startled .avatar-rightarm{animation:none}}
 @keyframes avatar-idle{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-4px) rotate(1deg)}}
 @keyframes avatar-breathe{0%,100%{transform:scaleX(1)}50%{transform:scaleX(1.035)}}
 @keyframes avatar-look{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(2.5deg)}}
@@ -782,11 +791,18 @@ function updateRiderOutfit(temp){
  };
  label.textContent=map[tier];
 }
+let riderStartleTimer;
 function riderTapFeedback(){
- // Android and other browsers with the Vibration API.
+ // Keep native iOS switch haptics and Android vibration.
  if(typeof navigator.vibrate==='function')navigator.vibrate(12);
- // iOS Safari does not expose navigator.vibrate; the directly touched
- // native checkbox with the `switch` attribute may provide system haptics.
+ const avatar=document.getElementById('riderAvatar');
+ if(!avatar)return;
+ clearTimeout(riderStartleTimer);
+ avatar.classList.remove('avatar-startled');
+ // Restart animation even for rapid repeated taps.
+ void avatar.getBoundingClientRect();
+ avatar.classList.add('avatar-startled');
+ riderStartleTimer=setTimeout(()=>avatar.classList.remove('avatar-startled'),780);
 }
 document.addEventListener('DOMContentLoaded',()=>{
  const button=document.getElementById('avatarTurn'),avatar=document.getElementById('riderAvatar');
