@@ -205,6 +205,8 @@ main{max-width:800px}
 .avatar-weather{position:absolute;right:0;top:8px;font-size:28px;filter:drop-shadow(0 3px 4px #16346655)}
 .avatar-outfit{position:absolute;bottom:0;left:50%;transform:translateX(-50%);border-radius:999px;background:#092f6ca8;color:white;border:1px solid #bbebff55;padding:5px 9px;font-size:10px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;text-align:center}
 .avatar-turn{position:absolute;top:5px;left:3px;min-height:29px;width:29px;border-radius:50%;background:#ffffff24;border:1px solid #ffffff60;color:white;padding:0;font-size:19px}
+.avatar-haptic-switch{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:154px;height:222px;opacity:.001;z-index:2;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.avatar-turn{z-index:3;cursor:pointer;touch-action:manipulation}
 .avatar-stage[data-outfit="winter"] .avatar-vest{fill:#293e55;opacity:1}
 .avatar-stage[data-outfit="winter"] .avatar-sleeves{fill:#293e55}
 .avatar-stage[data-outfit="winter"] .avatar-legwarmers{fill:#071c31}
@@ -381,6 +383,7 @@ main{max-width:800px}
   <path d="M56 119 Q80 126 104 119" fill="none" stroke="#674c3c" stroke-width="3" stroke-linecap="round"/>
  </g></g>
 </svg>
+  <input type="checkbox" switch id="avatarHaptic" class="avatar-haptic-switch" aria-label="라이더 캐릭터 터치 반응">
   <div class="avatar-outfit" id="avatarOutfit">간절기 라이딩 복장</div>
   <button class="avatar-turn" type="button" id="avatarTurn" aria-label="캐릭터 뒷모습 보기" aria-pressed="false">↻</button>
 </div></div>
@@ -779,9 +782,17 @@ function updateRiderOutfit(temp){
  };
  label.textContent=map[tier];
 }
+function riderTapFeedback(){
+ // Android and other browsers with the Vibration API.
+ if(typeof navigator.vibrate==='function')navigator.vibrate(12);
+ // iOS Safari does not expose navigator.vibrate; the directly touched
+ // native checkbox with the `switch` attribute may provide system haptics.
+}
 document.addEventListener('DOMContentLoaded',()=>{
  const button=document.getElementById('avatarTurn'),avatar=document.getElementById('riderAvatar');
+ document.getElementById('avatarHaptic')?.addEventListener('change',riderTapFeedback);
  button?.addEventListener('click',()=>{
+  riderTapFeedback();
   if(!avatar)return;
   const back=avatar.classList.toggle('avatar-back-active');
   button.setAttribute('aria-label',back?'캐릭터 정면 보기':'캐릭터 뒷모습 보기');
