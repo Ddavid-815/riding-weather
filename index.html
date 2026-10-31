@@ -237,6 +237,18 @@ main{max-width:800px}
 .avatar-stage[data-outfit="cool"] .avatar-vest{opacity:.25}
 .avatar-stage[data-outfit="mild"] .avatar-vest,.avatar-stage[data-outfit="hot"] .avatar-vest{opacity:0}
 @media(max-width:460px){.avatar-stage{height:226px}.rider-avatar{height:214px;width:148px}}
+/* Actual front/back view, not horizontal mirroring */
+.avatar-back-view{display:none}
+.rider-avatar.avatar-back-active{transform:none}
+.rider-avatar.avatar-back-active>.avatar-bob{display:none}
+.rider-avatar.avatar-back-active>.avatar-back-view{display:block;animation:avatar-idle 3.2s ease-in-out infinite;transform-origin:80px 224px}
+.avatar-back-head{animation:avatar-look 5.3s ease-in-out infinite;transform-origin:80px 116px}
+.avatar-back-torso{animation:avatar-breathe 3.2s ease-in-out infinite;transform-origin:80px 154px}
+.avatar-stage[data-outfit="winter"] .avatar-back-view .avatar-vest{fill:#547c9b;opacity:1}
+.avatar-stage[data-outfit="cold"] .avatar-back-view .avatar-vest{fill:#d5eaf2;opacity:.84}
+.avatar-stage[data-outfit="cool"] .avatar-back-view .avatar-vest{opacity:.25}
+.avatar-stage[data-outfit="mild"] .avatar-back-view .avatar-vest,.avatar-stage[data-outfit="hot"] .avatar-back-view .avatar-vest{opacity:0}
+@media(prefers-reduced-motion:reduce){.rider-avatar.avatar-back-active>.avatar-back-view,.avatar-back-head,.avatar-back-torso{animation:none}}
 </style>
 </head>
 <body>
@@ -300,9 +312,38 @@ main{max-width:800px}
   <path d="M70 106 Q80 116 91 106" stroke="#a66560" stroke-width="3" fill="none" stroke-linecap="round"/>
  </g>
 </g>
+<g class="avatar-back-view" aria-hidden="true">
+ <g class="avatar-back-legs">
+  <path d="M58 178 H79 L74 229 H56 Z M83 178 H104 L105 229 H89 Z" fill="#253c59" stroke="#152a43" stroke-width="2"/>
+  <path class="avatar-legwarmers" d="M56 197 H76 L73 229 H56 Z M87 197 H105 V229 H89 Z" fill="#192d47"/>
+  <path d="M54 225 H74 Q80 234 75 235 H48 Q44 233 49 228 Z M89 225 H106 Q117 234 113 235 H87 Q84 232 89 225" fill="#f9fdff" stroke="#91a9c3" stroke-width="2"/>
+ </g>
+ <g class="avatar-back-arms">
+  <path d="M61 130 Q46 127 41 142 L29 173 Q28 181 36 183 L48 170 L65 148 Z M99 130 Q114 127 119 142 L131 173 Q132 181 124 183 L112 170 L95 148 Z" fill="#f7fbff" stroke="#a9ced0" stroke-width="2"/>
+  <path class="avatar-sleeves" d="M39 156 L51 160 L44 173 L31 170 Z M121 156 L109 160 L116 173 L129 170 Z" fill="#d9ecee"/>
+  <ellipse cx="33" cy="180" rx="9" ry="10" fill="#f7bfa3"/><ellipse cx="127" cy="180" rx="9" ry="10" fill="#f7bfa3"/>
+  <path class="avatar-gloves" d="M26 177 Q34 174 41 177 L40 185 Q31 190 26 182 Z M119 177 Q127 174 134 177 L134 183 Q127 190 120 185 Z" fill="#2c425e"/>
+ </g>
+ <g class="avatar-back-torso">
+  <path d="M63 125 Q80 119 99 125 L109 177 Q80 187 51 177 Z" fill="#f7fbff" stroke="#b6d2d8" stroke-width="2"/>
+  <path d="M59 149 Q80 153 102 149" fill="none" stroke="#edf1f3" stroke-width="2"/>
+  <path d="M61 166 L61 177 M99 166 L99 177" stroke="#b2cad1" stroke-width="1.5"/>
+  <path d="M60 166 Q80 171 100 166 L99 177 Q80 185 61 177 Z" fill="#e4eaf0" stroke="#aec9d1" stroke-width="1.5"/>
+  <text x="80" y="153" text-anchor="middle" font-size="12" font-weight="900" fill="#2d455c">UAE</text>
+  <path class="avatar-vest" d="M62 129 L74 126 V163 L57 161 Z M86 126 L99 129 L104 161 L86 163 Z" fill="#d4e8ef" opacity="0"/>
+ </g>
+ <g class="avatar-back-head">
+  <rect x="73" y="116" width="15" height="13" rx="6" fill="#eeb594"/>
+  <ellipse cx="43" cy="82" rx="9" ry="13" fill="#e9ab8b"/><ellipse cx="117" cy="82" rx="9" ry="13" fill="#e9ab8b"/>
+  <path d="M34 65 C34 32 53 17 80 17 C107 17 126 34 126 65 V91 C125 120 106 132 80 132 C54 132 35 117 34 91 Z" fill="#654634" stroke="#523827" stroke-width="2"/>
+  <path d="M39 63 Q43 28 80 24 Q117 29 121 63 Q114 83 80 86 Q47 83 39 63" fill="#79533a"/>
+  <path d="M52 51 Q81 36 108 53 M51 77 Q80 90 108 76 M59 101 Q80 111 101 101" fill="none" stroke="#8b6248" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+  <path d="M55 118 Q80 137 105 118" fill="none" stroke="#523827" stroke-width="8" stroke-linecap="round"/>
+ </g>
+</g>
 </svg>
   <div class="avatar-outfit" id="avatarOutfit">간절기 라이딩 복장</div>
-  <button class="avatar-turn" type="button" id="avatarTurn" aria-label="캐릭터 방향 바꾸기">↻</button>
+  <button class="avatar-turn" type="button" id="avatarTurn" aria-label="캐릭터 뒷모습 보기" aria-pressed="false">↻</button>
 </div></div>
     <div class="now-stats"><div><span>🌧️ 시간 강수량</span><strong id="nowRain">-- mm</strong></div><div><span>💧 습도</span><strong id="nowHumidity">--%</strong></div><div><span>💨 풍속</span><strong id="nowWind">-- m/s</strong></div></div>
     <div id="nowDisclaimer" class="now-caption">실시간 관측값이 아닌 ECMWF IFS 현재 시간대 예보입니다.</div>
@@ -701,7 +742,13 @@ function updateRiderOutfit(temp){
 }
 document.addEventListener('DOMContentLoaded',()=>{
  const button=document.getElementById('avatarTurn'),avatar=document.getElementById('riderAvatar');
- button?.addEventListener('click',()=>{avatar?.classList.toggle('avatar-turned');button.setAttribute('aria-label',avatar?.classList.contains('avatar-turned')?'캐릭터 정면으로 돌리기':'캐릭터 방향 바꾸기');});
+ button?.addEventListener('click',()=>{
+  if(!avatar)return;
+  const back=avatar.classList.toggle('avatar-back-active');
+  button.setAttribute('aria-label',back?'캐릭터 정면 보기':'캐릭터 뒷모습 보기');
+  button.setAttribute('aria-pressed',String(back));
+  avatar.setAttribute('aria-label',back?'귀여운 라이더 캐릭터의 뒤통수와 뒷모습':'귀여운 라이더 캐릭터의 정면');
+});
 });
 function renderNowPanel(json){
  const h=json.hourly, d=json.daily;
