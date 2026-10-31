@@ -185,6 +185,41 @@ main{max-width:800px}
 .windy-launch{width:auto!important;min-height:34px;padding:7px 11px;white-space:nowrap;font-size:12px}
 @media(max-width:460px){main{padding:9px 12px 28px}.hero{padding:10px 6px}.now-panel{padding:19px 17px 15px}.now-stats span{font-size:10px}.now-stats strong{font-size:13px}.windy-link-panel{padding:11px 13px}}
 
+
+/* Animated game character selection avatar, CSS/SVG only */
+.now-main{align-items:center;min-height:236px}
+.avatar-stage{position:relative;flex:0 0 47%;height:240px;max-width:230px;align-self:center;display:flex;justify-content:center;align-items:center;isolation:isolate}
+.avatar-halo{position:absolute;width:150px;height:190px;border-radius:48%;background:radial-gradient(ellipse,#c8fff63a,transparent 72%);animation:avatar-glow 4s ease-in-out infinite;pointer-events:none}
+.rider-avatar{position:absolute;bottom:5px;height:222px;width:154px;overflow:visible;filter:drop-shadow(0 9px 9px #0b285445);transform-origin:50% 75%;transition:transform .5s ease}
+.rider-avatar.avatar-turned{transform:scaleX(-1)}
+.avatar-bob{animation:avatar-idle 3.2s ease-in-out infinite;transform-origin:80px 224px}
+.avatar-torso{animation:avatar-breathe 3.2s ease-in-out infinite;transform-origin:82px 128px}
+.avatar-head{animation:avatar-look 5.3s ease-in-out infinite;transform-origin:81px 81px}
+.avatar-leftarm{animation:avatar-arm 3.2s ease-in-out infinite;transform-origin:54px 94px}
+.avatar-rightarm{animation:avatar-arm 3.2s ease-in-out infinite reverse;transform-origin:108px 94px}
+.avatar-ground{animation:avatar-shadow 3.2s ease-in-out infinite}
+.avatar-weather{position:absolute;right:0;top:8px;font-size:28px;filter:drop-shadow(0 3px 4px #16346655)}
+.avatar-outfit{position:absolute;bottom:0;left:50%;transform:translateX(-50%);border-radius:999px;background:#092f6ca8;color:white;border:1px solid #bbebff55;padding:5px 9px;font-size:10px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.avatar-turn{position:absolute;top:5px;left:3px;min-height:29px;width:29px;border-radius:50%;background:#ffffff24;border:1px solid #ffffff60;color:white;padding:0;font-size:19px}
+.avatar-stage[data-outfit="winter"] .avatar-vest{fill:#293e55;opacity:1}
+.avatar-stage[data-outfit="winter"] .avatar-sleeves{fill:#293e55}
+.avatar-stage[data-outfit="winter"] .avatar-legwarmers{fill:#071c31}
+.avatar-stage[data-outfit="cold"] .avatar-vest{fill:#f4fbf1;opacity:1}
+.avatar-stage[data-outfit="cold"] .avatar-sleeves{fill:#d5ecd9}
+.avatar-stage[data-outfit="cool"] .avatar-vest{opacity:0}
+.avatar-stage[data-outfit="cool"] .avatar-legwarmers{opacity:.35}
+.avatar-stage[data-outfit="mild"] .avatar-vest,.avatar-stage[data-outfit="hot"] .avatar-vest{opacity:0}
+.avatar-stage[data-outfit="mild"] .avatar-sleeves,.avatar-stage[data-outfit="hot"] .avatar-sleeves{opacity:0}
+.avatar-stage[data-outfit="mild"] .avatar-legwarmers,.avatar-stage[data-outfit="hot"] .avatar-legwarmers{opacity:0}
+.avatar-stage[data-outfit="hot"] .avatar-torso>path:nth-child(2){fill:#c9f4e4}
+@keyframes avatar-idle{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-4px) rotate(1deg)}}
+@keyframes avatar-breathe{0%,100%{transform:scaleX(1)}50%{transform:scaleX(1.035)}}
+@keyframes avatar-look{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(2.5deg)}}
+@keyframes avatar-arm{0%,100%{transform:rotate(0)}50%{transform:rotate(2.5deg)}}
+@keyframes avatar-shadow{0%,100%{transform:scaleX(1);opacity:.28}50%{transform:scaleX(.9);opacity:.18}}
+@keyframes avatar-glow{0%,100%{opacity:.5;transform:scale(.94)}50%{opacity:1;transform:scale(1.05)}}
+@media(max-width:460px){.now-main{min-height:216px}.avatar-stage{height:219px;flex-basis:47%}.rider-avatar{height:204px;width:142px}.avatar-outfit{font-size:9px;padding:4px 6px}.now-temp{font-size:clamp(66px,19vw,94px)}.now-icon{display:none}}
+@media(prefers-reduced-motion:reduce){.avatar-bob,.avatar-torso,.avatar-head,.avatar-leftarm,.avatar-rightarm,.avatar-ground,.avatar-halo{animation:none}}
 </style>
 </head>
 <body>
@@ -198,7 +233,48 @@ main{max-width:800px}
   <section class="now-panel" aria-labelledby="nowHeading">
     <div class="now-top"><span class="now-kicker">● LIVE FORECAST <span id="nowTime">현지시간 기준</span></span><button type="button" id="toggleSearch" class="now-location-btn" aria-controls="searchPanel" aria-expanded="false">⌕ 지역 변경</button></div>
     <div id="nowPlace" class="now-place">서울 · 날씨 불러오는 중</div>
-    <div class="now-main"><div><div id="nowTemp" class="now-temp">--<span>°</span></div><div id="nowDesc" class="now-desc">현재 시간대 예보 조회 중</div><div id="nowFeels" class="now-feels">체감온도 --°</div></div><div id="nowIcon" class="now-icon" aria-hidden="true">🌤️</div></div>
+    <div class="now-main"><div><div id="nowTemp" class="now-temp">--<span>°</span></div><div id="nowDesc" class="now-desc">현재 시간대 예보 조회 중</div><div id="nowFeels" class="now-feels">체감온도 --°</div></div><div class="avatar-stage" aria-label="기온에 맞춘 움직이는 라이더 아바타">
+  <div class="avatar-halo"></div><span id="nowIcon" class="avatar-weather" aria-hidden="true">🌤️</span>
+  <svg id="riderAvatar" class="rider-avatar" viewBox="0 0 160 255" role="img" aria-label="포가차르 스타일의 라이딩 캐릭터" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffe2ca"/><stop offset="1" stop-color="#dba17e"/></linearGradient><linearGradient id="jersey" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fcfff4"/><stop offset=".55" stop-color="#e6f8da"/><stop offset="1" stop-color="#b4dfb8"/></linearGradient><linearGradient id="shoe" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#252e40"/><stop offset="1" stop-color="#0a1426"/></linearGradient><filter id="avshadow"><feDropShadow dx="1" dy="4" stdDeviation="3" flood-color="#071c3d" flood-opacity=".32"/></filter></defs>
+    <ellipse class="avatar-ground" cx="80" cy="238" rx="48" ry="9" fill="#0c326c" opacity=".28"/>
+    <g class="avatar-bob" filter="url(#avshadow)">
+      <g class="avatar-legs">
+        <path d="M60 142 L81 142 L78 184 L72 223 L58 223 L56 182 Z" fill="#263747"/>
+        <path d="M84 142 L104 142 L101 183 L106 223 L91 223 L86 185 Z" fill="#263747"/>
+        <path class="avatar-legwarmers" d="M56 174 H79 L72 223 H58 Z M87 174 H103 L106 223 H91 Z" fill="#182b40"/>
+        <path d="M58 219 H75 L80 232 Q80 236 72 236 H48 Q44 232 51 225 Z M92 219 H108 L118 229 Q120 235 113 236 H89 Q85 233 92 219" fill="url(#shoe)"/>
+        <path d="M52 231 H78 M90 231 H115" stroke="#99eae0" stroke-width="2"/>
+      </g>
+      <g class="avatar-torso">
+        <path d="M60 87 Q80 80 103 87 L110 139 Q107 150 94 153 H65 Q54 149 55 138 Z" fill="#182b40"/>
+        <path d="M60 88 Q82 79 102 88 L106 129 Q82 140 57 129 Z" fill="url(#jersey)"/>
+        <path d="M80 86 L82 134" stroke="#408c87" stroke-width="2.3"/>
+        <path d="M60 120 Q82 126 105 120" stroke="#439c7a" stroke-width="4"/>
+        <path class="avatar-vest" d="M58 92 L72 87 L76 122 L58 128 Z M89 85 L104 92 L105 128 L88 122 Z" fill="#edf7f1" opacity=".94"/>
+        <path d="M63 110 L73 110 M91 110 L100 110" stroke="#75ac9a" stroke-width="2"/>
+        <path d="M72 81 H91 L91 96 Q82 103 72 95 Z" fill="url(#skin)"/>
+      </g>
+      <g class="avatar-arms">
+        <g class="avatar-leftarm"><path d="M59 90 Q46 92 43 112 L37 144 Q39 151 46 150 L57 115 Z" fill="#e7f6e5"/><path class="avatar-sleeves" d="M45 110 L57 114 L47 139 L38 136 Z" fill="#edf7ed"/><path d="M38 139 L46 142 L45 154 Q39 160 35 152 Z" fill="url(#skin)"/><path class="avatar-gloves" d="M37 146 L46 146 L45 154 Q38 159 35 152 Z" fill="#263747"/></g>
+        <g class="avatar-rightarm"><path d="M102 90 Q116 91 120 112 L127 139 Q128 149 121 151 L108 116 Z" fill="#e7f6e5"/><path class="avatar-sleeves" d="M115 110 L108 115 L120 139 L128 135 Z" fill="#edf7ed"/><path d="M120 139 L127 136 L132 150 Q129 158 122 152 Z" fill="url(#skin)"/><path class="avatar-gloves" d="M122 144 L130 143 L132 150 Q129 158 122 152 Z" fill="#263747"/></g>
+      </g>
+      <g class="avatar-head">
+        <path d="M60 53 Q58 30 80 26 Q104 25 105 52 L103 72 Q96 89 82 90 Q67 87 62 73 Z" fill="url(#skin)"/>
+        <path d="M59 52 Q58 32 72 26 Q84 21 95 29 Q104 25 107 40 L104 55 L99 45 L94 49 L88 41 L75 48 L65 44 L62 59 Z" fill="#493026"/>
+        <path d="M69 61 Q75 58 79 62 M88 62 Q93 59 98 61" stroke="#513f36" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="75" cy="64" r="1.9" fill="#273b41"/><circle cx="94" cy="64" r="1.9" fill="#273b41"/>
+        <path d="M81 72 Q84 74 87 72" stroke="#bc8067" stroke-width="1.8" fill="none"/>
+        <path d="M75 79 Q84 85 93 78" stroke="#a5554f" stroke-width="2.3" stroke-linecap="round" fill="none"/>
+        <path d="M61 47 Q57 27 73 20 Q87 15 101 24 Q108 30 106 43 Q91 36 75 38 Q68 41 61 47 Z" fill="#f7fcf6" stroke="#a4e6c4" stroke-width="2"/>
+        <path d="M61 40 Q81 28 105 39" fill="none" stroke="#3aab87" stroke-width="4"/>
+        <path d="M68 26 L72 36 M81 22 L81 35 M94 26 L91 36" stroke="#9cb7af" stroke-width="2"/>
+      </g>
+    </g>
+  </svg>
+  <div class="avatar-outfit" id="avatarOutfit">간절기 라이딩 복장</div>
+  <button class="avatar-turn" type="button" id="avatarTurn" aria-label="캐릭터 방향 바꾸기">↻</button>
+</div></div>
     <div class="now-stats"><div><span>🌧️ 시간 강수량</span><strong id="nowRain">-- mm</strong></div><div><span>💧 습도</span><strong id="nowHumidity">--%</strong></div><div><span>💨 풍속</span><strong id="nowWind">-- m/s</strong></div></div>
     <div id="nowDisclaimer" class="now-caption">실시간 관측값이 아닌 ECMWF IFS 현재 시간대 예보입니다.</div>
   </section>
@@ -578,6 +654,26 @@ function renderForecast(json){
 }
 
 
+function updateRiderOutfit(temp){
+ const avatar=document.getElementById('riderAvatar');
+ const label=document.getElementById('avatarOutfit');
+ const stage=avatar?.closest('.avatar-stage');
+ if(!avatar||!label||!stage)return;
+ const tier=temp===null?'mild':temp<5?'winter':temp<13?'cold':temp<19?'cool':temp<27?'mild':'hot';
+ stage.dataset.outfit=tier;
+ const map={
+ winter:'방한 재킷 · 기모 타이츠 · 방한 장갑',
+ cold:'긴팔 저지 · 방풍 조끼 · 긴 타이츠',
+ cool:'긴팔 저지 · 빕숏 · 암워머',
+ mild:'반팔 저지 · 빕숏',
+ hot:'통풍 저지 · 빕숏'
+ };
+ label.textContent=map[tier];
+}
+document.addEventListener('DOMContentLoaded',()=>{
+ const button=document.getElementById('avatarTurn'),avatar=document.getElementById('riderAvatar');
+ button?.addEventListener('click',()=>{avatar?.classList.toggle('avatar-turned');button.setAttribute('aria-label',avatar?.classList.contains('avatar-turned')?'캐릭터 정면으로 돌리기':'캐릭터 방향 바꾸기');});
+});
 function renderNowPanel(json){
  const h=json.hourly, d=json.daily;
  const clock=forecastLocalClock();
@@ -599,6 +695,7 @@ function renderNowPanel(json){
  el('nowTemp').innerHTML=(temp===null?'--':Math.round(temp))+'<span>°</span>';
  el('nowDesc').textContent=weather[1];
  el('nowIcon').textContent=weather[0];
+ updateRiderOutfit(temp);
  el('nowFeels').textContent='체감온도 '+(feels===null?'--':feels.toFixed(1))+'°';
  el('nowRain').textContent=rain===null?'-- mm':rain.toFixed(1)+' mm';
  el('nowHumidity').textContent=humidity===null?'--%':Math.round(humidity)+'%';
