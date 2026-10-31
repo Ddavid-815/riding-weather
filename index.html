@@ -366,10 +366,13 @@ main{max-width:800px}
 /* Confident cyclist victory pose: chest up, hand on hip, raised fist. */
 @keyframes rider-victory-body{0%,100%{transform:translateY(0) rotate(0)}18%{transform:translateY(3px) rotate(-2deg)}40%{transform:translateY(-7px) rotate(3deg)}65%{transform:translateY(-5px) rotate(2deg)}85%{transform:translateY(-2px) rotate(1deg)}}
 @keyframes rider-victory-head{0%,100%{transform:rotate(0)}35%,65%{transform:rotate(-8deg) translateY(-2px)}}
-@keyframes rider-victory-fist{0%,100%{transform:translateY(10px) rotate(0);opacity:0}25%{transform:translateY(-12px) rotate(-6deg);opacity:1}50%,77%{transform:translateY(-8px) rotate(3deg);opacity:1}90%{opacity:0}}
-@keyframes rider-victory-hip{0%,100%{opacity:0;transform:translateY(7px)}22%,77%{opacity:1;transform:translateY(0)}90%{opacity:0}}
+@keyframes rider-victory-fist{0%{transform:translateY(10px) rotate(0);opacity:1}25%{transform:translateY(-12px) rotate(-6deg);opacity:1}50%,77%{transform:translateY(-8px) rotate(3deg);opacity:1}100%{transform:translateY(0) rotate(0);opacity:1}}
+@keyframes rider-victory-hip{0%,100%{opacity:1;transform:translateY(7px)}22%,77%{opacity:1;transform:translateY(0)}}
 .rider-avatar .avatar-victory-arms{opacity:0;pointer-events:none}
-.rider-avatar.avatar-confident .avatar-victory-arms{opacity:1}
+/* The five outfit scenes each have their own original pair of arms.
+   Replace—not stack—them while the front-facing victory pose is active. */
+.rider-avatar.avatar-confident:not(.avatar-back-active) > .avatar-bob > .outfit-scene .avatar-arms{display:none!important}
+.rider-avatar.avatar-confident:not(.avatar-back-active) > .avatar-bob > .avatar-victory-arms{opacity:1}
 .rider-avatar.avatar-confident .avatar-victory-right{animation:rider-victory-fist 1150ms ease-out both;transform-origin:104px 134px}
 .rider-avatar.avatar-confident .avatar-victory-left{animation:rider-victory-hip 1150ms ease-out both}
 .rider-avatar.avatar-confident .avatar-bob{animation:rider-victory-body 1150ms ease-in-out both}
