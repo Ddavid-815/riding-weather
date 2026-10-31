@@ -145,17 +145,65 @@
     .windy-link-row .muted{margin:0}
     .windy-launch{white-space:nowrap;flex-shrink:0;min-height:42px;background:#2476b8}
     @media(max-width:480px){.windy-launch{width:100%}}
+
+/* Mobile-first current weather home */
+body{background:#edf2fa}
+main{max-width:800px}
+.hero{padding:13px 17px;background:transparent;color:#1c365a;border-radius:0}
+.hero h1{font-size:15px;letter-spacing:.055em;margin:0;font-weight:850}
+.hero-tag{font-size:11px;font-weight:650;color:#6a7e99;letter-spacing:0;margin-left:5px}
+.hero .location,.hero small{display:none}
+.now-panel{margin:3px 0 10px;border-radius:25px;padding:22px 21px 17px;color:#fff;background:radial-gradient(circle at 91% 9%,rgba(173,216,255,.32),transparent 36%),linear-gradient(145deg,#12366d 1%,#2865b8 58%,#5999de 100%);box-shadow:0 14px 30px #23518d32;overflow:hidden}
+.now-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.now-kicker{font-size:10px;font-weight:800;letter-spacing:.09em;color:#d6e8ff}
+.now-kicker:first-letter{color:#9df6d3}
+.now-location-btn{min-height:32px;padding:5px 10px;background:#ffffff2a;border:1px solid #ffffff55;color:white;border-radius:999px;font-size:12px;white-space:nowrap}
+.now-place{font-size:16px;font-weight:750;line-height:1.35;margin-top:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.now-main{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:4px 0 13px}
+.now-temp{font-size:clamp(73px,21vw,108px);font-weight:350;letter-spacing:-.085em;line-height:1.04;font-variant-numeric:tabular-nums}
+.now-temp span{font-size:.64em;vertical-align:top;letter-spacing:-.08em}
+.now-desc{font-size:19px;font-weight:760}
+.now-feels{font-size:13px;color:#d7eaff;margin-top:6px}
+.now-icon{font-size:clamp(65px,18vw,100px);filter:drop-shadow(0 10px 12px #142e5c45);line-height:1}
+.now-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:#ffffff20;border:1px solid #ffffff29;border-radius:16px;padding:12px 7px}
+.now-stats div{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}
+.now-stats span{font-size:11px;color:#e2edfc;white-space:nowrap}
+.now-stats strong{font-size:15px;color:white;font-variant-numeric:tabular-nums;white-space:nowrap}
+.now-caption{font-size:10px;line-height:1.45;color:#d2e5fc;margin-top:12px}
+.compact-search-panel{margin-top:9px;padding:13px 15px}
+.compact-search-head{margin-bottom:8px}
+.compact-search-head h2{font-size:14px}
+.compact-search-head span{font-size:10px}
+.search-collapsed{display:none}
+.compact-search-panel .quick{margin-top:8px}
+.compact-search-panel .quick button{min-height:30px;padding:5px 9px}
+.compact-search-panel .compact-status.ok{display:none}
+.compact-search-panel .compact-actions{margin-top:5px}
+.windy-link-panel{margin-top:9px;padding:11px 15px}
+.windy-link-row{flex-wrap:nowrap;gap:8px}
+.windy-link-row h2{font-size:14px;margin:0}
+.windy-launch{width:auto!important;min-height:34px;padding:7px 11px;white-space:nowrap;font-size:12px}
+@media(max-width:460px){main{padding:9px 12px 28px}.hero{padding:10px 6px}.now-panel{padding:19px 17px 15px}.now-stats span{font-size:10px}.now-stats strong{font-size:13px}.windy-link-panel{padding:11px 13px}}
+
 </style>
 </head>
 <body>
 <main>
   <header class="hero">
-    <h1>🌤️ 지역별 ECMWF 14일 라이딩 예보</h1>
+    <h1>RIDING WEATHER <span class="hero-tag">ECMWF IFS · 14일</span></h1>
     <div class="location" id="location">📍 현재 위치 확인 준비 중…</div>
     <small id="locationDetails">ECMWF IFS 단독 · 오늘부터 14일 · 한국시간(KST)</small>
   </header>
 
-  <section class="panel compact-search-panel" aria-labelledby="searchTitle">
+  <section class="now-panel" aria-labelledby="nowHeading">
+    <div class="now-top"><span class="now-kicker">● LIVE FORECAST <span id="nowTime">현지시간 기준</span></span><button type="button" id="toggleSearch" class="now-location-btn" aria-controls="searchPanel" aria-expanded="false">⌕ 지역 변경</button></div>
+    <div id="nowPlace" class="now-place">서울 · 날씨 불러오는 중</div>
+    <div class="now-main"><div><div id="nowTemp" class="now-temp">--<span>°</span></div><div id="nowDesc" class="now-desc">현재 시간대 예보 조회 중</div><div id="nowFeels" class="now-feels">체감온도 --°</div></div><div id="nowIcon" class="now-icon" aria-hidden="true">🌤️</div></div>
+    <div class="now-stats"><div><span>🌧️ 시간 강수량</span><strong id="nowRain">-- mm</strong></div><div><span>💧 습도</span><strong id="nowHumidity">--%</strong></div><div><span>💨 풍속</span><strong id="nowWind">-- m/s</strong></div></div>
+    <div id="nowDisclaimer" class="now-caption">실시간 관측값이 아닌 ECMWF IFS 현재 시간대 예보입니다.</div>
+  </section>
+
+  <section id="searchPanel" class="panel compact-search-panel search-collapsed" aria-labelledby="searchTitle">
     <div class="compact-search-head"><h2 id="searchTitle">🔎 지역 검색 · 14일 날씨</h2>
       <span>ECMWF IFS · 국내·해외 지역</span></div>
     <form id="searchForm" autocomplete="off">
@@ -172,9 +220,8 @@
 
 <section class="panel windy-link-panel" aria-labelledby="windyTitle">
     <div class="windy-link-row">
-      <div><h2 id="windyTitle">기상 레이더</h2>
-        <p class="muted">Windy에서 실제 강수 레이더와 시간별 강수 이동을 확인하세요.</p></div>
-      <a class="link windy-launch" href="https://www.windy.com/-Weather-radar-radar" target="_blank" rel="noopener noreferrer" aria-label="Windy 기상 레이더 새 탭으로 열기">Windy 기상 레이더 열기 ↗</a>
+      <div><h2 id="windyTitle">🛰️ 기상 레이더</h2></div>
+      <a class="link windy-launch" href="https://www.windy.com/-Weather-radar-radar" target="_blank" rel="noopener noreferrer" aria-label="Windy 기상 레이더 새 탭으로 열기">Windy 열기 ↗</a>
     </div>
   </section>
 
@@ -525,9 +572,47 @@ function renderForecast(json){
   forecastTimeZone=typeof json.timezone==='string' && json.timezone.trim()?json.timezone.trim():null;
   forecastUtcOffsetSeconds=Number.isFinite(json.utc_offset_seconds)?json.utc_offset_seconds:null;
   renderRainChart(d);
+  renderNowPanel(json);
   el('weeks').style.display='block';
   return Math.min(14,d.time.length);
 }
+
+
+function renderNowPanel(json){
+ const h=json.hourly, d=json.daily;
+ const clock=forecastLocalClock();
+ const key=clock.date+'T'+clock.hour;
+ const time=Array.isArray(h?.time)?h.time:[];
+ let index=time.findIndex(t=>typeof t==='string'&&t.slice(0,13)===key);
+ if(index<0){
+   const clockMs=Date.parse(key+':00Z');
+   let min=Infinity;
+   time.forEach((t,i)=>{const delta=Math.abs(Date.parse(t+'Z')-clockMs);if(Number.isFinite(delta)&&delta<min){min=delta;index=i;}});
+ }
+ const valid=index>=0&&time[index]&&time[index].slice(0,10)===clock.date;
+ const get=(k)=>valid?hourlyValue(h,k,index):null;
+ const temp=get('temperature_2m'), feels=get('apparent_temperature'), rain=get('precipitation');
+ const humidity=get('relative_humidity_2m'), wind=get('wind_speed_10m'), code=get('weather_code');
+ const weather=code===null?['🌤️','날씨 확인 불가']:wx(code);
+ el('nowPlace').textContent=placeLabel(selectedPlace);
+ el('nowTime').textContent=clock.date.slice(5).replace('-','/')+' '+clock.hour+':'+(valid?time[index].slice(14,16):'00')+' 현지시간';
+ el('nowTemp').innerHTML=(temp===null?'--':Math.round(temp))+'<span>°</span>';
+ el('nowDesc').textContent=weather[1];
+ el('nowIcon').textContent=weather[0];
+ el('nowFeels').textContent='체감온도 '+(feels===null?'--':feels.toFixed(1))+'°';
+ el('nowRain').textContent=rain===null?'-- mm':rain.toFixed(1)+' mm';
+ el('nowHumidity').textContent=humidity===null?'--%':Math.round(humidity)+'%';
+ el('nowWind').textContent=wind===null?'-- m/s':wind.toFixed(1)+' m/s';
+ el('nowDisclaimer').textContent=valid?'실시간 관측이 아닌 ECMWF IFS '+time[index].slice(11,16)+' 현지시간 예보 · 강수량은 해당 1시간 기준입니다.':'현재 시간대 ECMWF 예보값을 확인할 수 없습니다. 아래 14일 예보를 참고하세요.';
+}
+document.addEventListener('DOMContentLoaded',()=>{
+ const btn=document.getElementById('toggleSearch'), panel=document.getElementById('searchPanel');
+ btn?.addEventListener('click',()=>{
+  const closed=panel.classList.toggle('search-collapsed');
+  btn.setAttribute('aria-expanded',String(!closed));
+  if(!closed)document.getElementById('placeInput')?.focus();
+ });
+});
 
 function buildForecastUrl(p){
   const params=new URLSearchParams({
@@ -728,6 +813,9 @@ async function selectPlace(place){
   el('location').textContent='📍 '+placeLabel(place);
   el('locationDetails').textContent=formatCoords(place)+' · ECMWF IFS 단독 · 오늘부터 14일 · '+(place.timezone==='auto'?'현지시간 자동':place.timezone || '현지시간');
   el('weeks').style.display='none';
+  el('nowPlace').textContent=placeLabel(place);
+  el('nowTemp').innerHTML='--<span>°</span>';
+  el('nowDesc').textContent='현재 시간대 예보 조회 중';
   const url=buildForecastUrl(place);
   el('source').href=url;
   const action=()=>selectPlace(place);
@@ -736,6 +824,8 @@ async function selectPlace(place){
   try{
     const count=renderForecast(json);
     status('✅ '+placeLabel(place)+' · '+count+'일 예보 조회 완료','ok');
+    el('searchPanel').classList.add('search-collapsed');
+    el('toggleSearch').setAttribute('aria-expanded','false');
     return true;
   }catch(error){
     status('⚠️ 수신 데이터에 오류가 있어 예보를 표시하지 못했습니다.','fail');
