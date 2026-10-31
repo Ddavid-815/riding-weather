@@ -364,7 +364,7 @@ main{max-width:800px}
 <section class="panel windy-link-panel" aria-labelledby="windyTitle">
     <div class="windy-link-row">
       <div><h2 id="windyTitle">🛰️ 기상 레이더</h2></div>
-      <a class="link windy-launch" href="https://www.windy.com/-Weather-radar-radar" target="_blank" rel="noopener noreferrer" aria-label="Windy 기상 레이더 새 탭으로 열기">Windy 열기 ↗</a>
+      <a id="windyRadarLink" class="link windy-launch" href="https://www.windy.com/-Weather-radar-radar" target="_blank" rel="noopener noreferrer" aria-label="Windy 기상 레이더 새 탭으로 열기">Windy 열기 ↗</a>
     </div>
   </section>
 
@@ -784,6 +784,19 @@ document.addEventListener('DOMContentLoaded',()=>{
  });
 });
 
+
+// Use the exact selected forecast coordinates, not the browser's current position.
+function updateWindyRadarLink(place){
+  const link=document.getElementById('windyRadarLink');
+  if(!link)return;
+  const lat=Number(place?.latitude),lon=Number(place?.longitude);
+  if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return;
+  // Windy supports radar overlay, latitude, longitude and map zoom in its URL.
+  const coords=[lat,lon].map(n=>n.toFixed(4));
+  link.href='https://www.windy.com/-Weather-radar-radar?radar,'+coords.join(',')+',9';
+  link.setAttribute('aria-label',placeLabel(place)+' 지역의 Windy 기상 레이더 열기');
+}
+
 function buildForecastUrl(p){
   const params=new URLSearchParams({
     latitude:String(p.latitude),longitude:String(p.longitude),models:'ecmwf_ifs',
@@ -979,6 +992,7 @@ async function selectPlace(place){
   forecastTimeZone=null;
   forecastUtcOffsetSeconds=null;
   selectedPlace=place;hideResults();
+  updateWindyRadarLink(place);
   el('placeInput').value=place.currentLocation?placeLabel(place):place.ko || place.name;
   el('location').textContent='📍 '+placeLabel(place);
   el('locationDetails').textContent=formatCoords(place)+' · ECMWF IFS 단독 · 오늘부터 14일 · '+(place.timezone==='auto'?'현지시간 자동':place.timezone || '현지시간');
