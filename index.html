@@ -194,7 +194,11 @@ main{max-width:800px}
 .rider-avatar.avatar-turned{transform:scaleX(-1)}
 .avatar-bob{animation:avatar-idle 3.2s ease-in-out infinite;transform-origin:80px 224px}
 .avatar-torso{animation:avatar-breathe 3.2s ease-in-out infinite;transform-origin:82px 128px}
-.avatar-head{animation:avatar-look 5.3s ease-in-out infinite;transform-origin:81px 81px}
+.avatar-head-scale{transform-origin:82px 76px}
+.avatar-head{animation:avatar-look 5.3s ease-in-out infinite;transform-origin:83px 81px}
+.rider-avatar{filter:drop-shadow(0 8px 9px #071c3c77) drop-shadow(0 0 5px #c8e8ff47)}
+.avatar-stage:before{content:"✦";position:absolute;right:23%;top:17%;color:#fff5cb;font-size:17px;opacity:.8;animation:avatar-glow 3.6s ease-in-out infinite}
+.avatar-stage:after{content:"✧";position:absolute;left:11%;top:36%;color:#ddfcff;font-size:15px;opacity:.75;animation:avatar-glow 4.2s ease-in-out infinite reverse}
 .avatar-leftarm{animation:avatar-arm 3.2s ease-in-out infinite;transform-origin:54px 94px}
 .avatar-rightarm{animation:avatar-arm 3.2s ease-in-out infinite reverse;transform-origin:108px 94px}
 .avatar-ground{animation:avatar-shadow 3.2s ease-in-out infinite}
@@ -274,16 +278,30 @@ main{max-width:800px}
         <path d="M39 120 L49 123 M38 124 L48 127 M37 128 L47 131 M36 132 L46 135" stroke-width="2.1" stroke-linecap="round" fill="none" stroke="#e5bd38"/>
         <path d="M118 123 L127 120 M119 127 L128 124 M120 131 L129 128 M121 135 L130 132 M122 139 L131 136" stroke-width="2.1" stroke-linecap="round" fill="none" stroke="#e94f56"/>
       </g>
-      <g class="avatar-head" transform="translate(-15,-12) scale(1.18)">
-        <path d="M60 53 Q58 30 80 26 Q104 25 105 52 L103 72 Q96 89 82 90 Q67 87 62 73 Z" fill="url(#skin)"/>
-        <path d="M59 52 Q58 32 72 26 Q84 21 95 29 Q104 25 107 40 L104 55 L99 45 L94 49 L88 41 L75 48 L65 44 L62 59 Z" fill="#493026"/>
-        <path d="M69 61 Q75 58 79 62 M88 62 Q93 59 98 61" stroke="#513f36" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="75" cy="64" r="2.35" fill="#273b41"/><circle cx="94" cy="64" r="1.9" fill="#273b41"/>
-        <path d="M81 72 Q84 74 87 72" stroke="#bc8067" stroke-width="1.8" fill="none"/>
-        <path d="M74 79 Q84 87 95 78" stroke="#a5554f" stroke-width="2.3" stroke-linecap="round" fill="none"/>
-        <path d="M61 47 Q57 27 73 20 Q87 15 101 24 Q108 30 106 43 Q91 36 75 38 Q68 41 61 47 Z" fill="#f7fcf6" stroke="#a4e6c4" stroke-width="2"/>
-        <path d="M61 40 Q81 28 105 39" fill="none" stroke="#3aab87" stroke-width="4"/>
-        <path d="M68 26 L72 36 M81 22 L81 35 M94 26 L91 36" stroke="#9cb7af" stroke-width="2"/>
+      <g class="avatar-head-scale" transform="translate(-17,-15) scale(1.22)">
+       <g class="avatar-head">
+        <!-- Rounded, storybook animated-film character face -->
+        <ellipse cx="62" cy="64" rx="5" ry="9" fill="#e9b18d"/>
+        <ellipse cx="104" cy="64" rx="5" ry="9" fill="#e9b18d"/>
+        <path d="M60 51 Q59 27 83 27 Q108 27 106 53 L105 72 Q102 91 84 94 Q65 92 60 75 Z" fill="url(#skin)" stroke="#e4a783" stroke-width=".8"/>
+        <ellipse cx="72" cy="73" rx="9" ry="5" fill="#ec957e" opacity=".24"/>
+        <ellipse cx="96" cy="73" rx="9" ry="5" fill="#ec957e" opacity=".24"/>
+        <path d="M61 51 Q55 32 67 28 Q65 19 80 21 Q92 16 100 26 Q113 27 106 54 L103 49 Q103 39 97 39 Q88 45 80 40 Q71 47 64 43 Z" fill="#5a3428"/>
+        <path d="M66 43 Q76 28 88 33 Q97 37 103 35" stroke="#79503c" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M67 59 Q73 55 79 58 M89 58 Q95 55 101 59" stroke="#563c34" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="74" cy="65" rx="5" ry="6.3" fill="#fff"/>
+        <ellipse cx="95" cy="65" rx="5" ry="6.3" fill="#fff"/>
+        <ellipse cx="75" cy="65" rx="3.05" ry="4.1" fill="#527968"/>
+        <ellipse cx="94" cy="65" rx="3.05" ry="4.1" fill="#527968"/>
+        <circle cx="75.6" cy="63.4" r="1.35" fill="#fff"/><circle cx="94.5" cy="63.4" r="1.35" fill="#fff"/>
+        <path d="M82 69 Q85 73 87 70" stroke="#ce8e71" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+        <path d="M73 79 Q84 91 96 79 Q85 84 73 79" fill="#a95358" stroke="#ab655a" stroke-width="1"/>
+        <path d="M78 82 Q85 86 91 82" stroke="#fff1e8" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M60 50 Q58 31 70 25 Q82 19 96 26 Q105 31 107 45 Q94 39 78 40 Q66 42 60 50 Z" fill="#fcfff9" stroke="#a5cfc4" stroke-width="1.8"/>
+        <path d="M61 41 Q82 31 106 40" stroke="#47a48e" stroke-width="3.8" fill="none"/>
+        <path d="M70 27 L73 37 M84 23 L84 35 M97 28 L94 38" stroke="#bfd6d0" stroke-width="2"/>
+        <ellipse cx="71" cy="50" rx="12" ry="5" fill="#fff" opacity=".16"/>
+       </g>
       </g>
     </g>
   </svg>
