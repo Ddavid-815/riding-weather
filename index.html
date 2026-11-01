@@ -697,17 +697,24 @@ function showForeignSuggestions(cities,query,live=false){
 }
 // 지도 검색 데이터의 위치/국가를 확인하고 해당 해외 도시의 예보를 조회.
 async function lookupForeignCity(city,query){
-  const url='https://geocoding-api.open-meteo.com/v1/search?'+new URLSearchParams({name:city.en,count:'50',language:'en',format:'json'});
-  const action=()=>lookupForeignCity(city,query);
-  const data=await requestJson(url,action,`${city.ko} (${city.en}) · 위치 확인 중… (최대 10초)`);
-  if(!data)return;
-  const places=(data.results||[])
+  const url='https://geocoding-api.open-meteo.com/v1/search?'+new URLSearchParams({
+    name:city.en,count:'50',language:'en',format:'json'});
+  let data=await geoJsonSilent(url,7500);
+  let places=((data&&data.results)||[])
     .filter(p=>p.country_code===city.cc&&Number.isFinite(p.latitude)&&Number.isFinite(p.longitude))
-    .map(p=>({name:p.name,ko:city.ko,admin:[p.admin1,p.admin2].filter((v,i,a)=>v&&a.indexOf(v)===i).join(' · '),
-      country:city.countryKo,countryCode:p.country_code,latitude:p.latitude,longitude:p.longitude,timezone:p.timezone||'auto',population:p.population||0}));
+    .map(p=>({...mapOpenMeteoPlace(p),ko:city.ko,country:city.countryKo}));
+  let usedFallback=false;
+  if(!places.length){
+    // 지원되지 않는 영문 표기·해외 소도시도 OSM 기반 보조 검색으로 재확인.
+    const photon='https://photon.komoot.io/api/?'+new URLSearchParams({q:city.en,limit:'12'});
+    data=await geoJsonSilent(photon,8000);
+    places=mapPhotonPlaces(data).filter(p=>p.countryCode===city.cc);
+    usedFallback=true;
+  }
+  places=uniqueGeocodedPlaces(places);
   if(!places.length){
     showForeignSuggestions(foreignSuggestions(query),query);
-    status(`“${city.ko}”의 위치를 확인하지 못했습니다. 다른 후보나 영문 검색을 시도하세요.`,'fail');
+    status('“'+city.ko+'” 위치를 확인하지 못했습니다. 다른 도시 표기를 입력해 주세요.','fail');
     return;
   }
   const simplified=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -716,12 +723,13 @@ async function lookupForeignCity(city,query){
     const score=p=>simplified(p.name)===target?3:simplified(p.name).startsWith(target)?2:1;
     return score(b)-score(a) || b.population-a.population;
   });
-  // 첫 후보가 국가/도시명까지 일치해야 자동 선택. 아니라면 확인 목록 표시.
-  if(places.length===1 || (simplified(places[0].name)===target && (places.length===1 || simplified(places[1].name)!==target))){
+  if(!usedFallback && (places.length===1 ||
+      (simplified(places[0].name)===target && simplified(places[1]?.name)!==target))){
     return selectPlace(places[0]);
   }
   showResults(places.slice(0,10),query);
-  status(`“${city.ko}” 위치 후보 ${places.length}개 중 원하는 지역을 선택하세요.`);
+  status(usedFallback?'해외 도시 보조 검색 결과입니다. 좌표를 확인하고 선택하세요. (© OpenStreetMap contributors)':
+    '국가 및 좌표를 확인하고 원하는 도시를 선택하세요.','ok');
 }
 // 목록에 없는 한글 지명에 대한 영문 음역 재검색 (정확하지 않을 수 있어 선택 확인).
 function romanizeHangul(text){
@@ -794,7 +802,9 @@ function isInRequestedRegion(place,region){
   const admin=normalizeName(place.admin||'');
   const name=normalizeName(place.name||'');
   return admin.includes(normalizeName(region.canonical)) ||
-    admin.includes(region.english) || name===normalizeName(region.canonical);
+    admin.includes(region.english) || region.aliases?.some(alias=>admin.includes(normalizeName(alias))) ||
+    KOREAN_REGION_HINTS.find(item=>item[0]===region.canonical)?.[1].some(alias=>admin.includes(normalizeName(alias))) ||
+    name===normalizeName(region.canonical);
 }
 function uniqueGeocodedPlaces(places){
   const used=new Set();
