@@ -765,7 +765,7 @@ function koreanRegionHint(query){
       const prefix=normalizeName(alias);
       if(compact.startsWith(prefix)&&compact.length>prefix.length){
         // '광주' 자체만으로 광역시/경기도 광주시를 단정하지 않음.
-        return {canonical,english,alias,rest:compact.slice(prefix.length)};
+        return {canonical,english,alias,rest:String(query).trim().startsWith(alias) ? String(query).trim().slice(alias.length).trim() : compact.slice(prefix.length)};
       }
     }
   }
@@ -1450,7 +1450,7 @@ async function searchPlace(query){
       for(const term of [...new Set([name,region?region.rest:candidates[candidates.length-1]])]){
         if(!current())return;
         const params=new URLSearchParams({q:term,limit:'15'});
-        if(region || korean)params.set('bbox','124,33,132,39');
+        if(region)params.set('bbox','124,33,132,39');
         const data=await geoJsonSilent('https://photon.komoot.io/api/?'+params.toString(),8000);
         const found=uniqueGeocodedPlaces(mapPhotonPlaces(data));
         places=region?found.filter(place=>isInRequestedRegion(place,region)):found;
