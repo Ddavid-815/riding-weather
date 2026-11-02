@@ -421,7 +421,7 @@ main{max-width:800px}
   }
 }
 </style>
-  <link rel="stylesheet" href="./korea-forecast.css?v=20261102c">
+  <link rel="stylesheet" href="./korea-forecast.css?v=20261102e">
 </head>
 <body>
 <main>
@@ -443,7 +443,27 @@ main{max-width:800px}
 <section class="now-panel" aria-labelledby="nowHeading">
     <div class="now-top"><span class="now-kicker">● LIVE FORECAST <span id="nowTime">현지시간 기준</span></span><button type="button" id="toggleSearch" class="now-location-btn" aria-controls="searchPanel" aria-expanded="false">⌕ 지역 변경</button></div>
     <div id="nowPlace" class="now-place">서울 · 날씨 불러오는 중</div>
-    <div class="now-main"><div><div id="nowTemp" class="now-temp">--<span>°</span></div><div id="nowDesc" class="now-desc">현재 시간대 예보 조회 중</div><div id="nowFeels" class="now-feels">체감온도 --°</div></div><div class="avatar-stage" aria-label="기온에 맞춘 움직이는 라이더 아바타">
+    <div class="now-main ko-main-layout"><div class="now-current"><div id="nowTemp" class="now-temp">--<span>°</span></div><div id="nowDesc" class="now-desc">현재 시간대 예보 조회 중</div><div id="nowFeels" class="now-feels">체감온도 --°</div></div><div class="ko-inline-forecast" id="koWeatherPanel" role="group" aria-label="14일 전국 날씨 분포">
+      <div class="ko-mini-head"><span>전국 날씨</span><button id="koReload" class="ko-reload" type="button" title="전국 예보 새로고침" aria-label="전국 예보 새로고침">↻</button></div>
+      <div class="ko-map-surface">
+        <svg id="koMap" class="ko-map-svg" viewBox="0 0 520 580" role="img" aria-label="전국 시도별 대표 지점의 예상 일강수량 분포 지도">
+          <g id="koProvinceLayer"></g><g id="koLabelLayer"></g>
+        </svg>
+        <p id="koMapMessage" class="ko-inline-status" role="status" aria-live="polite"></p>
+      </div>
+      <div class="ko-timebar">
+        <div class="ko-timebar-head"><span id="koDate" class="ko-day-label">날짜 확인 중…</span>
+          <span id="koSummary" class="ko-sr-only" aria-live="polite">전국 예보 조회 중</span></div>
+        <input id="koDaySlider" class="ko-day-slider" type="range" min="0" max="13" step="1" value="0"
+          aria-label="전국 예보 날짜 변경" aria-valuetext="오늘" disabled>
+        <div id="koTicks" class="ko-ticks" aria-hidden="true"></div>
+      </div>
+      <div id="koLoading" class="ko-inline-status" role="status" aria-live="polite">전국 예보 조회 중…</div>
+      <div class="ko-mini-legend" aria-label="일강수량 구분 (mm)">
+        <span><i class="ko-zero"></i>0</span><span><i class="ko-trace"></i>~1</span>
+        <span><i class="ko-mid"></i>~5</span><span><i class="ko-heavy"></i>5+</span><span>mm/일</span>
+      </div>
+    </div><div class="avatar-stage" aria-label="기온에 맞춘 움직이는 라이더 아바타">
   <div class="avatar-halo"></div><span id="nowIcon" class="avatar-weather" aria-hidden="true">🌤️</span>
   <svg id="riderAvatar" class="rider-avatar" viewBox="0 0 160 255" role="img" aria-label="기온에 따른 라이딩 복장 캐릭터" xmlns="http://www.w3.org/2000/svg">
 <defs>
@@ -498,50 +518,6 @@ main{max-width:800px}
 </div></div>
     <div class="now-stats"><div><span>🌧️ 시간 강수량</span><strong id="nowRain">-- mm</strong></div><div><span>💧 습도</span><strong id="nowHumidity">--%</strong></div><div><span>💨 풍속</span><strong id="nowWind">-- m/s</strong></div></div>
     <div id="nowDisclaimer" class="now-caption">실시간 관측값이 아닌 ECMWF IFS 현재 시간대 예보입니다.</div>
-  </section>
-
-  <!-- 날짜 슬라이더로 전국 17개 시도의 ECMWF IFS 강수 예보 보기 -->
-  <section class="panel ko-weather-panel" id="koWeatherPanel" aria-labelledby="koWeatherTitle">
-    <div class="ko-weather-header">
-      <div>
-        <h2 id="koWeatherTitle">🗺️ 전국 날씨 지도 · 14일</h2>
-        <p>날짜별 전국 날씨 분포 확인 · 상세 예보는 상단 ‘지역 변경’에서 확인</p>
-      </div>
-      <button id="koReload" class="ko-reload" type="button">↻ 전국 새로고침</button>
-    </div>
-
-    <div class="ko-timebar">
-      <div class="ko-timebar-head">
-        <strong id="koDate" class="ko-day-label">예보 날짜 확인 중</strong>
-        <span class="ko-day-sub">ECMWF IFS · 한국시간 · D+0~D+13</span>
-      </div>
-      <input id="koDaySlider" class="ko-day-slider" type="range" min="0" max="13" step="1" value="0"
-        aria-label="전국 일별 예보 날짜 변경" aria-valuetext="오늘" disabled>
-      <div id="koTicks" class="ko-ticks" aria-hidden="true"></div>
-    </div>
-
-    <div class="ko-map-surface">
-      <div class="ko-map-heading">
-        <strong>대한민국 · 17개 시도별 강수량</strong>
-        <span id="koSummary" aria-live="polite">전국 날씨 조회 중…</span>
-      </div>
-      <svg id="koMap" class="ko-map-svg" viewBox="0 0 520 580" role="img" aria-label="선택 날짜의 전국 17개 시도 강수 분포와 주요 지역 날씨 아이콘">
-        <g id="koProvinceLayer"></g><g id="koLabelLayer"></g>
-      </svg>
-      <p id="koMapMessage" class="ko-source-note" role="status"></p>
-    </div>
-
-    <div class="ko-legend" aria-label="강수량 색상 구분">
-      <span><i style="background:#cce9d7"></i>0mm · 강수 없음</span>
-      <span><i style="background:#a3d8ea"></i>0초과~1mm 미만</span>
-      <span><i style="background:#6db6e3"></i>1~5mm 미만</span>
-      <span><i style="background:#2876b3"></i>5mm 이상</span>
-      <span><i style="background:#dfe7ee"></i>자료 없음</span>
-    </div>
-    <p id="koLoading" class="ko-loading" role="status" aria-live="polite">전국 예보 조회 중…</p>
-    <details class="ko-method"><summary class="ko-method-summary">자료 기준: ECMWF IFS · 시도별 대표 지점 예보 (실시간 관측 아님)</summary>
-      <p class="ko-source-note">출처: <a href="https://open-meteo.com/en/docs/ecmwf-api" target="_blank" rel="noopener noreferrer">Open-Meteo ECMWF IFS</a>. 시도 전체의 강수 분포가 아닌 대표 지점 1곳의 일강수량(비·눈 포함) 및 최고·최저기온 예보입니다. 일강수량은 해당 날짜의 하루 합계이며 시간별 강수 여부는 나타내지 않습니다. 지도 경계는 2018년 행정구역 기준입니다.</p>
-    </details>
   </section>
 
   <section id="searchPanel" class="panel compact-search-panel search-collapsed" aria-labelledby="searchTitle">
@@ -1632,6 +1608,6 @@ document.getElementById('uciArchiveToggle').addEventListener('click',()=>{
 });
 uciRender();
 </script>
-<script src="./korea-forecast.js?v=20261102c"></script>
+<script src="./korea-forecast.js?v=20261102e"></script>
 </body>
 </html>
