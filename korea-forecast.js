@@ -225,11 +225,11 @@ async function reload(){
   slider.max=String(dates.length-1);
   slider.disabled=false;
   if(Number(slider.value)>=dates.length)slider.value='0';
-  $('koLoading').textContent='✅ ECMWF IFS 예보 조회 완료 · '+dates[0]+'부터 14일 · 한국시간(KST)';
+  $('koLoading').textContent='';
   update();
  }catch(err){
   if(id!==requestId)return;
-  $('koLoading').textContent='⚠️ 전국 예보를 불러오지 못했습니다. 새로고침을 눌러 다시 시도해 주세요. ('+err.message+')';
+  $('koLoading').textContent='⚠️ 예보 조회 실패 · ↻ 재시도';
   if(dates.length){$('koDaySlider').disabled=false;update();}
  }finally{
   if(id===requestId){running=false;$('koReload').disabled=false;}
@@ -242,7 +242,7 @@ async function init(){
  update();
  const mapPromise=loadJSON('./korea-provinces-2018.topo.json',12000)
   .then(t=>{decodeGeo(t);update();})
-  .catch(()=>{$('koMapMessage').textContent='지도 경계를 불러오지 못했습니다. 다시 새로고침해 주세요.';});
+  .catch(()=>{$('koMapMessage').textContent='지도 표시 실패';});
  await Promise.allSettled([mapPromise,reload()]);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
