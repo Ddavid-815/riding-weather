@@ -1,0 +1,56 @@
+
+/* Nationwide 14-day weather panel (separate from the current weather hero) */
+.ko-weather-panel{margin-top:16px}
+.ko-weather-header{display:flex;justify-content:space-between;align-items:start;gap:12px;flex-wrap:wrap}
+.ko-weather-header h2{margin:0 0 4px;font-size:19px}
+.ko-weather-header p{margin:0;font-size:12px;line-height:1.55;color:#63778e}
+.ko-reload{min-height:34px;padding:8px 11px;font-size:12px;background:#eaf3fd;color:#215b97;border:1px solid #cfe1f4}
+.ko-timebar{margin:16px 0 12px;border:1px solid #d6e5f4;border-radius:14px;padding:13px 15px;background:linear-gradient(115deg,#eff7ff,#f9fcff)}
+.ko-timebar-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.ko-day-label{font-size:17px;font-weight:850;color:#174575;letter-spacing:-.3px}
+.ko-day-sub{font-size:11px;color:#63809b}
+.ko-day-slider{display:block;width:100%;height:28px;margin:6px 0 2px;accent-color:#2278c6;cursor:ew-resize;touch-action:pan-x}
+.ko-day-slider:disabled{opacity:.5;cursor:progress}
+.ko-ticks{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:0}
+.ko-ticks span{text-align:center;font-size:10px;color:#7b91a7;white-space:nowrap}
+.ko-ticks span.active{font-weight:900;color:#1d69af}
+.ko-weather-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(225px,.9fr);gap:13px}
+.ko-map-surface{background:linear-gradient(145deg,#e9f5fb,#f4f9fe);border:1px solid #d8e9f3;border-radius:15px;padding:10px 8px 6px;min-width:0}
+.ko-map-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 8px;color:#50728c;font-size:11px}
+.ko-map-heading strong{color:#275377;font-size:12px}
+.ko-map-svg{width:100%;height:auto;max-height:520px;display:block;aspect-ratio:520 / 580;overflow:visible}
+.ko-province{fill:#dfe7ee;stroke:white;stroke-width:1.25;stroke-linejoin:round;fill-rule:evenodd;vector-effect:non-scaling-stroke;cursor:pointer;transition:fill .14s ease,stroke-width .14s ease}
+.ko-province[data-level="none"]{fill:#cce9d7}
+.ko-province[data-level="light"]{fill:#a3d8ea}
+.ko-province[data-level="medium"]{fill:#6db6e3}
+.ko-province[data-level="heavy"]{fill:#2876b3}
+.ko-province[data-level="unknown"]{fill:#dfe7ee}
+.ko-province:hover,.ko-province:focus-visible,.ko-province.is-picked{stroke:#17558c;stroke-width:3;outline:none}
+.ko-map-label{font-size:11px;text-anchor:middle;font-weight:800;fill:#164c72;paint-order:stroke;stroke:#f4faff;stroke-width:3px;stroke-linejoin:round;pointer-events:none}
+.ko-side{border:1px solid #dce8f4;border-radius:15px;padding:12px;background:#fbfdff;min-width:0}
+.ko-side-title{font-size:13px;font-weight:800;color:#23517d;margin:0 0 5px}
+.ko-summary{font-size:12px;line-height:1.6;color:#5f7890;padding:0 0 10px;margin:0 0 9px;border-bottom:1px solid #e4edf4}
+.ko-region-list{display:grid;gap:3px;max-height:365px;overflow:auto;overscroll-behavior:contain}
+.ko-region{display:flex;align-items:center;justify-content:space-between;gap:5px;width:100%;min-height:35px;border:0;border-radius:8px;padding:7px 9px;background:transparent;color:#304f6e;font-size:12px;text-align:left;cursor:pointer}
+.ko-region:hover,.ko-region.active{background:#eaf3fc}
+.ko-region-name{font-weight:800;white-space:nowrap}
+.ko-region-rain{font-size:11px;white-space:nowrap;color:#2b638c}
+.ko-region[data-level="none"] .ko-region-rain{color:#2e795b}
+.ko-picked{background:#edf5fc;border-radius:10px;padding:10px;margin-top:10px;color:#285276;font-size:12px;line-height:1.55;min-height:48px}
+.ko-legend{display:flex;flex-wrap:wrap;gap:8px 12px;margin:11px 0 6px;font-size:11px;color:#61788f}
+.ko-legend span{display:inline-flex;align-items:center;gap:4px}
+.ko-legend i{height:10px;width:10px;border-radius:3px;display:inline-block}
+.ko-loading{font-size:12px;color:#386187;min-height:17px;line-height:1.5;margin:10px 0 4px}
+.ko-source-note{font-size:11px;line-height:1.6;color:#6a7e93;margin:8px 0 0}
+@media(max-width:650px){
+ .ko-weather-panel{padding:14px}
+ .ko-weather-layout{grid-template-columns:minmax(0,1fr)}
+ .ko-map-svg{max-height:440px}
+ .ko-side{padding:11px}
+ .ko-region-list{grid-template-columns:repeat(2,minmax(0,1fr));max-height:none}
+ .ko-region{font-size:11px;padding:7px 5px}
+ .ko-region-rain{font-size:10px}
+ .ko-timebar{padding:11px 10px}
+ .ko-ticks span{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){.ko-province{transition:none}}
