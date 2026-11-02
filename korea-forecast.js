@@ -28,7 +28,19 @@ const MAP_LABELS=[
  ['전남',126.94,34.96],['경남',128.22,35.30],['부산',129.21,35.13],['제주',126.61,33.47]
 ];
 const REGIONS=new Map(REGION_DATA.map(r=>[r.code,r]));
-let dates=[],forecasts=new Map(),picked='11',running=false,requestId=0;
+const LABEL_CODE={서울:'11',강원:'32',충남:'34',충북:'33',경북:'37',전북:'35',전남:'36',경남:'38',부산:'21',제주:'39'};
+function weatherIcon(code){
+ if(!Number.isFinite(code))return '❔';
+ if(code===0)return '☀️';
+ if(code===1||code===2)return '🌤️';
+ if(code===3)return '☁️';
+ if(code===45||code===48)return '🌫️';
+ if(code>=95)return '⛈️';
+ if((code>=71&&code<=77)||(code>=85&&code<=86))return '🌨️';
+ if((code>=51&&code<=67)||(code>=80&&code<=82))return '🌧️';
+ return '🌥️';
+}
+let dates=[],forecasts=new Map(),running=false,requestId=0;
 const makeSvg=(tag,attrs={})=>{
  const node=document.createElementNS(SVG,tag);
  for(const [key,val] of Object.entries(attrs))node.setAttribute(key,String(val));
@@ -81,8 +93,8 @@ function dateText(str){
 function currentDate(){return dates[Number($('koDaySlider').value)]||null;}
 function update(){
  const date=currentDate(),idx=Number($('koDaySlider').value);
- $('koDate').textContent=date?dateText(date)+(idx===0?' · 오늘':' · D+'+idx):'예보 날짜를 확인 중입니다';
- $('koDaySlider').setAttribute('aria-valuetext',date?dateText(date):'예보 날짜 없음');
+ $('koDate').textContent=date?dateText(date)+(idx===0?' · 오늘':' · D+'+idx):'전국 예보 날짜 확인 중';
+ $('koDaySlider').setAttribute('aria-valuetext',date?dateText(date):'조회 중');
  const ticks=$('koTicks');ticks.replaceChildren();
  for(let i=0;i<14;i++){
   const t=document.createElement('span');
@@ -90,57 +102,27 @@ function update(){
   if(i===idx)t.className='active';
   ticks.append(t);
  }
- const list=$('koRegionList');list.replaceChildren();
- let rainCount=0,loadedCount=0;
- for(const r of REGION_DATA){
-  const d=dataFor(r.code,date),rain=d?.rain??null,wet=level(rain);
-  if(valid(rain)){loadedCount++;if(rain>0)rainCount++;}
-  const path=$('koProvince-'+r.code);
+ let rainCount=0,clearCount=0,missing=0;
+ for(const region of REGION_DATA){
+  const item=dataFor(region.code,date),rain=item?.rain??null;
+  const path=$('koProvince-'+region.code);
   if(path){
-   path.dataset.level=wet;
-   const selected=r.code===picked;
-   path.classList.toggle('is-picked',selected);
-   path.setAttribute('aria-pressed',String(selected));
+   path.dataset.level=level(rain);
    const title=path.querySelector('title');
-   if(title)title.textContent=r.name+' · '+statusText(rain,d?.code)+' · '+(valid(rain)?rain.toFixed(1)+'mm':'자료 없음');
+   if(title)title.textContent=region.name+' · '+statusText(rain,item?.code)+' · '+(valid(rain)?rain.toFixed(1)+' mm':'자료 없음');
   }
-  const btn=document.createElement('button');
-  btn.type='button';
-  btn.className='ko-region'+(r.code===picked?' active':'');
-  btn.dataset.level=wet;
-  btn.setAttribute('aria-pressed',String(r.code===picked));
-  const name=document.createElement('span');name.className='ko-region-name';name.textContent=r.name;
-  const state=document.createElement('span');state.className='ko-region-rain';
-  state.textContent=icon(rain,d?.code)+' '+(valid(rain)?rain.toFixed(1)+'mm':'—');
-  btn.append(name,state);
-  btn.title=r.name+' · '+statusText(rain,d?.code);
-  btn.addEventListener('click',()=>{picked=r.code;update();});
-  list.append(btn);
+  if(!valid(rain))missing++;
+  else if(rain>0)rainCount++;
+  else clearCount++;
  }
  $('koSummary').textContent=date?
-  '강수 예상 '+rainCount+'개 시도 · '+loadedCount+'/17개 지점 확인':
-  '전국 17개 시도 예보를 확인 중입니다.';
- $('koRegionSelect').value=picked;
- const r=REGIONS.get(picked),f=r?dataFor(r.code,date):null,rain=f?.rain??null;
- const detail=$('koPicked');
- detail.replaceChildren();
- if(!r){detail.textContent='지도에서 지역을 선택하세요.';return;}
- const head=document.createElement('div');head.className='ko-picked-head';
- const emoji=document.createElement('span');emoji.className='ko-picked-icon';emoji.textContent=icon(rain,f?.code);
- const heading=document.createElement('div');
- const name=document.createElement('div');name.className='ko-picked-name';name.textContent=r.name;
- const condition=document.createElement('div');condition.className='ko-picked-condition';
- condition.textContent=f?wxText(f.code)+' · '+statusText(rain,f.code):'지역별 예보 확인 중';
- heading.append(name,condition);head.append(emoji,heading);
- const total=document.createElement('div');total.className='ko-picked-rain';
- total.textContent=valid(rain)?'일강수량 '+rain.toFixed(1)+' mm':'일강수량 —';
- const metrics=document.createElement('div');metrics.className='ko-picked-metrics';
- const low=document.createElement('span');
- low.textContent='최저 '+(Number.isFinite(f?.lo)?f.lo.toFixed(1)+'°C':'—');
- const high=document.createElement('span');
- high.textContent='최고 '+(Number.isFinite(f?.hi)?f.hi.toFixed(1)+'°C':'—');
- metrics.append(low,high);
- detail.append(head,total,metrics);
+  '강수 '+rainCount+'곳 · 강수 없음 '+clearCount+'곳'+(missing?' · 미확인 '+missing+'곳':''):
+  '전국 17개 시도 자료 확인 중';
+ $('koLabelLayer').querySelectorAll('.ko-weather-pin').forEach(pin=>{
+  const item=dataFor(pin.dataset.code,date),rain=item?.rain??null;
+  pin.querySelector('.ko-map-symbol').textContent=item?weatherIcon(item.code):'';
+  pin.querySelector('.ko-map-mm').textContent=valid(rain)&&rain>0?rain.toFixed(1)+'mm':'';
+ });
 }
 function decodeGeo(topo){
  if(topo?.type!=='Topology'||!Array.isArray(topo.arcs)||!topo.transform)throw Error('지도 경계 형식 오류');
@@ -176,20 +158,21 @@ function decodeGeo(topo){
  const layer=$('koProvinceLayer');layer.replaceChildren();
  geoms.forEach(g=>{
   const code=g.properties?.code;if(!REGIONS.has(code))return;
-  const path=makeSvg('path',{id:'koProvince-'+code,d:shape(g),class:'ko-province',tabindex:'0',role:'button','aria-label':g.properties.name+' 예보 보기'});
+  const path=makeSvg('path',{id:'koProvince-'+code,d:shape(g),class:'ko-province'});
   path.dataset.level='unknown';
   path.append(makeSvg('title'));
-  path.addEventListener('click',()=>{picked=code;update();});
-  path.addEventListener('keydown',ev=>{
-   if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();picked=code;update();}
-  });
   layer.append(path);
  });
  const labelLayer=$('koLabelLayer');labelLayer.replaceChildren();
  MAP_LABELS.forEach(([name,lon,lat])=>{
   const [x,y]=project([lon,lat]);
-  const label=makeSvg('text',{x:x.toFixed(1),y:y.toFixed(1),class:'ko-map-label'});
-  label.textContent=name;labelLayer.append(label);
+  const pin=makeSvg('g',{class:'ko-weather-pin'});
+  pin.dataset.code=LABEL_CODE[name];
+  const icon=makeSvg('text',{x:x.toFixed(1),y:(y-13).toFixed(1),class:'ko-map-symbol','aria-hidden':'true'});
+  const label=makeSvg('text',{x:x.toFixed(1),y:(y+8).toFixed(1),class:'ko-map-label'});
+  label.textContent=name;
+  const mm=makeSvg('text',{x:x.toFixed(1),y:(y+24).toFixed(1),class:'ko-map-mm'});
+  pin.append(icon,label,mm);labelLayer.append(pin);
  });
 }
 async function loadJSON(url,timeout=15000){
@@ -254,21 +237,12 @@ async function reload(){
 }
 async function init(){
  const slider=$('koDaySlider');if(!slider)return;
- const select=$('koRegionSelect');
- REGION_DATA.forEach(r=>{
-  const option=document.createElement('option');
-  option.value=r.code;option.textContent=r.name;
-  select.append(option);
- });
- select.value=picked;
- select.addEventListener('change',ev=>{if(REGIONS.has(ev.target.value)){picked=ev.target.value;update();}});
  slider.addEventListener('input',update);
  $('koReload').addEventListener('click',reload);
  update();
- // Show full list and selector as fallbacks if geographic boundary data is unavailable.
  const mapPromise=loadJSON('./korea-provinces-2018.topo.json',12000)
   .then(t=>{decodeGeo(t);update();})
-  .catch(()=>{$('koMapMessage').textContent='지도 표시 오류 · 오른쪽 지역 선택 메뉴를 이용해 주세요.';});
+  .catch(()=>{$('koMapMessage').textContent='지도 경계를 불러오지 못했습니다. 다시 새로고침해 주세요.';});
  await Promise.allSettled([mapPromise,reload()]);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
