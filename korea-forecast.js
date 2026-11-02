@@ -98,13 +98,17 @@ function update(){
   const path=$('koProvince-'+r.code);
   if(path){
    path.dataset.level=wet;
-   path.classList.toggle('is-picked',r.code===picked);
+   const selected=r.code===picked;
+   path.classList.toggle('is-picked',selected);
+   path.setAttribute('aria-pressed',String(selected));
    const title=path.querySelector('title');
    if(title)title.textContent=r.name+' · '+statusText(rain,d?.code)+' · '+(valid(rain)?rain.toFixed(1)+'mm':'자료 없음');
   }
   const btn=document.createElement('button');
-  btn.type='button';btn.className='ko-region'+(r.code===picked?' active':'');
-  btn.dataset.level=wet;btn.setAttribute('aria-pressed',String(r.code===picked));
+  btn.type='button';
+  btn.className='ko-region'+(r.code===picked?' active':'');
+  btn.dataset.level=wet;
+  btn.setAttribute('aria-pressed',String(r.code===picked));
   const name=document.createElement('span');name.className='ko-region-name';name.textContent=r.name;
   const state=document.createElement('span');state.className='ko-region-rain';
   state.textContent=icon(rain,d?.code)+' '+(valid(rain)?rain.toFixed(1)+'mm':'—');
@@ -114,15 +118,29 @@ function update(){
   list.append(btn);
  }
  $('koSummary').textContent=date?
-  '강수 예보 '+rainCount+'개 시도 · 확인 '+loadedCount+'/17곳 (대표 지점 기준)':
-  '전국 17개 시도 예보를 확인하는 중입니다.';
- const r=REGIONS.get(picked),f=r?dataFor(r.code,date):null;
- const value=f?.rain;
- $('koPicked').textContent=r?
-  r.name+' · '+statusText(value,f?.code)+
-  (valid(value)?' '+value.toFixed(1)+'mm':'')+
-  (f&&Number.isFinite(f.hi)&&Number.isFinite(f.lo)?' · '+wxText(f.code)+' · '+f.lo.toFixed(0)+'~'+f.hi.toFixed(0)+'°C':''):
-  '지역을 선택하세요.';
+  '강수 예상 '+rainCount+'개 시도 · '+loadedCount+'/17개 지점 확인':
+  '전국 17개 시도 예보를 확인 중입니다.';
+ $('koRegionSelect').value=picked;
+ const r=REGIONS.get(picked),f=r?dataFor(r.code,date):null,rain=f?.rain??null;
+ const detail=$('koPicked');
+ detail.replaceChildren();
+ if(!r){detail.textContent='지도에서 지역을 선택하세요.';return;}
+ const head=document.createElement('div');head.className='ko-picked-head';
+ const emoji=document.createElement('span');emoji.className='ko-picked-icon';emoji.textContent=icon(rain,f?.code);
+ const heading=document.createElement('div');
+ const name=document.createElement('div');name.className='ko-picked-name';name.textContent=r.name;
+ const condition=document.createElement('div');condition.className='ko-picked-condition';
+ condition.textContent=f?wxText(f.code)+' · '+statusText(rain,f.code):'지역별 예보 확인 중';
+ heading.append(name,condition);head.append(emoji,heading);
+ const total=document.createElement('div');total.className='ko-picked-rain';
+ total.textContent=valid(rain)?'일강수량 '+rain.toFixed(1)+' mm':'일강수량 —';
+ const metrics=document.createElement('div');metrics.className='ko-picked-metrics';
+ const low=document.createElement('span');
+ low.textContent='최저 '+(Number.isFinite(f?.lo)?f.lo.toFixed(1)+'°C':'—');
+ const high=document.createElement('span');
+ high.textContent='최고 '+(Number.isFinite(f?.hi)?f.hi.toFixed(1)+'°C':'—');
+ metrics.append(low,high);
+ detail.append(head,total,metrics);
 }
 function decodeGeo(topo){
  if(topo?.type!=='Topology'||!Array.isArray(topo.arcs)||!topo.transform)throw Error('지도 경계 형식 오류');
@@ -236,13 +254,21 @@ async function reload(){
 }
 async function init(){
  const slider=$('koDaySlider');if(!slider)return;
+ const select=$('koRegionSelect');
+ REGION_DATA.forEach(r=>{
+  const option=document.createElement('option');
+  option.value=r.code;option.textContent=r.name;
+  select.append(option);
+ });
+ select.value=picked;
+ select.addEventListener('change',ev=>{if(REGIONS.has(ev.target.value)){picked=ev.target.value;update();}});
  slider.addEventListener('input',update);
  $('koReload').addEventListener('click',reload);
  update();
- // Static administrative boundaries are optional; forecast list remains usable if map fails.
+ // Show full list and selector as fallbacks if geographic boundary data is unavailable.
  const mapPromise=loadJSON('./korea-provinces-2018.topo.json',12000)
   .then(t=>{decodeGeo(t);update();})
-  .catch(()=>{$('koMapMessage').textContent='지도 경계를 불러오지 못했습니다. 지역별 목록을 이용해 주세요.';});
+  .catch(()=>{$('koMapMessage').textContent='지도 표시 오류 · 오른쪽 지역 선택 메뉴를 이용해 주세요.';});
  await Promise.allSettled([mapPromise,reload()]);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
