@@ -421,7 +421,7 @@ main{max-width:800px}
   }
 }
 </style>
-  <link rel="stylesheet" href="./korea-forecast.css?v=20261102b">
+  <link rel="stylesheet" href="./korea-forecast.css?v=20261102c">
 </head>
 <body>
 <main>
@@ -504,8 +504,8 @@ main{max-width:800px}
   <section class="panel ko-weather-panel" id="koWeatherPanel" aria-labelledby="koWeatherTitle">
     <div class="ko-weather-header">
       <div>
-        <h2 id="koWeatherTitle">🗺️ 전국 강수 지도 · 14일</h2>
-        <p>날짜를 드래그하고 지도를 누르면 지역별 상세 예보가 표시됩니다.</p>
+        <h2 id="koWeatherTitle">🗺️ 전국 날씨 지도 · 14일</h2>
+        <p>날짜별 전국 날씨 분포 확인 · 상세 예보는 상단 ‘지역 변경’에서 확인</p>
       </div>
       <button id="koReload" class="ko-reload" type="button">↻ 전국 새로고침</button>
     </div>
@@ -520,28 +520,15 @@ main{max-width:800px}
       <div id="koTicks" class="ko-ticks" aria-hidden="true"></div>
     </div>
 
-    <div class="ko-weather-layout">
-      <div class="ko-map-surface">
-        <div class="ko-map-heading"><strong>대한민국 · 시도별 일강수량</strong><span>지도에서 지역 선택</span></div>
-        <svg id="koMap" class="ko-map-svg" viewBox="0 0 520 580" role="img" aria-label="날짜별 전국 17개 시도 강수 예보">
-          <g id="koProvinceLayer"></g>
-          <g id="koLabelLayer"></g>
-        </svg>
-        <p id="koMapMessage" class="ko-source-note" role="status"></p>
+    <div class="ko-map-surface">
+      <div class="ko-map-heading">
+        <strong>대한민국 · 17개 시도별 강수량</strong>
+        <span id="koSummary" aria-live="polite">전국 날씨 조회 중…</span>
       </div>
-      <aside class="ko-side" aria-label="선택한 지역의 상세 날씨">
-        <h3 class="ko-side-title">🌦️ 선택 지역 상세 날씨</h3>
-        <p id="koSummary" class="ko-summary">전국 예보를 불러오는 중입니다.</p>
-        <div class="ko-selected-top">
-          <label for="koRegionSelect">지역 선택</label>
-          <select id="koRegionSelect" class="ko-region-select" aria-label="자세히 볼 시도 선택"></select>
-        </div>
-        <div id="koPicked" class="ko-picked" aria-live="polite">지도에서 지역을 선택하면 상세 예보를 표시합니다.</div>
-        <details class="ko-region-details">
-          <summary>전체 17개 시도 간단 목록</summary>
-          <div id="koRegionList" class="ko-region-list" aria-label="17개 시도 강수량 목록"></div>
-        </details>
-      </aside>
+      <svg id="koMap" class="ko-map-svg" viewBox="0 0 520 580" role="img" aria-label="선택 날짜의 전국 17개 시도 강수 분포와 주요 지역 날씨 아이콘">
+        <g id="koProvinceLayer"></g><g id="koLabelLayer"></g>
+      </svg>
+      <p id="koMapMessage" class="ko-source-note" role="status"></p>
     </div>
 
     <div class="ko-legend" aria-label="강수량 색상 구분">
@@ -1645,6 +1632,6 @@ document.getElementById('uciArchiveToggle').addEventListener('click',()=>{
 });
 uciRender();
 </script>
-<script src="./korea-forecast.js?v=20261102b"></script>
+<script src="./korea-forecast.js?v=20261102c"></script>
 </body>
 </html>
