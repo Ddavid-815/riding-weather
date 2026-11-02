@@ -421,7 +421,7 @@ main{max-width:800px}
   }
 }
 </style>
-  <link rel="stylesheet" href="./korea-forecast.css?v=20261102e">
+  <link rel="stylesheet" href="./korea-forecast.css?v=20261102f">
 </head>
 <body>
 <main>
@@ -517,7 +517,7 @@ main{max-width:800px}
   <button class="avatar-turn" type="button" id="avatarTurn" aria-label="캐릭터 뒷모습 보기" aria-pressed="false">↻</button>
 </div></div>
     <div class="now-stats"><div><span>🌧️ 시간 강수량</span><strong id="nowRain">-- mm</strong></div><div><span>💧 습도</span><strong id="nowHumidity">--%</strong></div><div><span>💨 풍속</span><strong id="nowWind">-- m/s</strong></div></div>
-    <div id="nowDisclaimer" class="now-caption">실시간 관측값이 아닌 ECMWF IFS 현재 시간대 예보입니다.</div>
+    <div id="nowDisclaimer" class="now-caption">※ ECMWF IFS 예보(관측값 아님) · 강수량은 해당 시간 기준</div>
   </section>
 
   <section id="searchPanel" class="panel compact-search-panel search-collapsed" aria-labelledby="searchTitle">
@@ -1608,6 +1608,6 @@ document.getElementById('uciArchiveToggle').addEventListener('click',()=>{
 });
 uciRender();
 </script>
-<script src="./korea-forecast.js?v=20261102e"></script>
+<script src="./korea-forecast.js?v=20261102f"></script>
 </body>
 </html>
