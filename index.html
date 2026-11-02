@@ -421,6 +421,7 @@ main{max-width:800px}
   }
 }
 </style>
+  <link rel="stylesheet" href="./korea-forecast.css?v=20261102a">
 </head>
 <body>
 <main>
@@ -497,6 +498,54 @@ main{max-width:800px}
 </div></div>
     <div class="now-stats"><div><span>🌧️ 시간 강수량</span><strong id="nowRain">-- mm</strong></div><div><span>💧 습도</span><strong id="nowHumidity">--%</strong></div><div><span>💨 풍속</span><strong id="nowWind">-- m/s</strong></div></div>
     <div id="nowDisclaimer" class="now-caption">실시간 관측값이 아닌 ECMWF IFS 현재 시간대 예보입니다.</div>
+  </section>
+
+  <!-- 날짜 슬라이더로 전국 17개 시도의 ECMWF IFS 강수 예보 보기 -->
+  <section class="panel ko-weather-panel" id="koWeatherPanel" aria-labelledby="koWeatherTitle">
+    <div class="ko-weather-header">
+      <div>
+        <h2 id="koWeatherTitle">🗺️ 전국 날씨 지도 · 14일</h2>
+        <p>날짜 바를 드래그하면 선택한 날짜의 전국 날씨와 비 예보가 바뀝니다.</p>
+      </div>
+      <button id="koReload" class="ko-reload" type="button">↻ 전국 새로고침</button>
+    </div>
+
+    <div class="ko-timebar">
+      <div class="ko-timebar-head">
+        <strong id="koDate" class="ko-day-label">예보 날짜 확인 중</strong>
+        <span class="ko-day-sub">ECMWF IFS · 한국시간 · D+0~D+13</span>
+      </div>
+      <input id="koDaySlider" class="ko-day-slider" type="range" min="0" max="13" step="1" value="0"
+        aria-label="전국 일별 예보 날짜 변경" aria-valuetext="오늘" disabled>
+      <div id="koTicks" class="ko-ticks" aria-hidden="true"></div>
+    </div>
+
+    <div class="ko-weather-layout">
+      <div class="ko-map-surface">
+        <div class="ko-map-heading"><strong>대한민국 · 시도별 일강수량</strong><span>지도에서 지역 선택</span></div>
+        <svg id="koMap" class="ko-map-svg" viewBox="0 0 520 580" role="img" aria-label="날짜별 전국 17개 시도 강수 예보">
+          <g id="koProvinceLayer"></g>
+          <g id="koLabelLayer"></g>
+        </svg>
+        <p id="koMapMessage" class="ko-source-note" role="status"></p>
+      </div>
+      <aside class="ko-side" aria-label="전국 시도별 강수 상태">
+        <h3 class="ko-side-title">🌧️ 지역별 강수 한눈에 보기</h3>
+        <p id="koSummary" class="ko-summary">전국 예보를 불러오는 중입니다.</p>
+        <div id="koRegionList" class="ko-region-list" aria-label="17개 시도 강수량 목록"></div>
+        <div id="koPicked" class="ko-picked" aria-live="polite">지역을 선택하면 날씨와 강수량을 표시합니다.</div>
+      </aside>
+    </div>
+
+    <div class="ko-legend" aria-label="강수량 색상 구분">
+      <span><i style="background:#cce9d7"></i>0mm · 강수 없음</span>
+      <span><i style="background:#a3d8ea"></i>0초과~1mm 미만</span>
+      <span><i style="background:#6db6e3"></i>1~5mm 미만</span>
+      <span><i style="background:#2876b3"></i>5mm 이상</span>
+      <span><i style="background:#dfe7ee"></i>자료 없음</span>
+    </div>
+    <p id="koLoading" class="ko-loading" role="status" aria-live="polite">전국 예보 조회 중…</p>
+    <p class="ko-source-note">기준: <a href="https://open-meteo.com/en/docs/ecmwf-api" target="_blank" rel="noopener noreferrer">Open-Meteo ECMWF IFS</a> 예보 · 시도별 대표 좌표 한 지점의 예상 일강수량(비·눈 포함). 현재 실황이나 시도 전체 강수 분포가 아니며, 날짜별 하루 합계입니다. 지도 경계는 2018년 행정구역 기준입니다.</p>
   </section>
 
   <section id="searchPanel" class="panel compact-search-panel search-collapsed" aria-labelledby="searchTitle">
@@ -1587,5 +1636,6 @@ document.getElementById('uciArchiveToggle').addEventListener('click',()=>{
 });
 uciRender();
 </script>
+<script src="./korea-forecast.js?v=20261102a"></script>
 </body>
 </html>
