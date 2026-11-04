@@ -155,25 +155,38 @@ main{max-width:800px}
 .hero .location,.hero small{display:none}
 .now-panel{margin:3px 0 10px;border-radius:25px;padding:22px 21px 17px;color:#fff;background:radial-gradient(circle at 91% 9%,rgba(173,216,255,.32),transparent 36%),linear-gradient(145deg,#12366d 1%,#2865b8 58%,#5999de 100%);box-shadow:0 14px 30px #23518d32;overflow:hidden}
 .now-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.now-kicker{font-size:10px;font-weight:800;letter-spacing:.09em;color:#d6e8ff}
+.now-kicker{min-width:0;font-size:10px;font-weight:800;line-height:1.45;letter-spacing:.055em;color:#d6e8ff}
 .now-kicker:first-letter{color:#9df6d3}
-.now-location-btn{min-height:32px;padding:5px 10px;background:#ffffff2a;border:1px solid #ffffff55;color:white;border-radius:999px;font-size:12px;white-space:nowrap}
-.now-place{font-size:16px;font-weight:750;line-height:1.35;margin-top:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.now-location-btn{min-height:40px;padding:8px 12px;background:#ffffff2a;border:1px solid #ffffff55;color:white;border-radius:999px;font-size:12px;white-space:nowrap;flex-shrink:0}
+.now-location-btn:focus-visible,.avatar-turn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.now-place{font-size:16px;font-weight:750;line-height:1.35;margin-top:12px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
 .now-main{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:4px 0 13px}
 .now-temp{font-size:clamp(73px,21vw,108px);font-weight:350;letter-spacing:-.085em;line-height:1.04;font-variant-numeric:tabular-nums}
 .now-temp span{font-size:.64em;vertical-align:top;letter-spacing:-.08em}
 .now-desc{font-size:19px;font-weight:760}
 .now-feels{font-size:13px;color:#d7eaff;margin-top:6px}
 .now-icon{font-size:clamp(65px,18vw,100px);filter:drop-shadow(0 10px 12px #142e5c45);line-height:1}
-.now-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:#ffffff20;border:1px solid #ffffff29;border-radius:16px;padding:12px 7px}
-.now-stats div{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}
-.now-stats span{font-size:11px;color:#e2edfc;white-space:nowrap}
-.now-stats strong{font-size:15px;color:white;font-variant-numeric:tabular-nums;white-space:nowrap}
-.now-stats .now-wind-stat{gap:4px}
-.now-stats .now-wind-direction{display:inline-flex;justify-content:center;align-items:center;gap:2px;font-size:11px;line-height:1.3;font-weight:750;color:#fff;white-space:nowrap}
-.now-stats .now-wind-direction .wind-arrow{color:#fff;width:15px;font-size:15px;flex:none}
-.now-stats .now-wind-stat strong{font-size:14px}
-.now-caption{font-size:10px;line-height:1.45;color:#d2e5fc;margin-top:12px}
+/* Every metric uses the same two baseline rows; wind direction and speed stay inline. */
+.now-stats{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.88fr) minmax(0,1.43fr);gap:0;align-items:stretch;background:#ffffff20;border:1px solid #ffffff29;border-radius:16px;padding:11px 8px}
+.now-stats>.now-stat{display:grid;grid-template-rows:18px 24px;align-content:center;justify-items:center;row-gap:5px;min-width:0;padding:0 4px}
+.now-stats>.now-stat+.now-stat{border-left:1px solid #ffffff30}
+.now-stats .now-stat-label{display:block;color:#e2edfc;font-size:11px;font-weight:650;line-height:18px;white-space:nowrap;text-align:center}
+.now-stats .now-stat-value{display:inline-flex;align-items:center;justify-content:center;min-height:24px;line-height:24px;font-size:15px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap}
+.now-stats .now-wind-value{gap:4px;min-width:0}
+.now-stats .now-wind-direction{display:inline-flex;align-items:center;justify-content:center;gap:1px;line-height:24px;font-size:11px;font-weight:750;color:#fff;white-space:nowrap}
+.now-stats .now-wind-direction .wind-arrow{color:#fff;width:13px;line-height:1;font-size:13px;flex:none}
+.now-stats .now-wind-value strong{font-size:14px;font-weight:800;line-height:24px;color:#fff;white-space:nowrap;font-variant-numeric:tabular-nums}
+@media(max-width:390px){
+ .now-stats{grid-template-columns:minmax(0,.96fr) minmax(0,.77fr) minmax(0,1.48fr);padding:10px 5px}
+ .now-stats>.now-stat{padding:0 2px}
+ .now-stats .now-stat-label{font-size:10px}
+ .now-stats .now-stat-value{font-size:14px}
+ .now-stats .now-wind-value{gap:2px}
+ .now-stats .now-wind-value strong{font-size:12px}
+ .now-stats .now-wind-direction{font-size:10px}
+ .now-stats .now-wind-direction .wind-arrow{width:11px;font-size:12px}
+}
+.now-caption{font-size:10px;line-height:1.55;color:#e3eeff;margin-top:10px;overflow-wrap:break-word}
 .now-outfit-plan{padding:9px 11px;margin:-4px 0 11px;border-radius:12px;background:#ffffff19;border:1px solid #ffffff30;color:#eef6ff;font-size:12px;line-height:1.5}
 .now-outfit-plan strong,.now-outfit-plan span{display:block}
 .now-outfit-plan strong{font-size:12px;font-weight:800}
@@ -191,7 +204,7 @@ main{max-width:800px}
 .windy-link-row{flex-wrap:nowrap;gap:8px}
 .windy-link-row h2{font-size:14px;margin:0}
 .windy-launch{width:auto!important;min-height:34px;padding:7px 11px;white-space:nowrap;font-size:12px}
-@media(max-width:460px){main{padding:9px 12px 28px}.hero{padding:10px 6px}.now-panel{padding:19px 17px 15px}.now-stats span{font-size:10px}.now-stats strong{font-size:13px}.windy-link-panel{padding:11px 13px}}
+@media(max-width:460px){main{padding:9px 12px 28px}.hero{padding:10px 6px}.now-panel{padding:19px 17px 15px}.windy-link-panel{padding:11px 13px}}
 
 
 /* Animated game character selection avatar, CSS/SVG only */
@@ -282,6 +295,8 @@ main{max-width:800px}
 
 /* UCI 월드투어 캘린더: 상단의 작은 정보 스트립 */
 .uci-strip{margin:0 0 12px;background:#fff;border-radius:16px;padding:13px 15px;box-shadow:0 2px 12px #18365b0a}
+.uci-strip.uci-no-events{padding:10px 13px}
+.uci-strip.uci-no-events .uci-schedule{display:none}
 .uci-strip-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .uci-strip-title{font-size:14px;font-weight:850;color:#193b68}
 .uci-strip-sub{font-size:12px;color:#657990}
@@ -407,7 +422,7 @@ main{max-width:800px}
   <div id="uciSchedule" class="uci-schedule"></div>
   <div id="uciDetail" class="uci-detail" aria-live="polite"></div>
 </section>
-<section class="now-panel" aria-labelledby="nowHeading">
+<section class="now-panel" aria-label="현재 시간대 날씨 예보">
     <div class="now-top"><span class="now-kicker">● LIVE FORECAST <span id="nowTime">현지시간 기준</span></span><button type="button" id="toggleSearch" class="now-location-btn" aria-controls="searchPanel" aria-expanded="false">⌕ 지역 변경</button></div>
     <div id="nowPlace" class="now-place">서울 · 날씨 불러오는 중</div>
     <div class="now-main ko-main-layout"><div class="now-current"><div id="nowTemp" class="now-temp">--<span>°</span></div><div id="nowDesc" class="now-desc">현재 시간대 예보 조회 중</div><div id="nowFeels" class="now-feels">체감온도 --°</div></div><div class="avatar-stage" data-outfit="mild" aria-label="기온에 맞춘 움직이는 라이더 아바타">
@@ -464,7 +479,11 @@ main{max-width:800px}
   <button class="avatar-turn" type="button" id="avatarTurn" aria-label="캐릭터 뒷모습 보기" aria-pressed="false">↻</button>
 </div></div>
     <div class="now-outfit-plan" aria-live="polite"><strong id="nowOutfitRange">당일 최저·최고기온 확인 중</strong><span id="nowOutfitTip">기온 변화에 맞는 라이딩 복장을 준비합니다.</span></div>
-    <div class="now-stats"><div><span>🌧️ 시간 강수량</span><strong id="nowRain">-- mm</strong></div><div><span>💧 습도</span><strong id="nowHumidity">--%</strong></div><div class="now-wind-stat"><span>💨 풍향·풍속</span><span id="nowWindDirection" class="now-wind-direction" aria-label="풍향 자료 없음">—</span><strong id="nowWind">-- m/s</strong></div></div>
+    <div class="now-stats" aria-label="현재 시간대 상세 기상 지표">
+      <div class="now-stat"><span class="now-stat-label">🌧️ 시간 강수량</span><strong id="nowRain" class="now-stat-value">-- mm</strong></div>
+      <div class="now-stat"><span class="now-stat-label">💧 습도</span><strong id="nowHumidity" class="now-stat-value">--%</strong></div>
+      <div class="now-stat now-wind-stat"><span class="now-stat-label">💨 풍향·풍속</span><div class="now-stat-value now-wind-value"><span id="nowWindDirection" class="now-wind-direction" aria-label="풍향 자료 없음">—</span><strong id="nowWind">-- m/s</strong></div></div>
+    </div>
     <div id="nowDisclaimer" class="now-caption">※ ECMWF IFS 예보(관측값 아님) · 강수량은 해당 시간 기준</div>
   </section>
 
@@ -1109,7 +1128,7 @@ function renderNowPanel(json){
   windDirectionEl.setAttribute('aria-label',name+' · 바람이 불어오는 방향');
  }
  el('nowWind').textContent=wind===null?'-- m/s':wind.toFixed(1)+' m/s';
- el('nowDisclaimer').textContent=valid?'실시간 관측이 아닌 ECMWF IFS '+time[index].slice(11,16)+' 현지시간 예보 · 강수량은 해당 1시간 기준입니다. 풍향명은 바람이 불어오는 방향, 화살표는 불어가는 방향입니다.':'현재 시간대 ECMWF 예보값을 확인할 수 없습니다. 아래 14일 예보를 참고하세요.';
+ el('nowDisclaimer').textContent=valid?'※ ECMWF IFS '+time[index].slice(11,16)+' 현지시간 예보(관측값 아님) · 강수량은 1시간 기준 · 풍향명은 불어오는 방향, 화살표는 불어가는 방향':'현재 시간대 ECMWF 예보값을 확인할 수 없습니다. 아래 14일 예보를 참고하세요.';
 }
 document.addEventListener('DOMContentLoaded',()=>{
  const btn=document.getElementById('toggleSearch'), panel=document.getElementById('searchPanel');
@@ -1596,10 +1615,11 @@ function uciShort(s){return s.slice(5).replace('-','/');}
 function uciRender(){
  const [a,b]=uciWeekRange(),events=UCI_EVENTS.filter(e=>e.start<=b&&e.end>=a);
  document.getElementById('uciWeek').textContent=uciShort(a)+' ~ '+uciShort(b)+' · 남녀 WorldTour';
- const box=document.getElementById('uciSchedule');
+ const box=document.getElementById('uciSchedule'),empty=events.length===0;
+ document.querySelector('.uci-strip')?.classList.toggle('uci-no-events',empty);
+ if(empty)document.getElementById('uciWeek').textContent='이번 주 예정 경기 없음 · 최근 경기 보기';
  box.replaceChildren();
- if(events.length){events.forEach(e=>box.appendChild(uciRaceButton(e)));}
- else{const p=document.createElement('div');p.className='uci-empty';p.textContent='이번 주 경기 없음 · 2026 로드 월드투어 시즌 종료';box.appendChild(p);}
+ if(!empty)events.forEach(e=>box.appendChild(uciRaceButton(e)));
 }
 function uciRaceButton(e){
  const b=document.createElement('button');b.className='uci-event';b.type='button';
@@ -1649,6 +1669,7 @@ document.getElementById('uciArchiveToggle').addEventListener('click',()=>{
  const box=document.getElementById('uciSchedule'),open=box.dataset.archive==='yes';
  box.dataset.archive=open?'no':'yes';
  document.getElementById('uciArchiveToggle').textContent=open?'최근 경기 ▾':'접기 ▴';
+ document.querySelector('.uci-strip')?.classList.remove('uci-no-events');
  if(open){uciRender();document.getElementById('uciDetail').classList.remove('show');return;}
  box.replaceChildren();
  UCI_EVENTS.slice().reverse().forEach(e=>box.appendChild(uciRaceButton(e)));
