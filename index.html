@@ -169,6 +169,10 @@ main{max-width:800px}
 .now-stats div{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}
 .now-stats span{font-size:11px;color:#e2edfc;white-space:nowrap}
 .now-stats strong{font-size:15px;color:white;font-variant-numeric:tabular-nums;white-space:nowrap}
+.now-stats .now-wind-stat{gap:4px}
+.now-stats .now-wind-direction{display:inline-flex;justify-content:center;align-items:center;gap:2px;font-size:11px;line-height:1.3;font-weight:750;color:#fff;white-space:nowrap}
+.now-stats .now-wind-direction .wind-arrow{color:#fff;width:15px;font-size:15px;flex:none}
+.now-stats .now-wind-stat strong{font-size:14px}
 .now-caption{font-size:10px;line-height:1.45;color:#d2e5fc;margin-top:12px}
 .now-outfit-plan{padding:9px 11px;margin:-4px 0 11px;border-radius:12px;background:#ffffff19;border:1px solid #ffffff30;color:#eef6ff;font-size:12px;line-height:1.5}
 .now-outfit-plan strong,.now-outfit-plan span{display:block}
@@ -460,7 +464,7 @@ main{max-width:800px}
   <button class="avatar-turn" type="button" id="avatarTurn" aria-label="캐릭터 뒷모습 보기" aria-pressed="false">↻</button>
 </div></div>
     <div class="now-outfit-plan" aria-live="polite"><strong id="nowOutfitRange">당일 최저·최고기온 확인 중</strong><span id="nowOutfitTip">기온 변화에 맞는 라이딩 복장을 준비합니다.</span></div>
-    <div class="now-stats"><div><span>🌧️ 시간 강수량</span><strong id="nowRain">-- mm</strong></div><div><span>💧 습도</span><strong id="nowHumidity">--%</strong></div><div><span>💨 풍속</span><strong id="nowWind">-- m/s</strong></div></div>
+    <div class="now-stats"><div><span>🌧️ 시간 강수량</span><strong id="nowRain">-- mm</strong></div><div><span>💧 습도</span><strong id="nowHumidity">--%</strong></div><div class="now-wind-stat"><span>💨 풍향·풍속</span><span id="nowWindDirection" class="now-wind-direction" aria-label="풍향 자료 없음">—</span><strong id="nowWind">-- m/s</strong></div></div>
     <div id="nowDisclaimer" class="now-caption">※ ECMWF IFS 예보(관측값 아님) · 강수량은 해당 시간 기준</div>
   </section>
 
@@ -1079,7 +1083,7 @@ function renderNowPanel(json){
  const valid=index>=0&&time[index]&&time[index].slice(0,10)===clock.date;
  const get=(k)=>valid?hourlyValue(h,k,index):null;
  const temp=get('temperature_2m'), feels=get('apparent_temperature'), rain=get('precipitation');
- const humidity=get('relative_humidity_2m'), wind=get('wind_speed_10m'), code=get('weather_code');
+ const humidity=get('relative_humidity_2m'), wind=get('wind_speed_10m'), direction=get('wind_direction_10m'), code=get('weather_code');
  const weather=code===null?['🌤️','날씨 확인 불가']:wx(code);
  el('nowPlace').textContent=placeLabel(selectedPlace);
  el('nowTime').textContent=clock.date.slice(5).replace('-','/')+' '+clock.hour+':'+(valid?time[index].slice(14,16):'00')+' 현지시간';
@@ -1093,8 +1097,19 @@ function renderNowPanel(json){
  el('nowFeels').textContent='체감온도 '+(feels===null?'--':feels.toFixed(1))+'°';
  el('nowRain').textContent=rain===null?'-- mm':rain.toFixed(1)+' mm';
  el('nowHumidity').textContent=humidity===null?'--%':Math.round(humidity)+'%';
+ const windDirectionEl=el('nowWindDirection');
+ if(direction===null){
+  windDirectionEl.textContent='—';
+  windDirectionEl.setAttribute('aria-label','풍향 자료 없음');
+ }else{
+  const from=((direction%360)+360)%360;
+  const toward=(from+180)%360;
+  const name=windLabel(direction);
+  windDirectionEl.innerHTML='<span class="wind-arrow" aria-hidden="true" style="--wind-deg:'+toward.toFixed(1)+'deg">↑</span>'+name;
+  windDirectionEl.setAttribute('aria-label',name+' · 바람이 불어오는 방향');
+ }
  el('nowWind').textContent=wind===null?'-- m/s':wind.toFixed(1)+' m/s';
- el('nowDisclaimer').textContent=valid?'실시간 관측이 아닌 ECMWF IFS '+time[index].slice(11,16)+' 현지시간 예보 · 강수량은 해당 1시간 기준입니다.':'현재 시간대 ECMWF 예보값을 확인할 수 없습니다. 아래 14일 예보를 참고하세요.';
+ el('nowDisclaimer').textContent=valid?'실시간 관측이 아닌 ECMWF IFS '+time[index].slice(11,16)+' 현지시간 예보 · 강수량은 해당 1시간 기준입니다. 풍향명은 바람이 불어오는 방향, 화살표는 불어가는 방향입니다.':'현재 시간대 ECMWF 예보값을 확인할 수 없습니다. 아래 14일 예보를 참고하세요.';
 }
 document.addEventListener('DOMContentLoaded',()=>{
  const btn=document.getElementById('toggleSearch'), panel=document.getElementById('searchPanel');
