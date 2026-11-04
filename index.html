@@ -170,6 +170,10 @@ main{max-width:800px}
 .now-stats span{font-size:11px;color:#e2edfc;white-space:nowrap}
 .now-stats strong{font-size:15px;color:white;font-variant-numeric:tabular-nums;white-space:nowrap}
 .now-caption{font-size:10px;line-height:1.45;color:#d2e5fc;margin-top:12px}
+.now-outfit-plan{padding:9px 11px;margin:-4px 0 11px;border-radius:12px;background:#ffffff19;border:1px solid #ffffff30;color:#eef6ff;font-size:12px;line-height:1.5}
+.now-outfit-plan strong,.now-outfit-plan span{display:block}
+.now-outfit-plan strong{font-size:12px;font-weight:800}
+.now-outfit-plan span{margin-top:3px;color:#e0edfc;font-size:11px}
 .compact-search-panel{margin-top:9px;padding:13px 15px}
 .compact-search-head{margin-bottom:8px}
 .compact-search-head h2{font-size:14px}
@@ -496,6 +500,7 @@ main{max-width:800px}
   <div class="avatar-outfit" id="avatarOutfit">간절기 라이딩 복장</div>
   <button class="avatar-turn" type="button" id="avatarTurn" aria-label="캐릭터 뒷모습 보기" aria-pressed="false">↻</button>
 </div></div>
+    <div class="now-outfit-plan" aria-live="polite"><strong id="nowOutfitRange">당일 최저·최고기온 확인 중</strong><span id="nowOutfitTip">기온 변화에 맞는 라이딩 복장을 준비합니다.</span></div>
     <div class="now-stats"><div><span>🌧️ 시간 강수량</span><strong id="nowRain">-- mm</strong></div><div><span>💧 습도</span><strong id="nowHumidity">--%</strong></div><div><span>💨 풍속</span><strong id="nowWind">-- m/s</strong></div></div>
     <div id="nowDisclaimer" class="now-caption">※ ECMWF IFS 예보(관측값 아님) · 강수량은 해당 시간 기준</div>
   </section>
@@ -997,21 +1002,68 @@ function renderForecast(json){
 }
 
 
-function updateRiderOutfit(temp){
+// 하루 최저·최고기온을 모두 반영하되, 추운 출발 시간대를 조금 더 보수적으로 반영합니다.
+function riderOutfitTier(temp){
+ if(!Number.isFinite(temp))return 'mild';
+ return temp<5?'winter':temp<13?'cold':temp<19?'cool':temp<27?'mild':'hot';
+}
+function riderOutfitPlan(low,high,currentTemp){
+ const labels={
+  winter:'방한 재킷 · 기모 타이츠 · 방한 장갑',
+  cold:'긴팔 저지 · 방풍 조끼 · 긴 타이츠',
+  cool:'긴팔 저지 · 빕숏',
+  mild:'반팔 저지 · 빕숏',
+  hot:'통풍 저지 · 빕숏'
+ };
+ const hasDaily=Number.isFinite(low)&&Number.isFinite(high)&&low<=high;
+ if(!hasDaily){
+  const tier=riderOutfitTier(currentTemp);
+  return {tier,label:labels[tier],range:'당일 최저·최고기온 자료 없음',
+   tip:Number.isFinite(currentTemp)?'현재 시간대 기온으로 임시 추천합니다.':'기온 자료 확인 후 착장을 추천합니다.'};
+ }
+ const spread=high-low;
+ const planningTemp=low*0.6+high*0.4;
+ let tier=riderOutfitTier(planningTemp);
+ // 영하 시간대 또는 더운 낮이 확실한 경우 필요한 방한·방열 조건을 우선합니다.
+ if(low<=0)tier='winter';
+ else if(high>=30&&low>=18)tier='hot';
+ let tip;
+ if(tier==='winter'){
+  tip=high>=15?'추운 시간대에는 방한 우선 · 낮에 따뜻해지면 재킷을 벗거나 복장을 교체하세요.':
+   '방한 장갑·보온 양말까지 준비하고 노출 부위를 보호하세요.';
+ }else if(tier==='cold'){
+  tip=spread>=10?'아침 방풍 조끼 착용 · 낮에 따뜻해지면 조끼 탈착을 권장합니다.':
+   '긴 타이츠·방풍 조끼로 차가운 공기와 바람에 대비하세요.';
+ }else if(tier==='cool'){
+  tip=low<12?'추운 시간대에는 방풍 조끼·탈착식 레그워머 추가, 낮에는 벗으세요.':
+   high>=25?'낮 기온이 높아지면 얇은 저지로 변경하거나 레이어를 줄이세요.':
+   '긴팔 저지와 빕숏을 기본으로 바람에 대비하세요.';
+ }else if(tier==='mild'){
+  tip=low<17?'쌀쌀한 아침에는 암워머·방풍 조끼를 더하고, 기온이 오르면 탈착하세요.':
+   high>=29?'낮에는 통기성 좋은 얇은 저지와 충분한 수분 보충을 권장합니다.':
+   '반팔 저지·빕숏을 기본으로 준비하세요.';
+ }else{
+  tip=low<20?'이른 시간에는 얇은 방풍 레이어를 추가하고, 더울 때는 벗으세요.':
+   '통풍 저지·빕숏 착용 및 수분·전해질 보충을 권장합니다.';
+ }
+ return {
+  tier,label:labels[tier],
+  range:'오늘 최저 '+low.toFixed(1)+'° · 최고 '+high.toFixed(1)+'°'+(spread>=10?' · 일교차 '+spread.toFixed(1)+'°':''),
+  tip
+ };
+}
+function updateRiderOutfit(low,high,currentTemp){
  const avatar=document.getElementById('riderAvatar');
  const label=document.getElementById('avatarOutfit');
  const stage=avatar?.closest('.avatar-stage');
  if(!avatar||!label||!stage)return;
- const tier=temp===null?'mild':temp<5?'winter':temp<13?'cold':temp<19?'cool':temp<27?'mild':'hot';
- stage.dataset.outfit=tier;
- const map={
- winter:'방한 재킷 · 기모 타이츠 · 방한 장갑',
- cold:'긴팔 저지 · 방풍 조끼 · 긴 타이츠',
- cool:'긴팔 저지 · 빕숏',
- mild:'반팔 저지 · 빕숏',
- hot:'통풍 저지 · 빕숏'
- };
- label.textContent=map[tier];
+ const plan=riderOutfitPlan(low,high,currentTemp);
+ stage.dataset.outfit=plan.tier;
+ label.textContent=plan.label;
+ const range=document.getElementById('nowOutfitRange');
+ const tip=document.getElementById('nowOutfitTip');
+ if(range)range.textContent=plan.range;
+ if(tip)tip.textContent=plan.tip;
 }
 let riderStartleTimer;
 function riderTapFeedback(){
@@ -1059,7 +1111,10 @@ function renderNowPanel(json){
  el('nowTemp').innerHTML=(temp===null?'--':Math.round(temp))+'<span>°</span>';
  el('nowDesc').textContent=weather[1];
  el('nowIcon').textContent=weather[0];
- updateRiderOutfit(temp);
+ const todayIndex=Array.isArray(d?.time)?d.time.indexOf(clock.date):-1;
+ const todayLow=todayIndex>=0&&Array.isArray(d?.temperature_2m_min)?d.temperature_2m_min[todayIndex]:null;
+ const todayHigh=todayIndex>=0&&Array.isArray(d?.temperature_2m_max)?d.temperature_2m_max[todayIndex]:null;
+ updateRiderOutfit(todayLow,todayHigh,temp);
  el('nowFeels').textContent='체감온도 '+(feels===null?'--':feels.toFixed(1))+'°';
  el('nowRain').textContent=rain===null?'-- mm':rain.toFixed(1)+' mm';
  el('nowHumidity').textContent=humidity===null?'--%':Math.round(humidity)+'%';
