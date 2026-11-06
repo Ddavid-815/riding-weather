@@ -261,36 +261,40 @@ main{max-width:800px}
 .now-panel .avatar-stage .avatar-outfit{position:relative;display:block;flex:none;left:auto;bottom:auto;transform:none;box-sizing:border-box;width:100%;max-width:210px;margin:4px 0 0;padding:7px 8px;white-space:pre-line;overflow-wrap:anywhere;word-break:keep-all;line-height:1.4;text-align:center;z-index:1}
 .now-panel .now-outfit-plan{position:relative;clear:both;margin:0 0 12px}
 @media(max-width:460px){.now-panel .avatar-stage .rider-avatar{width:min(148px,100%)}.now-panel .avatar-stage .avatar-outfit{font-size:10px;padding:7px 5px}}
-/* iOS Safari layout guard: reserve full rider+caption height before the forecast card.
-   Grid min-content sizing prevents a multi-line caption from painting over the next panel. */
+/* Compact responsive rider layout: content determines height, not a fixed spacer.
+   Keep the tap target exactly over the entire SVG, independent of the caption. */
 .now-panel .now-main.ko-main-layout{
  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,47%);
- align-items:center;column-gap:8px;min-height:340px;height:auto;
- margin:4px 0 18px;overflow:visible;
+ align-items:center;column-gap:8px;min-height:0;height:auto;
+ margin:4px 0 12px;overflow:visible;
 }
 .now-panel .now-main.ko-main-layout .now-current{min-width:0;align-self:center}
 .now-panel .now-main.ko-main-layout .avatar-stage{
- box-sizing:border-box;grid-column:2;width:100%;max-width:none;min-width:0;
- min-height:340px;height:auto;align-self:stretch;
+ box-sizing:border-box;position:relative;grid-column:2;width:100%;max-width:none;min-width:0;
+ min-height:0;height:auto;align-self:center;
  display:flex;flex-direction:column;justify-content:flex-start;align-items:center;
- padding:0 0 12px;overflow:visible;
+ padding:0;overflow:visible;
 }
 .now-panel .now-main.ko-main-layout .avatar-stage .rider-avatar{
- flex:0 0 auto;width:min(148px,100%);height:auto;aspect-ratio:160/255;
+ flex:0 0 auto;display:block;width:min(148px,100%);height:auto;aspect-ratio:160/255;
 }
 .now-panel .now-main.ko-main-layout .avatar-stage .avatar-outfit{
- position:relative;flex:0 0 auto;max-width:100%;margin:6px 0 0;
+ position:relative;flex:0 0 auto;max-width:100%;margin:5px 0 0;
  white-space:pre-line;overflow-wrap:anywhere;overflow:visible;
 }
-.now-panel .now-outfit-plan{position:relative;z-index:0;margin:0 0 14px;clear:both}
+.now-panel .now-main.ko-main-layout .avatar-stage .avatar-haptic-switch{
+ position:absolute;top:0;bottom:auto;left:50%;transform:translateX(-50%);
+ width:min(148px,100%);height:auto;aspect-ratio:160/255;
+ margin:0;padding:0;z-index:10;opacity:.001;cursor:pointer;pointer-events:auto;
+}
+.now-panel .now-main.ko-main-layout .avatar-stage .avatar-turn{z-index:11}
+.now-panel .now-outfit-plan{position:relative;z-index:0;margin:0 0 12px;clear:both}
 @media(min-width:461px){
- .now-panel .now-main.ko-main-layout{min-height:365px}
- .now-panel .now-main.ko-main-layout .avatar-stage{min-height:365px}
- .now-panel .now-main.ko-main-layout .avatar-stage .rider-avatar{width:min(158px,100%)}
+ .now-panel .now-main.ko-main-layout .avatar-stage .rider-avatar,
+ .now-panel .now-main.ko-main-layout .avatar-stage .avatar-haptic-switch{width:min(158px,100%)}
 }
 @media(max-width:360px){
- .now-panel .now-main.ko-main-layout{grid-template-columns:minmax(0,1fr) minmax(0,50%);min-height:355px}
- .now-panel .now-main.ko-main-layout .avatar-stage{min-height:355px}
+ .now-panel .now-main.ko-main-layout{grid-template-columns:minmax(0,1fr) minmax(0,50%)}
 }
 
 .avatar-head{transform-origin:80px 118px;animation:avatar-look 5.3s ease-in-out infinite}
