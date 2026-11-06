@@ -985,52 +985,46 @@ function renderForecast(json){
 
 
 // 하루 최저·최고기온을 모두 반영하되, 추운 출발 시간대를 조금 더 보수적으로 반영합니다.
+// Rapha Guide to Layering (2026): <6 / 6–12 / 12–18 / 18–25 / >=25 °C.
+// The five existing visual tiers are retained to preserve front/back avatar animations.
 function riderOutfitTier(temp){
  if(!Number.isFinite(temp))return 'mild';
- return temp<5?'winter':temp<13?'cold':temp<19?'cool':temp<27?'mild':'hot';
+ return temp<6?'winter':temp<12?'cold':temp<18?'cool':temp<25?'mild':'hot';
 }
 function riderOutfitPlan(low,high,currentTemp){
  const labels={
-  winter:'방한 재킷 · 기모 타이츠 · 방한 장갑',
-  cold:'긴팔 저지 · 방풍 질렛 · 긴 타이츠',
-  cool:'긴팔 저지 · 빕숏',
-  mild:'반팔 저지 · 빕숏',
-  hot:'메쉬 베이스레이어 · 카고 빕숏'
+  winter:'방한 재킷 · 기모 빕타이츠 · 방한 장갑',
+  cold:'긴팔 져지 · 베이스레이어 · 보온 빕타이츠',
+  cool:'져지 · 질렛 · 빕숏 + 레그워머',
+  mild:'반팔 져지 · 빕숏',
+  hot:'경량 반팔 져지 · 통기성 빕숏'
  };
  const hasDaily=Number.isFinite(low)&&Number.isFinite(high)&&low<=high;
- if(!hasDaily){
-  const tier=riderOutfitTier(currentTemp);
-  return {tier,label:labels[tier],range:'당일 최저·최고기온 자료 없음',
-   tip:Number.isFinite(currentTemp)?'현재 시간대 기온으로 임시 추천합니다.':'기온 자료 확인 후 착장을 추천합니다.'};
- }
- const spread=high-low;
- const planningTemp=low*0.6+high*0.4;
- let tier=riderOutfitTier(planningTemp);
- // 영하 시간대 또는 더운 낮이 확실한 경우 필요한 방한·방열 조건을 우선합니다.
- if(low<=0)tier='winter';
- else if(high>=30&&low>=18)tier='hot';
+ // Prefer current riding conditions for the avatar, while using the daily range
+ // to advise on removable layers; avoid dressing for an afternoon high at dawn.
+ const effectiveTemp=Number.isFinite(currentTemp)?currentTemp:
+  hasDaily?low*0.6+high*0.4:NaN;
+ const tier=riderOutfitTier(effectiveTemp);
+ const spread=hasDaily?high-low:0;
  let tip;
  if(tier==='winter'){
-  tip=high>=15?'추운 시간대에는 방한 우선 · 낮에 따뜻해지면 재킷을 벗거나 복장을 교체하세요.':
-   '방한 장갑·보온 양말까지 준비하고 노출 부위를 보호하세요.';
+  tip='보온 베이스레이어·방풍 방한 재킷·기모 빕타이츠를 착용하고 방한 장갑·슈커버를 준비하세요.';
  }else if(tier==='cold'){
-  tip=spread>=10?'아침 방풍 질렛 착용 · 낮에 따뜻해지면 질렛 탈착을 권장합니다.':
-   '긴 타이츠·방풍 질렛으로 차가운 공기와 바람에 대비하세요.';
+  tip='메리노 베이스레이어와 긴팔 져지에 질렛 또는 경량 재킷을 더하세요. 추우면 보온 빕타이츠를 선택하세요.';
  }else if(tier==='cool'){
-  tip=low<12?'추운 시간대에는 방풍 질렛·탈착식 레그워머 추가, 낮에는 벗으세요.':
-   high>=25?'낮 기온이 높아지면 얇은 저지로 변경하거나 레이어를 줄이세요.':
-   '긴팔 저지와 빕숏을 기본으로 바람에 대비하세요.';
+  tip='반팔 져지+암워머 또는 얇은 긴팔 져지를 선택하세요. 빕숏+레그워머와 탈착 가능한 질렛을 권장합니다.';
  }else if(tier==='mild'){
-  tip=low<17?'쌀쌀한 아침에는 암워머·방풍 질렛을 더하고, 기온이 오르면 탈착하세요.':
-   high>=29?'낮에는 통기성 좋은 얇은 저지와 충분한 수분 보충을 권장합니다.':
-   '반팔 저지·빕숏을 기본으로 준비하세요.';
+  tip='통기성 반팔 져지와 빕숏을 기본으로 하고 필요하면 얇은 메쉬 베이스레이어를 착용하세요.';
  }else{
-  tip=low<20?'이른 시간에는 얇은 방풍 레이어를 준비하고, 야외 라이딩에는 통풍 저지를 덧입으세요.':
-   '야외 라이딩 시 통풍 저지를 겉에 착용하고 수분·전해질을 보충하세요.';
+  tip='초경량 통풍 져지와 빕숏을 착용하세요. 베이스레이어는 선택 사항이며 수분·전해질 보충에 유의하세요.';
+ }
+ if(hasDaily&&spread>=10){
+  tip+=' 일교차가 '+spread.toFixed(1)+'°이므로 탈착 가능한 겉옷을 준비하세요.';
  }
  return {
   tier,label:labels[tier],
-  range:'오늘 최저 '+low.toFixed(1)+'° · 최고 '+high.toFixed(1)+'°'+(spread>=10?' · 일교차 '+spread.toFixed(1)+'°':''),
+  range:hasDaily?'오늘 최저 '+low.toFixed(1)+'° · 최고 '+high.toFixed(1)+'°'+(spread>=10?' · 일교차 '+spread.toFixed(1)+'°':''):
+   Number.isFinite(currentTemp)?'현재 시간대 기온 기준 · 당일 최저·최고기온 자료 없음':'기온 자료 확인 후 착장을 추천합니다.',
   tip
  };
 }
