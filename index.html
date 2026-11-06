@@ -249,9 +249,9 @@ main{max-width:800px}
 .rider-avatar{height:228px;width:158px;filter:drop-shadow(0 8px 6px #0b24524d)}
 /* Flow layout fixes the shoe/label collision. SVG and caption occupy distinct rows;
    the caption can expand to three or more lines without obscuring the rider's feet. */
-.avatar-stage{height:auto;min-height:0;flex-direction:column;align-items:center;justify-content:flex-start}
-.avatar-stage .rider-avatar{position:relative;bottom:auto;display:block;flex:none;width:min(158px,100%);height:auto;aspect-ratio:160/255}
-.avatar-stage .avatar-outfit{position:relative;bottom:auto;left:auto;transform:none;flex:none;width:calc(100% - 4px);max-width:210px;margin-top:12px}
+.avatar-stage{height:auto;min-height:0;flex-direction:column;align-items:center;justify-content:flex-start;padding-bottom:3px;overflow:visible}
+.avatar-stage .rider-avatar{position:relative;bottom:auto;display:block;flex:none;width:min(158px,100%);height:auto;aspect-ratio:160/255;overflow:visible}
+.avatar-stage .avatar-outfit{position:relative;bottom:auto;left:auto;transform:none;flex:none;width:calc(100% - 4px);max-width:210px;margin-top:16px;overflow:visible;text-overflow:clip}
 .avatar-head{transform-origin:80px 118px;animation:avatar-look 5.3s ease-in-out infinite}
 .avatar-torso{animation:avatar-breathe 3.2s ease-in-out infinite;transform-origin:80px 154px}
 /* The avatar tap surface covers the illustration only, never the caption. */
@@ -1036,12 +1036,12 @@ function riderOutfitTier(temp){
 function riderColdAccessories(low,currentTemp,feelsTemp){
  const hasCurrent=Number.isFinite(currentTemp)||Number.isFinite(feelsTemp);
  if(!hasCurrent)return {
-  neckWarmer:Number.isFinite(low)&&low<=7,
-  shoeCovers:Number.isFinite(low)&&low<=8
+  neckWarmer:Number.isFinite(low)&&low<=6,
+  shoeCovers:Number.isFinite(low)&&low<=3
  };
  return {
   neckWarmer:(Number.isFinite(currentTemp)&&currentTemp<=7)||(Number.isFinite(feelsTemp)&&feelsTemp<=5),
-  shoeCovers:(Number.isFinite(currentTemp)&&currentTemp<=8)||(Number.isFinite(feelsTemp)&&feelsTemp<=5)
+  shoeCovers:(Number.isFinite(currentTemp)&&currentTemp<=5)||(Number.isFinite(feelsTemp)&&feelsTemp<=2)
  };
 }
 function riderOutfitPlan(low,high,currentTemp,feelsTemp){
@@ -1095,10 +1095,10 @@ function riderOutfitPlan(low,high,currentTemp,feelsTemp){
    '야외 라이딩 시 통풍 저지를 겉에 착용하고 수분·전해질을 보충하세요.';
  }
  if(extraNames.length)tip='현재 저온 조건에 '+extraNames.join('·')+'를 추가하세요. '+tip;
- if((Number.isFinite(currentTemp)||Number.isFinite(feelsTemp))&&low<=8&&
+ if((Number.isFinite(currentTemp)||Number.isFinite(feelsTemp))&&low<=6&&
     (!accessories.neckWarmer||!accessories.shoeCovers)){
-  const morningExtras=[low<=7&&!accessories.neckWarmer?'넥워머':null,
-   low<=8&&!accessories.shoeCovers?'슈커버':null].filter(Boolean);
+  const morningExtras=[low<=6&&!accessories.neckWarmer?'넥워머':null,
+   low<=3&&!accessories.shoeCovers?'슈커버':null].filter(Boolean);
   if(morningExtras.length)tip+=' 이른 아침에는 '+morningExtras.join('·')+'도 준비하세요.';
  }
  return {
