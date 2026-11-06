@@ -224,7 +224,7 @@ main{max-width:800px}
 .avatar-rightarm{animation:avatar-arm 3.2s ease-in-out infinite reverse;transform-origin:108px 94px}
 .avatar-ground{animation:avatar-shadow 3.2s ease-in-out infinite}
 .avatar-weather{position:absolute;right:0;top:8px;font-size:28px;filter:drop-shadow(0 3px 4px #16346655)}
-.avatar-outfit{position:absolute;bottom:-3px;left:50%;transform:translateX(-50%);border-radius:999px;background:#092f6ca8;color:white;border:1px solid #bbebff55;padding:5px 9px;font-size:10px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.avatar-outfit{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:calc(100% - 4px);max-width:210px;box-sizing:border-box;border-radius:12px;background:#092f6ce0;color:white;border:1px solid #bbebff55;padding:6px 8px;font-size:10px;line-height:1.35;font-weight:650;white-space:pre-line;overflow-wrap:anywhere;word-break:keep-all;text-align:center;z-index:3}
 .avatar-turn{position:absolute;top:5px;left:3px;min-height:29px;width:29px;border-radius:50%;background:#ffffff24;border:1px solid #ffffff60;color:white;padding:0;font-size:19px}
 .avatar-haptic-switch{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:154px;height:222px;opacity:.001;z-index:2;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .avatar-turn{z-index:3;cursor:pointer;touch-action:manipulation}
@@ -248,11 +248,14 @@ main{max-width:800px}
 /* Warm village-life game character proportions */
 .rider-avatar{height:228px;width:158px;filter:drop-shadow(0 8px 6px #0b24524d)}
 /* Keep shoes and socks visible above the outfit caption. */
-.avatar-stage .rider-avatar{bottom:16px}
-.avatar-stage{height:244px}
+.avatar-stage .rider-avatar{bottom:50px}
+.avatar-stage{height:278px}
 .avatar-head{transform-origin:80px 118px;animation:avatar-look 5.3s ease-in-out infinite}
 .avatar-torso{animation:avatar-breathe 3.2s ease-in-out infinite;transform-origin:80px 154px}
-@media(max-width:460px){.avatar-stage{height:226px}.rider-avatar{height:214px;width:148px}}
+@media(max-width:460px){.avatar-stage{height:260px}.rider-avatar{height:214px;width:148px}}
+/* Keep the invisible tap target over the character, never over the wrapping outfit label. */
+.avatar-stage .avatar-haptic-switch{bottom:50px;height:228px;width:min(158px,100%)}
+@media(max-width:460px){.avatar-stage .avatar-haptic-switch{height:214px}}
 /* Actual front/back view, not horizontal mirroring */
 .avatar-back-view{display:none}
 .rider-avatar.avatar-back-active{transform:none}
@@ -463,8 +466,9 @@ main{max-width:800px}
   <path d="M77 97 Q80 100 83 97" stroke="#b87b61" stroke-width="1.8" fill="none" stroke-linecap="round"/>
   <path d="M69 108 Q80 117 91 108" stroke="#96584c" stroke-width="3" fill="none" stroke-linecap="round"/>
   <g class="avatar-neck-warmer" aria-label="넥워머">
- <path d="M61 122 Q80 129 99 122 L102 137 Q80 144 58 137 Z" fill="#243b55" stroke="#13273f" stroke-width="1.6" stroke-linejoin="round"/>
- <path d="M63 127 Q80 133 97 127 M60 135 Q80 141 100 135" fill="none" stroke="#7fa7be" stroke-width="1.3" stroke-linecap="round"/>
+ <path d="M66 127 Q80 131 94 127 L99 140 Q80 145 61 140 Z" fill="#243b55" stroke="#13273f" stroke-width="1.4" stroke-linejoin="round"/>
+ <path d="M66 128 Q80 132 94 128" fill="none" stroke="#afc9dc" stroke-width="1.7" stroke-linecap="round"/>
+ <path d="M64 136 Q80 140 96 136 M66 140 Q80 143 94 140" fill="none" stroke="#5f839d" stroke-width="1" stroke-linecap="round"/>
 </g>
   <g class="avatar-surprised-face">
   <ellipse cx="60" cy="82" rx="7.5" ry="9" fill="#f9f7ee"/><ellipse cx="100" cy="82" rx="7.5" ry="9" fill="#f9f7ee"/>
@@ -495,8 +499,9 @@ main{max-width:800px}
   <path d="M36 66 Q38 35 55 30 Q77 17 101 29 Q120 37 124 66 M44 95 Q80 107 116 95" stroke="#614536" fill="none" stroke-width="5" stroke-linecap="round"/>
   <path d="M56 119 Q80 126 104 119" fill="none" stroke="#674c3c" stroke-width="3" stroke-linecap="round"/>
   <g class="avatar-neck-warmer" aria-label="넥워머">
- <path d="M60 121 Q80 127 100 121 L103 138 Q80 145 57 138 Z" fill="#243b55" stroke="#13273f" stroke-width="1.6" stroke-linejoin="round"/>
- <path d="M62 127 Q80 133 98 127 M60 136 Q80 142 100 136" fill="none" stroke="#7fa7be" stroke-width="1.3" stroke-linecap="round"/>
+ <path d="M65 126 Q80 130 95 126 L99 140 Q80 145 61 140 Z" fill="#243b55" stroke="#13273f" stroke-width="1.4" stroke-linejoin="round"/>
+ <path d="M65 127 Q80 131 95 127" fill="none" stroke="#afc9dc" stroke-width="1.7" stroke-linecap="round"/>
+ <path d="M64 136 Q80 140 96 136 M66 140 Q80 143 94 140" fill="none" stroke="#5f839d" stroke-width="1" stroke-linecap="round"/>
 </g>
  </g></g>
 </svg>
@@ -1026,6 +1031,13 @@ function riderOutfitPlan(low,high,currentTemp,feelsTemp){
  const accessories=riderColdAccessories(low,currentTemp,feelsTemp);
  const extraNames=[accessories.neckWarmer?'넥워머':null,accessories.shoeCovers?'슈커버':null].filter(Boolean);
  const extraLabel=extraNames.length?' · '+extraNames.join(' · '):'';
+ const shortLabels={
+  winter:'방한 재킷 · 기모 타이츠',
+  cold:'긴팔 저지 · 방풍 질렛',
+  cool:'긴팔 저지 · 빕숏',
+  mild:'반팔 저지 · 빕숏',
+  hot:'메쉬 저지 · 빕숏'
+ };
  const labels={
   winter:'방한 재킷 · 기모 타이츠 · 방한 장갑',
   cold:'긴팔 저지 · 방풍 질렛 · 긴 타이츠',
@@ -1036,7 +1048,7 @@ function riderOutfitPlan(low,high,currentTemp,feelsTemp){
  const hasDaily=Number.isFinite(low)&&Number.isFinite(high)&&low<=high;
  if(!hasDaily){
   const tier=riderOutfitTier(currentTemp);
-  return {tier,label:labels[tier]+extraLabel,range:'당일 최저·최고기온 자료 없음',
+  return {tier,label:labels[tier]+extraLabel,caption:shortLabels[tier]+(extraNames.length?'\n'+extraNames.join(' · '):''),range:'당일 최저·최고기온 자료 없음',
    tip:(extraNames.length?'추운 시간대 '+extraNames.join('·')+'를 착용하세요. ':'')+
     (Number.isFinite(currentTemp)?'현재 시간대 기온으로 임시 추천합니다.':'기온 자료 확인 후 착장을 추천합니다.'),
    ...accessories};
@@ -1068,7 +1080,7 @@ function riderOutfitPlan(low,high,currentTemp,feelsTemp){
  }
  if(extraNames.length)tip='추운 시간대 '+extraNames.join('·')+'를 추가하세요. '+tip;
  return {
-  tier,label:labels[tier]+extraLabel,
+  tier,label:labels[tier]+extraLabel,caption:shortLabels[tier]+(extraNames.length?'\n'+extraNames.join(' · '):''),
   range:'오늘 최저 '+low.toFixed(1)+'° · 최고 '+high.toFixed(1)+'°'+(spread>=10?' · 일교차 '+spread.toFixed(1)+'°':''),
   tip,...accessories
  };
@@ -1085,7 +1097,8 @@ function syncRiderView(avatar){
   turn.setAttribute('aria-label',isBack?'캐릭터 정면 보기':'캐릭터 뒷모습 보기');
   turn.setAttribute('aria-pressed',String(isBack));
  }
- const currentOutfit=document.getElementById('avatarOutfit')?.textContent||'라이딩 복장';
+ const outfitEl=document.getElementById('avatarOutfit');
+ const currentOutfit=outfitEl?.dataset.fullLabel||outfitEl?.textContent||'라이딩 복장';
  avatar.setAttribute('aria-label',(isBack?'라이더 뒷모습':'라이더 정면')+' · '+currentOutfit);
 }
 function updateRiderOutfit(low,high,currentTemp,feelsTemp){
@@ -1097,7 +1110,9 @@ function updateRiderOutfit(low,high,currentTemp,feelsTemp){
  stage.dataset.outfit=plan.tier;
  stage.dataset.neckWarmer=String(plan.neckWarmer);
  stage.dataset.shoeCovers=String(plan.shoeCovers);
- label.textContent=plan.label;
+ label.textContent=plan.caption;
+ label.dataset.fullLabel=plan.label;
+ label.title=plan.label;
  syncRiderView(avatar);
  const range=document.getElementById('nowOutfitRange');
  const tip=document.getElementById('nowOutfitTip');
