@@ -287,22 +287,21 @@ main{max-width:800px}
  width:min(148px,100%);height:auto;aspect-ratio:160/255;
  margin:0;padding:0;border:0;background:transparent;border-radius:0;appearance:none;-webkit-appearance:none;z-index:10;opacity:1;cursor:pointer;pointer-events:auto;touch-action:manipulation;
 }
-/* The haptic diagnostic switch is visible and independently operable.
-   Invisible switches cannot reliably produce iOS system haptics. */
-.now-panel .avatar-stage .avatar-haptic-switch{display:none!important}
-.now-panel .avatar-stage .avatar-haptic-test{
- position:relative;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
- gap:8px;width:100%;margin:6px 0 0;padding:0;font-size:10px;line-height:1.4;
- color:var(--muted,#60748d);z-index:2;cursor:pointer;
+/* Restore the original native iOS switch as the actual touch surface.
+   Safari switch haptics require direct interaction with the switch itself. */
+.now-panel .now-main.ko-main-layout .avatar-stage .avatar-haptic-switch{
+ display:block!important;position:absolute;top:0;bottom:auto;left:50%;
+ transform:translateX(-50%);width:min(148px,100%);height:auto;aspect-ratio:160/255;
+ margin:0;padding:0;border:0;background:transparent;border-radius:0;
+ appearance:auto;-webkit-appearance:auto;opacity:.001;
+ z-index:10;pointer-events:auto;touch-action:manipulation;cursor:pointer;
 }
-.now-panel .avatar-stage .avatar-haptic-test input{
- position:relative;display:inline-block;width:36px;height:22px;min-width:36px;
- opacity:1;appearance:auto;-webkit-appearance:auto;pointer-events:auto;
- touch-action:manipulation;accent-color:#317bd3;cursor:pointer;
+@media(min-width:461px){
+ .now-panel .now-main.ko-main-layout .avatar-stage .avatar-haptic-switch{width:min(158px,100%)}
 }
 /* SVG is the primary touch target; the transparent button is an accessible fallback. */
 .now-panel .now-main.ko-main-layout .avatar-stage .rider-avatar{pointer-events:auto;cursor:pointer;touch-action:manipulation}
-.now-panel .now-main.ko-main-layout .avatar-stage .avatar-haptic-switch{display:none!important}
+
 .now-panel .now-main.ko-main-layout .avatar-stage .avatar-turn{pointer-events:auto}
 
 .now-panel .now-main.ko-main-layout .avatar-stage .avatar-turn{z-index:11}
@@ -582,7 +581,7 @@ main{max-width:800px}
   
   <button class="avatar-turn" type="button" id="avatarTurn" aria-label="캐릭터 뒷모습 보기" aria-pressed="false">↻</button>
   <div class="avatar-outfit" id="avatarOutfit">간절기 라이딩 복장</div>
-  <label class="avatar-haptic-test" for="avatarHaptic"><span>햅틱 테스트</span><input type="checkbox" switch id="avatarHaptic" aria-label="iPhone 네이티브 햅틱 테스트"></label>
+  <input type="checkbox" switch id="avatarHaptic" class="avatar-haptic-switch" aria-label="라이더 캐릭터 터치 및 햅틱">
 </div></div>
     <div class="now-outfit-plan" aria-live="polite"><strong id="nowOutfitRange">당일 최저·최고기온 확인 중</strong><span id="nowOutfitTip">기온 변화에 맞는 라이딩 복장을 준비합니다.</span></div>
     <div class="now-stats" aria-label="현재 시간대 상세 기상 지표">
@@ -1228,8 +1227,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   const hit=event.target.closest('#riderAvatar');
   if(hit)riderTapFeedback();
  });
- // Native switch haptics, when available, require a direct user toggle.
- // Do not couple this diagnostic control to the avatar's animation handler.
+ // Native iOS switch toggles supply haptics where supported, and trigger the pose.
+ document.getElementById('avatarHaptic')?.addEventListener('change',riderTapFeedback);
  button?.addEventListener('click',()=>{
   if(!avatar)return;
   // Turning the rider should never trigger a victory pose or warp a sleeve.
