@@ -289,7 +289,10 @@ main{max-width:800px}
 }
 /* SVG is the primary touch target; the transparent button is an accessible fallback. */
 .now-panel .now-main.ko-main-layout .avatar-stage .rider-avatar{pointer-events:auto;cursor:pointer;touch-action:manipulation}
-.now-panel .now-main.ko-main-layout .avatar-stage .avatar-haptic-switch{pointer-events:none}
+.now-panel .now-main.ko-main-layout .avatar-stage .avatar-haptic-switch{
+ pointer-events:auto;opacity:.015;appearance:auto;-webkit-appearance:auto;
+ cursor:pointer;touch-action:manipulation;
+}
 .now-panel .now-main.ko-main-layout .avatar-stage .avatar-turn{pointer-events:auto}
 
 .now-panel .now-main.ko-main-layout .avatar-stage .avatar-turn{z-index:11}
@@ -566,7 +569,7 @@ main{max-width:800px}
    </g>
  </g></g>
 </svg>
-  <button type="button" id="avatarHaptic" class="avatar-haptic-switch" aria-label="라이더 캐릭터 터치 반응"></button>
+  <input type="checkbox" switch id="avatarHaptic" class="avatar-haptic-switch" aria-label="라이더 캐릭터 터치 반응">
   <button class="avatar-turn" type="button" id="avatarTurn" aria-label="캐릭터 뒷모습 보기" aria-pressed="false">↻</button>
   <div class="avatar-outfit" id="avatarOutfit">간절기 라이딩 복장</div>
 </div></div>
@@ -1211,10 +1214,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Event delegation survives overlay/layout changes on mobile Safari.
   // Only the illustration and its transparent hit target should trigger a reaction.
   if(event.target.closest('#avatarTurn, #avatarOutfit'))return;
-  const hit=event.target.closest('#avatarHaptic, #riderAvatar');
+  const hit=event.target.closest('#riderAvatar');
   if(hit)riderTapFeedback();
  });
- // Keyboard activation still works through the native button click bubbling.
+ // A native iOS switch supplies system haptic feedback on supported devices.
+ // Its change event is separate from SVG click handling to avoid double animation.
+ document.getElementById('avatarHaptic')?.addEventListener('change',riderTapFeedback);
  button?.addEventListener('click',()=>{
   if(!avatar)return;
   // Turning the rider should never trigger a victory pose or warp a sleeve.
