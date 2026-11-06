@@ -287,6 +287,11 @@ main{max-width:800px}
  width:min(148px,100%);height:auto;aspect-ratio:160/255;
  margin:0;padding:0;border:0;background:transparent;border-radius:0;appearance:none;-webkit-appearance:none;z-index:10;opacity:1;cursor:pointer;pointer-events:auto;touch-action:manipulation;
 }
+/* SVG is the primary touch target; the transparent button is an accessible fallback. */
+.now-panel .now-main.ko-main-layout .avatar-stage .rider-avatar{pointer-events:auto;cursor:pointer;touch-action:manipulation}
+.now-panel .now-main.ko-main-layout .avatar-stage .avatar-haptic-switch{pointer-events:none}
+.now-panel .now-main.ko-main-layout .avatar-stage .avatar-turn{pointer-events:auto}
+
 .now-panel .now-main.ko-main-layout .avatar-stage .avatar-turn{z-index:11}
 .now-panel .now-outfit-plan{position:relative;z-index:0;margin:0 0 12px;clear:both}
 @media(min-width:461px){
@@ -1201,7 +1206,15 @@ function riderTapFeedback(){
 }
 document.addEventListener('DOMContentLoaded',()=>{
  const button=document.getElementById('avatarTurn'),avatar=document.getElementById('riderAvatar');
- document.getElementById('avatarHaptic')?.addEventListener('click',riderTapFeedback);
+ const riderStage=avatar?.closest('.avatar-stage');
+ riderStage?.addEventListener('click',(event)=>{
+  // Event delegation survives overlay/layout changes on mobile Safari.
+  // Only the illustration and its transparent hit target should trigger a reaction.
+  if(event.target.closest('#avatarTurn, #avatarOutfit'))return;
+  const hit=event.target.closest('#avatarHaptic, #riderAvatar');
+  if(hit)riderTapFeedback();
+ });
+ // Keyboard activation still works through the native button click bubbling.
  button?.addEventListener('click',()=>{
   if(!avatar)return;
   // Turning the rider should never trigger a victory pose or warp a sleeve.
