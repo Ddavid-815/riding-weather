@@ -224,7 +224,7 @@ main{max-width:800px}
 .avatar-rightarm{animation:avatar-arm 3.2s ease-in-out infinite reverse;transform-origin:108px 94px}
 .avatar-ground{animation:avatar-shadow 3.2s ease-in-out infinite}
 .avatar-weather{position:absolute;right:0;top:8px;font-size:28px;filter:drop-shadow(0 3px 4px #16346655)}
-.avatar-outfit{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:calc(100% - 4px);max-width:210px;box-sizing:border-box;border-radius:12px;background:#092f6ce0;color:white;border:1px solid #bbebff55;padding:6px 8px;font-size:10px;line-height:1.35;font-weight:650;white-space:pre-line;overflow-wrap:anywhere;word-break:keep-all;text-align:center;z-index:3}
+.avatar-outfit{position:absolute;bottom:-3px;left:50%;transform:translateX(-50%);border-radius:999px;background:#092f6ca8;color:white;border:1px solid #bbebff55;padding:5px 9px;font-size:10px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;text-align:center}
 .avatar-turn{position:absolute;top:5px;left:3px;min-height:29px;width:29px;border-radius:50%;background:#ffffff24;border:1px solid #ffffff60;color:white;padding:0;font-size:19px}
 .avatar-haptic-switch{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:154px;height:222px;opacity:.001;z-index:2;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .avatar-turn{z-index:3;cursor:pointer;touch-action:manipulation}
@@ -247,81 +247,12 @@ main{max-width:800px}
 @media(prefers-reduced-motion:reduce){.avatar-bob,.avatar-torso,.avatar-head,.avatar-leftarm,.avatar-rightarm,.avatar-ground,.avatar-halo{animation:none}}
 /* Warm village-life game character proportions */
 .rider-avatar{height:228px;width:158px;filter:drop-shadow(0 8px 6px #0b24524d)}
-/* Flow layout fixes the shoe/label collision. SVG and caption occupy distinct rows;
-   the caption can expand to three or more lines without obscuring the rider's feet. */
-.avatar-stage{height:auto;min-height:0;flex-direction:column;align-items:center;justify-content:flex-start;padding-bottom:3px;overflow:visible}
-.avatar-stage .rider-avatar{position:relative;bottom:auto;display:block;flex:none;width:min(158px,100%);height:auto;aspect-ratio:160/255;overflow:visible}
-/* Outfit label has its own grid row outside the avatar and cannot overlap the weather advice. */
-.now-panel .now-main{height:auto;min-height:0;align-items:center;margin-bottom:8px}
-.now-panel .avatar-stage{flex:0 0 47%;align-self:center}
-/* Badge sits directly below the shoes in normal flow; summary follows the complete rider. */
-.now-panel .now-main{display:flex;align-items:center;min-height:0;height:auto;margin:4px 0 14px;overflow:visible}
-.now-panel .avatar-stage{display:flex;flex-direction:column;justify-content:flex-start;align-items:center;align-self:center;flex:0 0 47%;width:47%;max-width:230px;height:auto;min-height:0;overflow:visible}
-.now-panel .avatar-stage .rider-avatar{position:relative;display:block;flex:none;bottom:auto;width:min(158px,100%);height:auto;aspect-ratio:160/255;overflow:visible}
-.now-panel .avatar-stage .avatar-outfit{position:relative;display:block;flex:none;left:auto;bottom:auto;transform:none;box-sizing:border-box;width:100%;max-width:210px;margin:4px 0 0;padding:7px 8px;white-space:pre-line;overflow-wrap:anywhere;word-break:keep-all;line-height:1.4;text-align:center;z-index:1}
-.now-panel .now-outfit-plan{position:relative;clear:both;margin:0 0 12px}
-@media(max-width:460px){.now-panel .avatar-stage .rider-avatar{width:min(148px,100%)}.now-panel .avatar-stage .avatar-outfit{font-size:10px;padding:7px 5px}}
-/* Compact responsive rider layout: content determines height, not a fixed spacer.
-   Keep the tap target exactly over the entire SVG, independent of the caption. */
-.now-panel .now-main.ko-main-layout{
- display:grid;grid-template-columns:minmax(0,1fr) minmax(0,47%);
- align-items:center;column-gap:8px;min-height:0;height:auto;
- margin:4px 0 12px;overflow:visible;
-}
-.now-panel .now-main.ko-main-layout .now-current{min-width:0;align-self:center}
-.now-panel .now-main.ko-main-layout .avatar-stage{
- box-sizing:border-box;position:relative;grid-column:2;width:100%;max-width:none;min-width:0;
- min-height:0;height:auto;align-self:center;
- display:flex;flex-direction:column;justify-content:flex-start;align-items:center;
- padding:0;overflow:visible;
-}
-.now-panel .now-main.ko-main-layout .avatar-stage .rider-avatar{
- flex:0 0 auto;display:block;width:min(148px,100%);height:auto;aspect-ratio:160/255;
-}
-.now-panel .now-main.ko-main-layout .avatar-stage .avatar-outfit{
- position:relative;flex:0 0 auto;max-width:100%;margin:5px 0 0;
- white-space:pre-line;overflow-wrap:anywhere;overflow:visible;
-}
-.now-panel .now-main.ko-main-layout .avatar-stage .avatar-haptic-switch{
- position:absolute;top:0;bottom:auto;left:50%;transform:translateX(-50%);
- width:min(148px,100%);height:auto;aspect-ratio:160/255;
- margin:0;padding:0;border:0;background:transparent;border-radius:0;appearance:none;-webkit-appearance:none;z-index:10;opacity:1;cursor:pointer;pointer-events:auto;touch-action:manipulation;
-}
-/* Restore the original native iOS switch as the actual touch surface.
-   Safari switch haptics require direct interaction with the switch itself. */
-.now-panel .now-main.ko-main-layout .avatar-stage .avatar-haptic-switch{
- display:block!important;position:absolute;top:0;bottom:auto;left:50%;
- transform:translateX(-50%);width:min(148px,100%);height:auto;aspect-ratio:160/255;
- margin:0;padding:0;border:0;background:transparent;border-radius:0;
- appearance:auto;-webkit-appearance:auto;opacity:.001;
- z-index:10;pointer-events:auto;touch-action:manipulation;cursor:pointer;
-}
-@media(min-width:461px){
- .now-panel .now-main.ko-main-layout .avatar-stage .avatar-haptic-switch{width:min(158px,100%)}
-}
-/* SVG is the primary touch target; the transparent button is an accessible fallback. */
-.now-panel .now-main.ko-main-layout .avatar-stage .rider-avatar{pointer-events:auto;cursor:pointer;touch-action:manipulation}
-
-.now-panel .now-main.ko-main-layout .avatar-stage .avatar-turn{pointer-events:auto}
-
-.now-panel .now-main.ko-main-layout .avatar-stage .avatar-turn{z-index:11}
-.now-panel .now-outfit-plan{position:relative;z-index:0;margin:0 0 12px;clear:both}
-@media(min-width:461px){
- .now-panel .now-main.ko-main-layout .avatar-stage .rider-avatar,
- .now-panel .now-main.ko-main-layout .avatar-stage .avatar-haptic-switch{width:min(158px,100%)}
-}
-@media(max-width:360px){
- .now-panel .now-main.ko-main-layout{grid-template-columns:minmax(0,1fr) minmax(0,50%)}
-}
-
+/* Keep shoes and socks visible above the outfit caption. */
+.avatar-stage .rider-avatar{bottom:16px}
+.avatar-stage{height:244px}
 .avatar-head{transform-origin:80px 118px;animation:avatar-look 5.3s ease-in-out infinite}
 .avatar-torso{animation:avatar-breathe 3.2s ease-in-out infinite;transform-origin:80px 154px}
-/* The avatar tap surface covers the illustration only, never the caption. */
-.avatar-stage .avatar-haptic-switch{top:0;bottom:auto;width:min(158px,100%);height:auto;aspect-ratio:160/255}
-@media(max-width:460px){
- .avatar-stage{height:auto;min-height:0}
- .avatar-stage .rider-avatar,.avatar-stage .avatar-haptic-switch{width:min(148px,100%)}
-}
+@media(max-width:460px){.avatar-stage{height:226px}.rider-avatar{height:214px;width:148px}}
 /* Actual front/back view, not horizontal mirroring */
 .avatar-back-view{display:none}
 .rider-avatar.avatar-back-active{transform:none}
@@ -358,10 +289,6 @@ main{max-width:800px}
 .avatar-stage .outfit-mild .avatar-leg-skin,
 .avatar-stage .outfit-hot .avatar-leg-skin{fill:#cb8864;stroke:#ad7054}
 .avatar-stage .outfit-mild .avatar-arm-base,.avatar-stage .outfit-hot .avatar-arm-base{fill:#cb8864;stroke:#ad7054}
-/* Accessories are separate from garment tiers so both front/back views match. */
-.avatar-stage .avatar-neck-warmer,.avatar-stage .avatar-shoe-covers{display:none;pointer-events:none}
-.avatar-stage[data-neck-warmer="true"] .avatar-neck-warmer{display:block}
-.avatar-stage[data-shoe-covers="true"] .avatar-shoe-covers{display:block}
 .avatar-stage .outfit-mild .avatar-arm-hand,.avatar-stage .outfit-hot .avatar-arm-hand{fill:#cb8864}
 
 
@@ -513,14 +440,7 @@ main{max-width:800px}
 <g class="outfit-scene outfit-cold" data-kit="cold"><path d="M56 177 H79 L76 228 H56 Z M83 177 H103 L106 228 H89 Z" class="avatar-tights" fill="#29394d" stroke="#14243b" stroke-width="1.4"/><g class="avatar-road-shoes"><path d="M50 226 Q57 220 72 224 L78 231 Q79 236 69 237 H48 Q42 233 50 226 Z M89 224 Q104 221 111 228 Q119 234 111 237 H91 Q83 236 89 224 Z" fill="#f9fbff" stroke="#8196ab" stroke-width="1.8"/><path d="M48 234 Q62 237 77 234 M87 234 Q101 237 113 234" fill="none" stroke="#222e3b" stroke-width="2.3"/><path d="M56 227 L70 231 M91 230 L104 227" fill="none" stroke="#303b46" stroke-width="1.8"/><path d="M60 228 L68 230 M95 230 L102 228" fill="none" stroke="#a2b0ba" stroke-width="1.1"/></g><g class="avatar-arms"><g class="avatar-arm-left"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z" class="avatar-arm-base" fill="#f3f8fd" stroke="#a5bed0" stroke-width="1.6"/><g class="champion-sleeve-bands" clip-path="url(#acLongSleeveLeft)"><g class="champion-sleeve-upper"><path d="M39.00 142.00 L54.00 148.00" fill="none" stroke="#27a6d6" stroke-width="2.05"/><path d="M39.43 144.15 L54.28 150.15" fill="none" stroke="#eb5568" stroke-width="2.05"/><path d="M39.86 146.30 L54.56 152.30" fill="none" stroke="#24354a" stroke-width="2.05"/><path d="M40.29 148.45 L54.84 154.45" fill="none" stroke="#efc843" stroke-width="2.05"/><path d="M40.72 150.60 L55.12 156.60" fill="none" stroke="#49ab6f" stroke-width="2.05"/></g><g class="champion-sleeve-cuff"><path d="M29.00 163.00 L41.00 167.00" fill="none" stroke="#27a6d6" stroke-width="1.85"/><path d="M29.21 165.10 L41.21 169.10" fill="none" stroke="#eb5568" stroke-width="1.85"/><path d="M29.42 167.20 L41.42 171.20" fill="none" stroke="#24354a" stroke-width="1.85"/><path d="M29.63 169.30 L41.63 173.30" fill="none" stroke="#efc843" stroke-width="1.85"/><path d="M29.84 171.40 L41.84 175.40" fill="none" stroke="#49ab6f" stroke-width="1.85"/></g></g><ellipse class="avatar-arm-hand" cx="33" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/></g><g class="avatar-arm-right"><path d="M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" class="avatar-arm-base" fill="#f3f8fd" stroke="#a5bed0" stroke-width="1.6"/><g class="champion-sleeve-bands" clip-path="url(#acLongSleeveRight)"><g class="champion-sleeve-upper"><path d="M121.00 142.00 L106.00 148.00" fill="none" stroke="#27a6d6" stroke-width="2.05"/><path d="M120.57 144.15 L105.72 150.15" fill="none" stroke="#eb5568" stroke-width="2.05"/><path d="M120.14 146.30 L105.44 152.30" fill="none" stroke="#24354a" stroke-width="2.05"/><path d="M119.71 148.45 L105.16 154.45" fill="none" stroke="#efc843" stroke-width="2.05"/><path d="M119.28 150.60 L104.88 156.60" fill="none" stroke="#49ab6f" stroke-width="2.05"/></g><g class="champion-sleeve-cuff"><path d="M131.00 163.00 L119.00 167.00" fill="none" stroke="#27a6d6" stroke-width="1.85"/><path d="M130.79 165.10 L118.79 169.10" fill="none" stroke="#eb5568" stroke-width="1.85"/><path d="M130.58 167.20 L118.58 171.20" fill="none" stroke="#24354a" stroke-width="1.85"/><path d="M130.37 169.30 L118.37 173.30" fill="none" stroke="#efc843" stroke-width="1.85"/><path d="M130.16 171.40 L118.16 175.40" fill="none" stroke="#49ab6f" stroke-width="1.85"/></g></g><ellipse class="avatar-arm-hand" cx="127" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/></g></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" class="avatar-front-fabric" fill="#f9fcff" stroke="#a7b9cc" stroke-width="1.7"/><g class="champion-under-gilet" clip-path="url(#acShirtClip)"><path d="M55 144.0 Q80 147.0 105 144.0" stroke="#27a6d6" stroke-width="3.1" fill="none"/><path d="M55 147.4 Q80 150.4 105 147.4" stroke="#eb5568" stroke-width="3.1" fill="none"/><path d="M55 150.8 Q80 153.8 105 150.8" stroke="#24354a" stroke-width="3.1" fill="none"/><path d="M55 154.2 Q80 157.2 105 154.2" stroke="#efc843" stroke-width="3.1" fill="none"/><path d="M55 157.6 Q80 160.6 105 157.6" stroke="#49ab6f" stroke-width="3.1" fill="none"/></g><g class="avatar-vest-front"><path d="M62 125 L78 126 L79 177 Q66 183 51 177 L56 149 Z" class="avatar-vest-front-left" fill="#b8d8e7" stroke="#8daec0" stroke-width="1.1"/><path d="M82 126 L99 125 L104 149 L109 177 Q95 183 81 177 Z" class="avatar-vest-front-right" fill="#b8d8e7" stroke="#8daec0" stroke-width="1.1"/><path d="M80 127 V176" class="avatar-front-zipper" stroke="#90a8bc" stroke-width="1.2" fill="none"/></g><text x="63" y="150" font-size="7" fill="#294963" font-weight="900">UAE</text></g></g>
 <g class="outfit-scene outfit-cool" data-kit="cool"><path class="avatar-leg-skin" d="M56 179 L79 179 L75 229 H57 Z M83 179 H103 L104 229 H89 Z" fill="#d59a76" stroke="#bc7b5c" stroke-width="1.3"/><path d="M55 173 Q80 169 105 173 L104 200 L85 201 L83 181 L79 181 L77 201 L56 200 Z" class="avatar-bib-shorts" fill="#171b26" stroke="#101523" stroke-width="1.6"/><path d="M56 197 Q67 201 77 198 M86 198 Q96 201 104 197" class="avatar-bib-grippers" stroke="#515b67" stroke-width="1.1" fill="none"/><g class="avatar-socks"><path d="M56 215 L76 215 L75 229 L56 229 Z M88 215 L106 215 L106 229 L89 229 Z" fill="#fafcff" stroke="#c1ccd9" stroke-width="1"/><path d="M56 216 H76 M88 216 H106" stroke="#b1bbc8" stroke-width="1.3" fill="none"/><path d="M64 224 H70 M94 224 H100" stroke="#b1bdc7" stroke-width="1" fill="none"/></g><g class="avatar-road-shoes"><path d="M50 226 Q57 220 72 224 L78 231 Q79 236 69 237 H48 Q42 233 50 226 Z M89 224 Q104 221 111 228 Q119 234 111 237 H91 Q83 236 89 224 Z" fill="#f9fbff" stroke="#8196ab" stroke-width="1.8"/><path d="M48 234 Q62 237 77 234 M87 234 Q101 237 113 234" fill="none" stroke="#222e3b" stroke-width="2.3"/><path d="M56 227 L70 231 M91 230 L104 227" fill="none" stroke="#303b46" stroke-width="1.8"/><path d="M60 228 L68 230 M95 230 L102 228" fill="none" stroke="#a2b0ba" stroke-width="1.1"/></g><g class="avatar-arms"><g class="avatar-arm-left"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z" class="avatar-arm-base" fill="#fbfdff" stroke="#a5bed0" stroke-width="1.6"/><g class="champion-sleeve-bands" clip-path="url(#acLongSleeveLeft)"><g class="champion-sleeve-upper"><path d="M39.00 142.00 L54.00 148.00" fill="none" stroke="#27a6d6" stroke-width="2.05"/><path d="M39.43 144.15 L54.28 150.15" fill="none" stroke="#eb5568" stroke-width="2.05"/><path d="M39.86 146.30 L54.56 152.30" fill="none" stroke="#24354a" stroke-width="2.05"/><path d="M40.29 148.45 L54.84 154.45" fill="none" stroke="#efc843" stroke-width="2.05"/><path d="M40.72 150.60 L55.12 156.60" fill="none" stroke="#49ab6f" stroke-width="2.05"/></g><g class="champion-sleeve-cuff"><path d="M29.00 163.00 L41.00 167.00" fill="none" stroke="#27a6d6" stroke-width="1.85"/><path d="M29.21 165.10 L41.21 169.10" fill="none" stroke="#eb5568" stroke-width="1.85"/><path d="M29.42 167.20 L41.42 171.20" fill="none" stroke="#24354a" stroke-width="1.85"/><path d="M29.63 169.30 L41.63 173.30" fill="none" stroke="#efc843" stroke-width="1.85"/><path d="M29.84 171.40 L41.84 175.40" fill="none" stroke="#49ab6f" stroke-width="1.85"/></g></g><ellipse class="avatar-arm-hand" cx="33" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/></g><g class="avatar-arm-right"><path d="M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" class="avatar-arm-base" fill="#fbfdff" stroke="#a5bed0" stroke-width="1.6"/><g class="champion-sleeve-bands" clip-path="url(#acLongSleeveRight)"><g class="champion-sleeve-upper"><path d="M121.00 142.00 L106.00 148.00" fill="none" stroke="#27a6d6" stroke-width="2.05"/><path d="M120.57 144.15 L105.72 150.15" fill="none" stroke="#eb5568" stroke-width="2.05"/><path d="M120.14 146.30 L105.44 152.30" fill="none" stroke="#24354a" stroke-width="2.05"/><path d="M119.71 148.45 L105.16 154.45" fill="none" stroke="#efc843" stroke-width="2.05"/><path d="M119.28 150.60 L104.88 156.60" fill="none" stroke="#49ab6f" stroke-width="2.05"/></g><g class="champion-sleeve-cuff"><path d="M131.00 163.00 L119.00 167.00" fill="none" stroke="#27a6d6" stroke-width="1.85"/><path d="M130.79 165.10 L118.79 169.10" fill="none" stroke="#eb5568" stroke-width="1.85"/><path d="M130.58 167.20 L118.58 171.20" fill="none" stroke="#24354a" stroke-width="1.85"/><path d="M130.37 169.30 L118.37 173.30" fill="none" stroke="#efc843" stroke-width="1.85"/><path d="M130.16 171.40 L118.16 175.40" fill="none" stroke="#49ab6f" stroke-width="1.85"/></g></g><ellipse class="avatar-arm-hand" cx="127" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/></g></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" class="avatar-front-fabric" fill="#fbfcff" stroke="#a7b9cc" stroke-width="1.7"/><path d="M62 125 Q80 131 98 125" stroke="#dbe8f2" fill="none" stroke-width="1.5"/><text x="80" y="139" text-anchor="middle" font-size="9.5" fill="#2b4057" font-weight="900">UAE</text><g class="champion-rainbow" clip-path="url(#acShirtClip)"><path d="M56 144 Q80 147 104 144" fill="none" stroke="#27a6d6" stroke-width="3.6"/><path d="M56 147.8 Q80 150.8 104 147.8" fill="none" stroke="#eb5568" stroke-width="3.6"/><path d="M56 151.6 Q80 154.6 104 151.6" fill="none" stroke="#24354a" stroke-width="3.6"/><path d="M56 155.4 Q80 158.4 104 155.4" fill="none" stroke="#efc843" stroke-width="3.6"/><path d="M56 159.2 Q80 162.2 104 159.2" fill="none" stroke="#49ab6f" stroke-width="3.6"/></g><path d="M80 127 V176" class="avatar-front-zipper" stroke="#90a8bc" stroke-width="1.2" fill="none"/></g></g>
 <g class="outfit-scene outfit-mild" data-kit="mild"><path class="avatar-leg-skin" d="M56 179 L79 179 L75 229 H57 Z M83 179 H103 L104 229 H89 Z" fill="#d59a76" stroke="#bc7b5c" stroke-width="1.3"/><path d="M55 173 Q80 169 105 173 L104 200 L85 201 L83 181 L79 181 L77 201 L56 200 Z" class="avatar-bib-shorts" fill="#171b26" stroke="#101523" stroke-width="1.6"/><path d="M56 197 Q67 201 77 198 M86 198 Q96 201 104 197" class="avatar-bib-grippers" stroke="#515b67" stroke-width="1.1" fill="none"/><g class="avatar-socks"><path d="M56 215 L76 215 L75 229 L56 229 Z M88 215 L106 215 L106 229 L89 229 Z" fill="#fafcff" stroke="#c1ccd9" stroke-width="1"/><path d="M56 216 H76 M88 216 H106" stroke="#b1bbc8" stroke-width="1.3" fill="none"/><path d="M64 224 H70 M94 224 H100" stroke="#b1bdc7" stroke-width="1" fill="none"/></g><g class="avatar-road-shoes"><path d="M50 226 Q57 220 72 224 L78 231 Q79 236 69 237 H48 Q42 233 50 226 Z M89 224 Q104 221 111 228 Q119 234 111 237 H91 Q83 236 89 224 Z" fill="#f9fbff" stroke="#8196ab" stroke-width="1.8"/><path d="M48 234 Q62 237 77 234 M87 234 Q101 237 113 234" fill="none" stroke="#222e3b" stroke-width="2.3"/><path d="M56 227 L70 231 M91 230 L104 227" fill="none" stroke="#303b46" stroke-width="1.8"/><path d="M60 228 L68 230 M95 230 L102 228" fill="none" stroke="#a2b0ba" stroke-width="1.1"/></g><g class="avatar-arms"><g class="avatar-arm-left"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z" class="avatar-arm-base" fill="#d59a76" stroke="#b47b5d" stroke-width="1.6"/><path d="M61 131 Q47 126 41 141 L39 151 L52 156 L65 147 Z" class="avatar-arm-sleeve" fill="#fbfdff" stroke="#a5bdcd" stroke-width="1.3"/><ellipse class="avatar-arm-hand" cx="33" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/><path d="M40 147 L52 151" stroke="#27a6d6" stroke-width="1.25" fill="none" transform="translate(0 0)"/><path d="M40 147 L52 151" stroke="#eb5568" stroke-width="1.25" fill="none" transform="translate(0 0.8)"/><path d="M40 147 L52 151" stroke="#24354a" stroke-width="1.25" fill="none" transform="translate(0 1.6)"/><path d="M40 147 L52 151" stroke="#efc843" stroke-width="1.25" fill="none" transform="translate(0 2.4000000000000004)"/><path d="M40 147 L52 151" stroke="#49ab6f" stroke-width="1.25" fill="none" transform="translate(0 3.2)"/></g><g class="avatar-arm-right"><path d="M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" class="avatar-arm-base" fill="#d59a76" stroke="#b47b5d" stroke-width="1.6"/><path d="M99 131 Q113 126 119 141 L121 151 L108 156 L95 147 Z" class="avatar-arm-sleeve" fill="#fbfdff" stroke="#a5bdcd" stroke-width="1.3"/><ellipse class="avatar-arm-hand" cx="127" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/><path d="M120 147 L108 151" stroke="#27a6d6" stroke-width="1.25" fill="none" transform="translate(0 0)"/><path d="M120 147 L108 151" stroke="#eb5568" stroke-width="1.25" fill="none" transform="translate(0 0.8)"/><path d="M120 147 L108 151" stroke="#24354a" stroke-width="1.25" fill="none" transform="translate(0 1.6)"/><path d="M120 147 L108 151" stroke="#efc843" stroke-width="1.25" fill="none" transform="translate(0 2.4000000000000004)"/><path d="M120 147 L108 151" stroke="#49ab6f" stroke-width="1.25" fill="none" transform="translate(0 3.2)"/></g></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" class="avatar-front-fabric" fill="#fbfcff" stroke="#a7b9cc" stroke-width="1.7"/><path d="M55 161 Q80 166 105 161 L109 177 Q80 186 51 177 Z" fill="#36485a" opacity=".85"/><path d="M63 126 L68 127 L62 145 L58 150 Z M97 127 L101 129 L104 148 L99 146 Z" fill="#1b2533"/><path d="M66 139 Q80 137 94 139" fill="none" stroke="#56a471" stroke-width="1.4"/><text x="80" y="149" font-size="10" text-anchor="middle" fill="#1e3448" font-weight="900">UAE</text><rect x="67" y="152" width="26" height="8" rx="1.2" fill="#d94157"/><text x="80" y="158" font-size="5.7" text-anchor="middle" fill="#fff" font-weight="800">Emirates</text><text x="80" y="171" font-size="6.5" text-anchor="middle" fill="white" font-weight="850">XRG</text><path d="M80 127 V176" class="avatar-front-zipper" stroke="#90a8bc" stroke-width="1.2" fill="none"/></g></g>
-<g class="outfit-scene outfit-hot" data-kit="hot"><path class="avatar-leg-skin" d="M56 179 L79 179 L75 229 H57 Z M83 179 H103 L104 229 H89 Z" fill="#d59a76" stroke="#bc7b5c" stroke-width="1.3"/><path d="M55 173 Q80 169 105 173 L104 200 L85 201 L83 181 L79 181 L77 201 L56 200 Z" class="avatar-bib-shorts" fill="#171b26" stroke="#101523" stroke-width="1.6"/><path d="M56 197 Q67 201 77 198 M86 198 Q96 201 104 197" class="avatar-bib-grippers" stroke="#515b67" stroke-width="1.1" fill="none"/><g class="avatar-socks"><path d="M56 215 L76 215 L75 229 L56 229 Z M88 215 L106 215 L106 229 L89 229 Z" fill="#fafcff" stroke="#c1ccd9" stroke-width="1"/><path d="M56 216 H76 M88 216 H106" stroke="#b1bbc8" stroke-width="1.3" fill="none"/><path d="M64 224 H70 M94 224 H100" stroke="#b1bdc7" stroke-width="1" fill="none"/></g><g class="avatar-road-shoes"><path d="M50 226 Q57 220 72 224 L78 231 Q79 236 69 237 H48 Q42 233 50 226 Z M89 224 Q104 221 111 228 Q119 234 111 237 H91 Q83 236 89 224 Z" fill="#f9fbff" stroke="#8196ab" stroke-width="1.8"/><path d="M48 234 Q62 237 77 234 M87 234 Q101 237 113 234" fill="none" stroke="#222e3b" stroke-width="2.3"/><path d="M56 227 L70 231 M91 230 L104 227" fill="none" stroke="#303b46" stroke-width="1.8"/><path d="M60 228 L68 230 M95 230 L102 228" fill="none" stroke="#a2b0ba" stroke-width="1.1"/></g><g class="avatar-arms"><g class="avatar-arm-left"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z" class="avatar-arm-base" fill="#d59a76" stroke="#b47b5d" stroke-width="1.6"/><ellipse class="avatar-arm-hand" cx="33" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/></g><g class="avatar-arm-right"><path d="M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" class="avatar-arm-base" fill="#d59a76" stroke="#b47b5d" stroke-width="1.6"/><ellipse class="avatar-arm-hand" cx="127" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/></g></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" class="avatar-front-fabric" fill="#fcfeff" stroke="#a7b9cc" stroke-width="1.7"/><path d="M65 131 Q80 135 95 131 M63 140 Q80 143 97 140 M61 149 Q80 152 99 149" fill="none" stroke="#dce9f4" stroke-width=".9"/><path d="M59 128 L67 126 L76 162 L74 179 L59 177 L54 147 Z" class="avatar-bib-front-strap" fill="#1b1e2a" stroke="#111520" stroke-width="1"/><path d="M93 126 L101 128 L106 147 L101 177 L86 179 L84 162 Z" class="avatar-bib-front-strap" fill="#1b1e2a" stroke="#111520" stroke-width="1"/><path d="M59 164 Q80 178 101 164 L106 178 Q80 186 52 178 Z" fill="#1b1e2a"/><text x="80" y="144" font-size="6.3" text-anchor="middle" fill="#24394c" font-weight="900">PISSEI</text><path d="M71 149 L89 149" stroke="#62aa83" stroke-width="1.5"/></g></g>
-<g class="avatar-shoe-covers" aria-label="슈커버">
- <path d="M54 213 Q64 211 74 217 L76 226 Q81 231 78 236 Q66 240 47 237 Q41 234 46 226 L51 220 Z" fill="#20344a" stroke="#101e2d" stroke-width="1.7" stroke-linejoin="round"/>
- <path d="M88 217 Q99 212 109 219 L113 226 Q119 231 115 236 Q104 240 89 237 Q83 232 86 225 Z" fill="#20344a" stroke="#101e2d" stroke-width="1.7" stroke-linejoin="round"/>
- <path d="M54 219 Q64 217 73 221 M90 222 Q100 218 109 223" fill="none" stroke="#69829a" stroke-width="1.5" stroke-linecap="round"/>
- <path d="M49 233 Q61 237 76 233 M89 233 Q102 237 114 233" fill="none" stroke="#b2d9e7" stroke-width="1.6" stroke-linecap="round"/>
-</g>
-<g class="avatar-head">
+<g class="outfit-scene outfit-hot" data-kit="hot"><path class="avatar-leg-skin" d="M56 179 L79 179 L75 229 H57 Z M83 179 H103 L104 229 H89 Z" fill="#d59a76" stroke="#bc7b5c" stroke-width="1.3"/><path d="M55 173 Q80 169 105 173 L104 200 L85 201 L83 181 L79 181 L77 201 L56 200 Z" class="avatar-bib-shorts" fill="#171b26" stroke="#101523" stroke-width="1.6"/><path d="M56 197 Q67 201 77 198 M86 198 Q96 201 104 197" class="avatar-bib-grippers" stroke="#515b67" stroke-width="1.1" fill="none"/><g class="avatar-socks"><path d="M56 215 L76 215 L75 229 L56 229 Z M88 215 L106 215 L106 229 L89 229 Z" fill="#fafcff" stroke="#c1ccd9" stroke-width="1"/><path d="M56 216 H76 M88 216 H106" stroke="#b1bbc8" stroke-width="1.3" fill="none"/><path d="M64 224 H70 M94 224 H100" stroke="#b1bdc7" stroke-width="1" fill="none"/></g><g class="avatar-road-shoes"><path d="M50 226 Q57 220 72 224 L78 231 Q79 236 69 237 H48 Q42 233 50 226 Z M89 224 Q104 221 111 228 Q119 234 111 237 H91 Q83 236 89 224 Z" fill="#f9fbff" stroke="#8196ab" stroke-width="1.8"/><path d="M48 234 Q62 237 77 234 M87 234 Q101 237 113 234" fill="none" stroke="#222e3b" stroke-width="2.3"/><path d="M56 227 L70 231 M91 230 L104 227" fill="none" stroke="#303b46" stroke-width="1.8"/><path d="M60 228 L68 230 M95 230 L102 228" fill="none" stroke="#a2b0ba" stroke-width="1.1"/></g><g class="avatar-arms"><g class="avatar-arm-left"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z" class="avatar-arm-base" fill="#d59a76" stroke="#b47b5d" stroke-width="1.6"/><ellipse class="avatar-arm-hand" cx="33" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/></g><g class="avatar-arm-right"><path d="M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" class="avatar-arm-base" fill="#d59a76" stroke="#b47b5d" stroke-width="1.6"/><ellipse class="avatar-arm-hand" cx="127" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/></g></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" class="avatar-front-fabric" fill="#fcfeff" stroke="#a7b9cc" stroke-width="1.7"/><path d="M65 131 Q80 135 95 131 M63 140 Q80 143 97 140 M61 149 Q80 152 99 149" fill="none" stroke="#dce9f4" stroke-width=".9"/><path d="M59 128 L67 126 L76 162 L74 179 L59 177 L54 147 Z" class="avatar-bib-front-strap" fill="#1b1e2a" stroke="#111520" stroke-width="1"/><path d="M93 126 L101 128 L106 147 L101 177 L86 179 L84 162 Z" class="avatar-bib-front-strap" fill="#1b1e2a" stroke="#111520" stroke-width="1"/><path d="M59 164 Q80 178 101 164 L106 178 Q80 186 52 178 Z" fill="#1b1e2a"/><text x="80" y="144" font-size="6.3" text-anchor="middle" fill="#24394c" font-weight="900">PISSEI</text><path d="M71 149 L89 149" stroke="#62aa83" stroke-width="1.5"/></g></g> <g class="avatar-head">
   <rect x="73" y="114" width="14" height="16" rx="7" fill="#cf9979"/>
   <ellipse cx="36" cy="81" rx="8" ry="11" fill="#d9a684"/><ellipse cx="124" cy="81" rx="8" ry="11" fill="#d9a684"/>
   <path d="M31 70 Q31 27 80 23 Q129 27 129 70 L128 97 Q124 133 80 134 Q36 133 32 97 Z" fill="#e0ab89" stroke="#be8a6a" stroke-width="1.8"/>
@@ -540,48 +460,23 @@ main{max-width:800px}
   <ellipse cx="46" cy="102" rx="9" ry="4" fill="#ef958e" opacity=".32"/><ellipse cx="114" cy="102" rx="9" ry="4" fill="#ef958e" opacity=".32"/>
   <path d="M50 67 Q59 62 67 67 M93 67 Q101 62 110 67" fill="none" stroke="#543a35" stroke-width="2.1" stroke-linecap="round"/>
  </g>
-  <!-- Wide charcoal-gray fleece gaiter: cheek-to-cheek coverage, eyes unobstructed. -->
-  <g class="avatar-neck-warmer" aria-label="코와 입을 덮는 회색 넥워머">
-    <path d="M34 94 Q80 87 126 94 C131 111 124 126 112 138 L103 149 Q80 158 57 149 L48 138 C36 126 29 110 34 94 Z" fill="#777d84" stroke="#50565e" stroke-width="1.7" stroke-linejoin="round"/>
-    <path d="M35 94 Q80 87 125 94" fill="none" stroke="#b6bbc0" stroke-width="2.6" stroke-linecap="round"/>
-    <path d="M39 106 Q52 111 59 125 Q64 135 71 145 M121 106 Q108 115 102 129 L94 145" fill="none" stroke="#5f656d" stroke-width="2.4" stroke-linecap="round" opacity=".87"/>
-    <path d="M43 122 Q60 132 66 142 M116 121 Q100 132 94 143 M59 148 Q80 153 102 148" fill="none" stroke="#a0a6ad" stroke-width="1.2" stroke-linecap="round" opacity=".62"/>
-    <path d="M124 99 L130 100 M124 104 L131 106" fill="none" stroke="#656a71" stroke-width="1.5" stroke-linecap="round"/>
-    <circle cx="126" cy="101" r="2.1" fill="#575d64" stroke="#b4bbc1" stroke-width=".8"/>
-   </g>
  </g>
  </g>
 <g class="avatar-back-view" aria-hidden="true"><g class="outfit-scene outfit-winter" data-kit="winter"><path d="M56 177 H79 L76 228 H56 Z M83 177 H103 L106 228 H89 Z" class="avatar-tights" fill="#17283d" stroke="#14243b" stroke-width="1.4"/><g class="avatar-road-shoes"><path d="M50 226 Q57 220 72 224 L78 231 Q79 236 69 237 H48 Q42 233 50 226 Z M89 224 Q104 221 111 228 Q119 234 111 237 H91 Q83 236 89 224 Z" fill="#f9fbff" stroke="#8196ab" stroke-width="1.8"/><path d="M48 234 Q62 237 77 234 M87 234 Q101 237 113 234" fill="none" stroke="#222e3b" stroke-width="2.3"/><path d="M56 227 L70 231 M91 230 L104 227" fill="none" stroke="#303b46" stroke-width="1.8"/><path d="M60 228 L68 230 M95 230 L102 228" fill="none" stroke="#a2b0ba" stroke-width="1.1"/></g><g class="avatar-arms"><g class="avatar-arm-left"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z" class="avatar-arm-base" fill="#4b708e" stroke="#a5bed0" stroke-width="1.6"/><ellipse class="avatar-arm-hand" cx="33" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/><path d="M29 169 L41 173" stroke="#243c55" stroke-width="3" fill="none"/><path d="M28 175 Q33 172 40 176 L40 185 L29 185 Z" fill="#1e303e" stroke="#172330" stroke-width="1"/></g><g class="avatar-arm-right"><path d="M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" class="avatar-arm-base" fill="#4b708e" stroke="#a5bed0" stroke-width="1.6"/><ellipse class="avatar-arm-hand" cx="127" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/><path d="M119 173 L131 169" stroke="#243c55" stroke-width="3" fill="none"/><path d="M120 176 Q127 172 132 176 L131 185 L120 185 Z" fill="#1e303e" stroke="#172330" stroke-width="1"/></g></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" class="avatar-back-fabric" fill="#4b708e" stroke="#a7b9cc" stroke-width="1.7"/><path d="M60 140 Q80 147 100 140" fill="none" stroke="#97b6cd" stroke-width="1.4"/><text x="80" y="156" text-anchor="middle" font-size="9" fill="#fff" font-weight="900">UAE</text><g class="avatar-rear-pockets"><path d="M57 162 Q80 166 103 162 L101 176 Q80 182 59 176 Z" fill="#416481" stroke="#819bac" stroke-width="1.1"/><path d="M72 166 V175 M88 166 V175" stroke="#7a98ae" fill="none" stroke-width="1.1"/></g></g></g>
 <g class="outfit-scene outfit-cold" data-kit="cold"><path d="M56 177 H79 L76 228 H56 Z M83 177 H103 L106 228 H89 Z" class="avatar-tights" fill="#29394d" stroke="#14243b" stroke-width="1.4"/><g class="avatar-road-shoes"><path d="M50 226 Q57 220 72 224 L78 231 Q79 236 69 237 H48 Q42 233 50 226 Z M89 224 Q104 221 111 228 Q119 234 111 237 H91 Q83 236 89 224 Z" fill="#f9fbff" stroke="#8196ab" stroke-width="1.8"/><path d="M48 234 Q62 237 77 234 M87 234 Q101 237 113 234" fill="none" stroke="#222e3b" stroke-width="2.3"/><path d="M56 227 L70 231 M91 230 L104 227" fill="none" stroke="#303b46" stroke-width="1.8"/><path d="M60 228 L68 230 M95 230 L102 228" fill="none" stroke="#a2b0ba" stroke-width="1.1"/></g><g class="avatar-arms"><g class="avatar-arm-left"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z" class="avatar-arm-base" fill="#f3f8fd" stroke="#a5bed0" stroke-width="1.6"/><g class="champion-sleeve-bands" clip-path="url(#acLongSleeveLeft)"><g class="champion-sleeve-upper"><path d="M39.00 142.00 L54.00 148.00" fill="none" stroke="#27a6d6" stroke-width="2.05"/><path d="M39.43 144.15 L54.28 150.15" fill="none" stroke="#eb5568" stroke-width="2.05"/><path d="M39.86 146.30 L54.56 152.30" fill="none" stroke="#24354a" stroke-width="2.05"/><path d="M40.29 148.45 L54.84 154.45" fill="none" stroke="#efc843" stroke-width="2.05"/><path d="M40.72 150.60 L55.12 156.60" fill="none" stroke="#49ab6f" stroke-width="2.05"/></g><g class="champion-sleeve-cuff"><path d="M29.00 163.00 L41.00 167.00" fill="none" stroke="#27a6d6" stroke-width="1.85"/><path d="M29.21 165.10 L41.21 169.10" fill="none" stroke="#eb5568" stroke-width="1.85"/><path d="M29.42 167.20 L41.42 171.20" fill="none" stroke="#24354a" stroke-width="1.85"/><path d="M29.63 169.30 L41.63 173.30" fill="none" stroke="#efc843" stroke-width="1.85"/><path d="M29.84 171.40 L41.84 175.40" fill="none" stroke="#49ab6f" stroke-width="1.85"/></g></g><ellipse class="avatar-arm-hand" cx="33" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/></g><g class="avatar-arm-right"><path d="M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" class="avatar-arm-base" fill="#f3f8fd" stroke="#a5bed0" stroke-width="1.6"/><g class="champion-sleeve-bands" clip-path="url(#acLongSleeveRight)"><g class="champion-sleeve-upper"><path d="M121.00 142.00 L106.00 148.00" fill="none" stroke="#27a6d6" stroke-width="2.05"/><path d="M120.57 144.15 L105.72 150.15" fill="none" stroke="#eb5568" stroke-width="2.05"/><path d="M120.14 146.30 L105.44 152.30" fill="none" stroke="#24354a" stroke-width="2.05"/><path d="M119.71 148.45 L105.16 154.45" fill="none" stroke="#efc843" stroke-width="2.05"/><path d="M119.28 150.60 L104.88 156.60" fill="none" stroke="#49ab6f" stroke-width="2.05"/></g><g class="champion-sleeve-cuff"><path d="M131.00 163.00 L119.00 167.00" fill="none" stroke="#27a6d6" stroke-width="1.85"/><path d="M130.79 165.10 L118.79 169.10" fill="none" stroke="#eb5568" stroke-width="1.85"/><path d="M130.58 167.20 L118.58 171.20" fill="none" stroke="#24354a" stroke-width="1.85"/><path d="M130.37 169.30 L118.37 173.30" fill="none" stroke="#efc843" stroke-width="1.85"/><path d="M130.16 171.40 L118.16 175.40" fill="none" stroke="#49ab6f" stroke-width="1.85"/></g></g><ellipse class="avatar-arm-hand" cx="127" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/></g></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" class="avatar-back-fabric" fill="#f8fcff" stroke="#a7b9cc" stroke-width="1.7"/><g class="champion-under-gilet" clip-path="url(#acShirtClip)"><path d="M55 144.0 Q80 147.0 105 144.0" stroke="#27a6d6" stroke-width="3.1" fill="none"/><path d="M55 147.4 Q80 150.4 105 147.4" stroke="#eb5568" stroke-width="3.1" fill="none"/><path d="M55 150.8 Q80 153.8 105 150.8" stroke="#24354a" stroke-width="3.1" fill="none"/><path d="M55 154.2 Q80 157.2 105 154.2" stroke="#efc843" stroke-width="3.1" fill="none"/><path d="M55 157.6 Q80 160.6 105 157.6" stroke="#49ab6f" stroke-width="3.1" fill="none"/></g><path d="M62 126 Q80 123 98 126 L105 156 L102 165 Q80 169 58 165 L55 156 Z" class="avatar-vest-back-panel" fill="#b8d8e7" stroke="#8daec0" stroke-width="1.2"/><path d="M60 139 Q80 144 100 139" stroke="#9fc0d4" fill="none" stroke-width="1.2"/><text x="80" y="153" text-anchor="middle" font-size="8.5" fill="#31566a" font-weight="900">UAE</text><g class="avatar-rear-pockets"><path d="M57 162 Q80 166 103 162 L101 176 Q80 182 59 176 Z" fill="#cde3f1" stroke="#819bac" stroke-width="1.1"/><path d="M72 166 V175 M88 166 V175" stroke="#7a98ae" fill="none" stroke-width="1.1"/></g></g></g>
 <g class="outfit-scene outfit-cool" data-kit="cool"><path class="avatar-leg-skin" d="M56 179 L79 179 L75 229 H57 Z M83 179 H103 L104 229 H89 Z" fill="#d59a76" stroke="#bc7b5c" stroke-width="1.3"/><path d="M55 173 Q80 169 105 173 L104 200 L85 201 L83 181 L79 181 L77 201 L56 200 Z" class="avatar-bib-shorts" fill="#171b26" stroke="#101523" stroke-width="1.6"/><path d="M56 197 Q67 201 77 198 M86 198 Q96 201 104 197" class="avatar-bib-grippers" stroke="#515b67" stroke-width="1.1" fill="none"/><g class="avatar-bib-cargo"><path d="M56 181 L65 183 L65 195 L56 196 Z M95 183 L104 181 L104 196 L95 195 Z" fill="#232937" stroke="#52606a" stroke-width=".8"/></g><g class="avatar-socks"><path d="M56 215 L76 215 L75 229 L56 229 Z M88 215 L106 215 L106 229 L89 229 Z" fill="#fafcff" stroke="#c1ccd9" stroke-width="1"/><path d="M56 216 H76 M88 216 H106" stroke="#b1bbc8" stroke-width="1.3" fill="none"/><path d="M64 224 H70 M94 224 H100" stroke="#b1bdc7" stroke-width="1" fill="none"/></g><g class="avatar-road-shoes"><path d="M50 226 Q57 220 72 224 L78 231 Q79 236 69 237 H48 Q42 233 50 226 Z M89 224 Q104 221 111 228 Q119 234 111 237 H91 Q83 236 89 224 Z" fill="#f9fbff" stroke="#8196ab" stroke-width="1.8"/><path d="M48 234 Q62 237 77 234 M87 234 Q101 237 113 234" fill="none" stroke="#222e3b" stroke-width="2.3"/><path d="M56 227 L70 231 M91 230 L104 227" fill="none" stroke="#303b46" stroke-width="1.8"/><path d="M60 228 L68 230 M95 230 L102 228" fill="none" stroke="#a2b0ba" stroke-width="1.1"/></g><g class="avatar-arms"><g class="avatar-arm-left"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z" class="avatar-arm-base" fill="#fbfdff" stroke="#a5bed0" stroke-width="1.6"/><g class="champion-sleeve-bands" clip-path="url(#acLongSleeveLeft)"><g class="champion-sleeve-upper"><path d="M39.00 142.00 L54.00 148.00" fill="none" stroke="#27a6d6" stroke-width="2.05"/><path d="M39.43 144.15 L54.28 150.15" fill="none" stroke="#eb5568" stroke-width="2.05"/><path d="M39.86 146.30 L54.56 152.30" fill="none" stroke="#24354a" stroke-width="2.05"/><path d="M40.29 148.45 L54.84 154.45" fill="none" stroke="#efc843" stroke-width="2.05"/><path d="M40.72 150.60 L55.12 156.60" fill="none" stroke="#49ab6f" stroke-width="2.05"/></g><g class="champion-sleeve-cuff"><path d="M29.00 163.00 L41.00 167.00" fill="none" stroke="#27a6d6" stroke-width="1.85"/><path d="M29.21 165.10 L41.21 169.10" fill="none" stroke="#eb5568" stroke-width="1.85"/><path d="M29.42 167.20 L41.42 171.20" fill="none" stroke="#24354a" stroke-width="1.85"/><path d="M29.63 169.30 L41.63 173.30" fill="none" stroke="#efc843" stroke-width="1.85"/><path d="M29.84 171.40 L41.84 175.40" fill="none" stroke="#49ab6f" stroke-width="1.85"/></g></g><ellipse class="avatar-arm-hand" cx="33" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/></g><g class="avatar-arm-right"><path d="M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" class="avatar-arm-base" fill="#fbfdff" stroke="#a5bed0" stroke-width="1.6"/><g class="champion-sleeve-bands" clip-path="url(#acLongSleeveRight)"><g class="champion-sleeve-upper"><path d="M121.00 142.00 L106.00 148.00" fill="none" stroke="#27a6d6" stroke-width="2.05"/><path d="M120.57 144.15 L105.72 150.15" fill="none" stroke="#eb5568" stroke-width="2.05"/><path d="M120.14 146.30 L105.44 152.30" fill="none" stroke="#24354a" stroke-width="2.05"/><path d="M119.71 148.45 L105.16 154.45" fill="none" stroke="#efc843" stroke-width="2.05"/><path d="M119.28 150.60 L104.88 156.60" fill="none" stroke="#49ab6f" stroke-width="2.05"/></g><g class="champion-sleeve-cuff"><path d="M131.00 163.00 L119.00 167.00" fill="none" stroke="#27a6d6" stroke-width="1.85"/><path d="M130.79 165.10 L118.79 169.10" fill="none" stroke="#eb5568" stroke-width="1.85"/><path d="M130.58 167.20 L118.58 171.20" fill="none" stroke="#24354a" stroke-width="1.85"/><path d="M130.37 169.30 L118.37 173.30" fill="none" stroke="#efc843" stroke-width="1.85"/><path d="M130.16 171.40 L118.16 175.40" fill="none" stroke="#49ab6f" stroke-width="1.85"/></g></g><ellipse class="avatar-arm-hand" cx="127" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/></g></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" class="avatar-back-fabric" fill="#f9fcff" stroke="#a7b9cc" stroke-width="1.7"/><path d="M62 129 Q80 137 98 129" stroke="#e1edf3" fill="none" stroke-width="1.5"/><g class="champion-rainbow" clip-path="url(#acShirtClip)"><path d="M56 140 Q80 143 104 140" fill="none" stroke="#27a6d6" stroke-width="3.6"/><path d="M56 143.8 Q80 146.8 104 143.8" fill="none" stroke="#eb5568" stroke-width="3.6"/><path d="M56 147.6 Q80 150.6 104 147.6" fill="none" stroke="#24354a" stroke-width="3.6"/><path d="M56 151.4 Q80 154.4 104 151.4" fill="none" stroke="#efc843" stroke-width="3.6"/><path d="M56 155.2 Q80 158.2 104 155.2" fill="none" stroke="#49ab6f" stroke-width="3.6"/></g><g class="avatar-rear-pockets"><path d="M57 162 Q80 166 103 162 L101 176 Q80 182 59 176 Z" fill="#eef4fa" stroke="#819bac" stroke-width="1.1"/><path d="M72 166 V175 M88 166 V175" stroke="#7a98ae" fill="none" stroke-width="1.1"/></g></g></g>
 <g class="outfit-scene outfit-mild" data-kit="mild"><path class="avatar-leg-skin" d="M56 179 L79 179 L75 229 H57 Z M83 179 H103 L104 229 H89 Z" fill="#d59a76" stroke="#bc7b5c" stroke-width="1.3"/><path d="M55 173 Q80 169 105 173 L104 200 L85 201 L83 181 L79 181 L77 201 L56 200 Z" class="avatar-bib-shorts" fill="#171b26" stroke="#101523" stroke-width="1.6"/><path d="M56 197 Q67 201 77 198 M86 198 Q96 201 104 197" class="avatar-bib-grippers" stroke="#515b67" stroke-width="1.1" fill="none"/><g class="avatar-bib-cargo"><path d="M56 181 L65 183 L65 195 L56 196 Z M95 183 L104 181 L104 196 L95 195 Z" fill="#232937" stroke="#52606a" stroke-width=".8"/></g><g class="avatar-socks"><path d="M56 215 L76 215 L75 229 L56 229 Z M88 215 L106 215 L106 229 L89 229 Z" fill="#fafcff" stroke="#c1ccd9" stroke-width="1"/><path d="M56 216 H76 M88 216 H106" stroke="#b1bbc8" stroke-width="1.3" fill="none"/><path d="M64 224 H70 M94 224 H100" stroke="#b1bdc7" stroke-width="1" fill="none"/></g><g class="avatar-road-shoes"><path d="M50 226 Q57 220 72 224 L78 231 Q79 236 69 237 H48 Q42 233 50 226 Z M89 224 Q104 221 111 228 Q119 234 111 237 H91 Q83 236 89 224 Z" fill="#f9fbff" stroke="#8196ab" stroke-width="1.8"/><path d="M48 234 Q62 237 77 234 M87 234 Q101 237 113 234" fill="none" stroke="#222e3b" stroke-width="2.3"/><path d="M56 227 L70 231 M91 230 L104 227" fill="none" stroke="#303b46" stroke-width="1.8"/><path d="M60 228 L68 230 M95 230 L102 228" fill="none" stroke="#a2b0ba" stroke-width="1.1"/></g><g class="avatar-arms"><g class="avatar-arm-left"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z" class="avatar-arm-base" fill="#d59a76" stroke="#b47b5d" stroke-width="1.6"/><path d="M61 131 Q47 126 41 141 L39 151 L52 156 L65 147 Z" class="avatar-arm-sleeve" fill="#fbfdff" stroke="#a5bdcd" stroke-width="1.3"/><ellipse class="avatar-arm-hand" cx="33" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/><path d="M40 147 L52 151" stroke="#27a6d6" stroke-width="1.25" fill="none" transform="translate(0 0)"/><path d="M40 147 L52 151" stroke="#eb5568" stroke-width="1.25" fill="none" transform="translate(0 0.8)"/><path d="M40 147 L52 151" stroke="#24354a" stroke-width="1.25" fill="none" transform="translate(0 1.6)"/><path d="M40 147 L52 151" stroke="#efc843" stroke-width="1.25" fill="none" transform="translate(0 2.4000000000000004)"/><path d="M40 147 L52 151" stroke="#49ab6f" stroke-width="1.25" fill="none" transform="translate(0 3.2)"/></g><g class="avatar-arm-right"><path d="M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" class="avatar-arm-base" fill="#d59a76" stroke="#b47b5d" stroke-width="1.6"/><path d="M99 131 Q113 126 119 141 L121 151 L108 156 L95 147 Z" class="avatar-arm-sleeve" fill="#fbfdff" stroke="#a5bdcd" stroke-width="1.3"/><ellipse class="avatar-arm-hand" cx="127" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/><path d="M120 147 L108 151" stroke="#27a6d6" stroke-width="1.25" fill="none" transform="translate(0 0)"/><path d="M120 147 L108 151" stroke="#eb5568" stroke-width="1.25" fill="none" transform="translate(0 0.8)"/><path d="M120 147 L108 151" stroke="#24354a" stroke-width="1.25" fill="none" transform="translate(0 1.6)"/><path d="M120 147 L108 151" stroke="#efc843" stroke-width="1.25" fill="none" transform="translate(0 2.4000000000000004)"/><path d="M120 147 L108 151" stroke="#49ab6f" stroke-width="1.25" fill="none" transform="translate(0 3.2)"/></g></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" class="avatar-back-fabric" fill="#fbfcff" stroke="#a7b9cc" stroke-width="1.7"/><path d="M55 166 Q80 170 105 166 L109 177 Q80 186 51 177 Z" fill="#344557" opacity=".75"/><text x="80" y="145" text-anchor="middle" font-size="10" fill="#273d52" font-weight="900">UAE</text><g class="champion-rainbow" clip-path="url(#acShirtClip)"><path d="M58 149 Q80 152 102 149" fill="none" stroke="#27a6d6" stroke-width="2.1"/><path d="M58 151.1 Q80 154.1 102 151.1" fill="none" stroke="#eb5568" stroke-width="2.1"/><path d="M58 153.2 Q80 156.2 102 153.2" fill="none" stroke="#24354a" stroke-width="2.1"/><path d="M58 155.3 Q80 158.3 102 155.3" fill="none" stroke="#efc843" stroke-width="2.1"/><path d="M58 157.4 Q80 160.4 102 157.4" fill="none" stroke="#49ab6f" stroke-width="2.1"/></g><g class="avatar-rear-pockets"><path d="M57 162 Q80 166 103 162 L101 176 Q80 182 59 176 Z" fill="#dfe9ef" stroke="#819bac" stroke-width="1.1"/><path d="M72 166 V175 M88 166 V175" stroke="#7a98ae" fill="none" stroke-width="1.1"/></g></g></g>
-<g class="outfit-scene outfit-hot" data-kit="hot"><path class="avatar-leg-skin" d="M56 179 L79 179 L75 229 H57 Z M83 179 H103 L104 229 H89 Z" fill="#d59a76" stroke="#bc7b5c" stroke-width="1.3"/><path d="M55 173 Q80 169 105 173 L104 200 L85 201 L83 181 L79 181 L77 201 L56 200 Z" class="avatar-bib-shorts" fill="#171b26" stroke="#101523" stroke-width="1.6"/><path d="M56 197 Q67 201 77 198 M86 198 Q96 201 104 197" class="avatar-bib-grippers" stroke="#515b67" stroke-width="1.1" fill="none"/><g class="avatar-bib-cargo"><path d="M56 181 L65 183 L65 195 L56 196 Z M95 183 L104 181 L104 196 L95 195 Z" fill="#232937" stroke="#52606a" stroke-width=".8"/></g><g class="avatar-socks"><path d="M56 215 L76 215 L75 229 L56 229 Z M88 215 L106 215 L106 229 L89 229 Z" fill="#fafcff" stroke="#c1ccd9" stroke-width="1"/><path d="M56 216 H76 M88 216 H106" stroke="#b1bbc8" stroke-width="1.3" fill="none"/><path d="M64 224 H70 M94 224 H100" stroke="#b1bdc7" stroke-width="1" fill="none"/></g><g class="avatar-road-shoes"><path d="M50 226 Q57 220 72 224 L78 231 Q79 236 69 237 H48 Q42 233 50 226 Z M89 224 Q104 221 111 228 Q119 234 111 237 H91 Q83 236 89 224 Z" fill="#f9fbff" stroke="#8196ab" stroke-width="1.8"/><path d="M48 234 Q62 237 77 234 M87 234 Q101 237 113 234" fill="none" stroke="#222e3b" stroke-width="2.3"/><path d="M56 227 L70 231 M91 230 L104 227" fill="none" stroke="#303b46" stroke-width="1.8"/><path d="M60 228 L68 230 M95 230 L102 228" fill="none" stroke="#a2b0ba" stroke-width="1.1"/></g><g class="avatar-arms"><g class="avatar-arm-left"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z" class="avatar-arm-base" fill="#d59a76" stroke="#b47b5d" stroke-width="1.6"/><ellipse class="avatar-arm-hand" cx="33" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/></g><g class="avatar-arm-right"><path d="M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" class="avatar-arm-base" fill="#d59a76" stroke="#b47b5d" stroke-width="1.6"/><ellipse class="avatar-arm-hand" cx="127" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/></g></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" class="avatar-back-fabric" fill="#fbfdff" stroke="#a7b9cc" stroke-width="1.7"/><path d="M60 127 L72 126 L79 144 Q80 147 81 144 L88 126 L100 127 L103 169 Q80 184 57 169 Z" class="avatar-bib-back-panel" fill="#1b1f2b" stroke="#121722" stroke-width="1.2"/><ellipse class="avatar-bib-back-mesh" cx="80" cy="152" rx="12" ry="16.5" fill="#fbfdff" stroke="#e1e6ee" stroke-width="1.1"/><text x="80" y="176" text-anchor="middle" fill="#cbd8e2" font-size="5.5" font-weight="700">PISSEI</text></g></g>
-<g class="avatar-shoe-covers" aria-label="슈커버">
- <path d="M54 213 Q64 211 74 217 L76 226 Q81 231 78 236 Q66 240 47 237 Q41 234 46 226 L51 220 Z" fill="#20344a" stroke="#101e2d" stroke-width="1.7" stroke-linejoin="round"/>
- <path d="M88 217 Q99 212 109 219 L113 226 Q119 231 115 236 Q104 240 89 237 Q83 232 86 225 Z" fill="#20344a" stroke="#101e2d" stroke-width="1.7" stroke-linejoin="round"/>
- <path d="M53 218 L57 228 M104 219 L108 228" stroke="#7d9db6" stroke-width="2" stroke-linecap="round"/>
- <path d="M49 233 Q61 237 76 233 M89 233 Q102 237 114 233" fill="none" stroke="#b2d9e7" stroke-width="1.6" stroke-linecap="round"/>
-</g>
-<g class="avatar-back-head">
+<g class="outfit-scene outfit-hot" data-kit="hot"><path class="avatar-leg-skin" d="M56 179 L79 179 L75 229 H57 Z M83 179 H103 L104 229 H89 Z" fill="#d59a76" stroke="#bc7b5c" stroke-width="1.3"/><path d="M55 173 Q80 169 105 173 L104 200 L85 201 L83 181 L79 181 L77 201 L56 200 Z" class="avatar-bib-shorts" fill="#171b26" stroke="#101523" stroke-width="1.6"/><path d="M56 197 Q67 201 77 198 M86 198 Q96 201 104 197" class="avatar-bib-grippers" stroke="#515b67" stroke-width="1.1" fill="none"/><g class="avatar-bib-cargo"><path d="M56 181 L65 183 L65 195 L56 196 Z M95 183 L104 181 L104 196 L95 195 Z" fill="#232937" stroke="#52606a" stroke-width=".8"/></g><g class="avatar-socks"><path d="M56 215 L76 215 L75 229 L56 229 Z M88 215 L106 215 L106 229 L89 229 Z" fill="#fafcff" stroke="#c1ccd9" stroke-width="1"/><path d="M56 216 H76 M88 216 H106" stroke="#b1bbc8" stroke-width="1.3" fill="none"/><path d="M64 224 H70 M94 224 H100" stroke="#b1bdc7" stroke-width="1" fill="none"/></g><g class="avatar-road-shoes"><path d="M50 226 Q57 220 72 224 L78 231 Q79 236 69 237 H48 Q42 233 50 226 Z M89 224 Q104 221 111 228 Q119 234 111 237 H91 Q83 236 89 224 Z" fill="#f9fbff" stroke="#8196ab" stroke-width="1.8"/><path d="M48 234 Q62 237 77 234 M87 234 Q101 237 113 234" fill="none" stroke="#222e3b" stroke-width="2.3"/><path d="M56 227 L70 231 M91 230 L104 227" fill="none" stroke="#303b46" stroke-width="1.8"/><path d="M60 228 L68 230 M95 230 L102 228" fill="none" stroke="#a2b0ba" stroke-width="1.1"/></g><g class="avatar-arms"><g class="avatar-arm-left"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z" class="avatar-arm-base" fill="#d59a76" stroke="#b47b5d" stroke-width="1.6"/><ellipse class="avatar-arm-hand" cx="33" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/></g><g class="avatar-arm-right"><path d="M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" class="avatar-arm-base" fill="#d59a76" stroke="#b47b5d" stroke-width="1.6"/><ellipse class="avatar-arm-hand" cx="127" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/></g></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" class="avatar-back-fabric" fill="#fbfdff" stroke="#a7b9cc" stroke-width="1.7"/><path d="M60 127 L72 126 L79 144 Q80 147 81 144 L88 126 L100 127 L103 169 Q80 184 57 169 Z" class="avatar-bib-back-panel" fill="#1b1f2b" stroke="#121722" stroke-width="1.2"/><ellipse class="avatar-bib-back-mesh" cx="80" cy="152" rx="12" ry="16.5" fill="#fbfdff" stroke="#e1e6ee" stroke-width="1.1"/><text x="80" y="176" text-anchor="middle" fill="#cbd8e2" font-size="5.5" font-weight="700">PISSEI</text></g></g> <g class="avatar-back-head">
   <rect x="73" y="114" width="14" height="16" rx="7" fill="#c98e70"/>
   <ellipse cx="35" cy="80" rx="8" ry="11" fill="#d4a082"/><ellipse cx="125" cy="80" rx="8" ry="11" fill="#d4a082"/>
   <path d="M30 66 Q30 25 80 19 Q130 25 130 66 L129 97 Q125 133 80 134 Q35 133 31 97 Z" fill="#513a2f" stroke="#493329" stroke-width="2"/>
   <path d="M36 66 Q38 35 55 30 Q77 17 101 29 Q120 37 124 66 M44 95 Q80 107 116 95" stroke="#614536" fill="none" stroke-width="5" stroke-linecap="round"/>
   <path d="M56 119 Q80 126 104 119" fill="none" stroke="#674c3c" stroke-width="3" stroke-linecap="round"/>
-  <!-- Matching gray fleece gaiter on the rear head and neck. -->
-  <g class="avatar-neck-warmer" aria-label="회색 넥워머 뒷모습">
-    <path d="M34 94 Q80 89 126 94 C130 110 124 126 112 138 L103 149 Q80 158 57 149 L48 138 C36 126 30 110 34 94 Z" fill="#777d84" stroke="#50565e" stroke-width="1.7" stroke-linejoin="round"/>
-    <path d="M35 95 Q80 89 125 95" fill="none" stroke="#b6bbc0" stroke-width="2.6" stroke-linecap="round"/>
-    <path d="M40 109 Q55 115 61 130 M120 109 Q105 117 100 132" fill="none" stroke="#5f656d" stroke-width="2.4" stroke-linecap="round"/>
-    <path d="M80 100 Q84 119 80 145 M48 124 Q60 139 71 146 M111 124 Q99 139 89 146" fill="none" stroke="#a0a6ad" stroke-width="1.2" stroke-linecap="round" opacity=".62"/>
-    <path d="M59 148 Q80 153 101 148" fill="none" stroke="#646a71" stroke-width="1.2" stroke-linecap="round"/>
-   </g>
  </g></g>
 </svg>
-  
-  <button class="avatar-turn" type="button" id="avatarTurn" aria-label="캐릭터 뒷모습 보기" aria-pressed="false">↻</button>
+  <input type="checkbox" switch id="avatarHaptic" class="avatar-haptic-switch" aria-label="라이더 캐릭터 터치 반응">
   <div class="avatar-outfit" id="avatarOutfit">간절기 라이딩 복장</div>
-  <input type="checkbox" switch id="avatarHaptic" class="avatar-haptic-switch" aria-label="라이더 캐릭터 터치 및 햅틱">
+  <button class="avatar-turn" type="button" id="avatarTurn" aria-label="캐릭터 뒷모습 보기" aria-pressed="false">↻</button>
 </div></div>
     <div class="now-outfit-plan" aria-live="polite"><strong id="nowOutfitRange">당일 최저·최고기온 확인 중</strong><span id="nowOutfitTip">기온 변화에 맞는 라이딩 복장을 준비합니다.</span></div>
     <div class="now-stats" aria-label="현재 시간대 상세 기상 지표">
@@ -1089,55 +984,31 @@ function renderForecast(json){
 }
 
 
-// Rapha-inspired seasonal clothing bands, °C. Recommendations are adjustable heuristics.
+// 하루 최저·최고기온을 모두 반영하되, 추운 출발 시간대를 조금 더 보수적으로 반영합니다.
 function riderOutfitTier(temp){
  if(!Number.isFinite(temp))return 'mild';
- return temp<6?'winter':temp<12?'cold':temp<18?'cool':temp<25?'mild':'hot';
+ return temp<5?'winter':temp<13?'cold':temp<19?'cool':temp<27?'mild':'hot';
 }
-// The avatar describes what to wear NOW: current air temperature selects the base kit,
-// feels-like temperature controls extra insulation. The daily low is a fallback only.
-function riderColdAccessories(low,currentTemp,feelsTemp){
- const hasCurrent=Number.isFinite(currentTemp)||Number.isFinite(feelsTemp);
- if(!hasCurrent)return {
-  neckWarmer:Number.isFinite(low)&&low<=6,
-  shoeCovers:Number.isFinite(low)&&low<=3
- };
- return {
-  neckWarmer:(Number.isFinite(currentTemp)&&currentTemp<=7)||(Number.isFinite(feelsTemp)&&feelsTemp<=5),
-  shoeCovers:(Number.isFinite(currentTemp)&&currentTemp<=5)||(Number.isFinite(feelsTemp)&&feelsTemp<=2)
- };
-}
-function riderOutfitPlan(low,high,currentTemp,feelsTemp){
- const accessories=riderColdAccessories(low,currentTemp,feelsTemp);
- const extraNames=[accessories.neckWarmer?'넥워머':null,accessories.shoeCovers?'슈커버':null].filter(Boolean);
- const extraLabel=extraNames.length?' · '+extraNames.join(' · '):'';
- const shortLabels={
-  winter:'방한 재킷 · 기모 빕 타이츠',
-  cold:'긴팔 저지 · 방풍 질렛\n긴 빕 타이츠',
-  cool:'긴팔 저지 · 빕숏',
-  mild:'반팔 저지 · 빕숏',
-  hot:'메쉬 저지 · 카고 빕숏'
- };
+function riderOutfitPlan(low,high,currentTemp){
  const labels={
-  winter:'방한 재킷 · 기모 빕 타이츠 · 방한 장갑',
-  cold:'긴팔 저지 · 방풍 질렛 · 긴 빕 타이츠',
+  winter:'방한 재킷 · 기모 타이츠 · 방한 장갑',
+  cold:'긴팔 저지 · 방풍 질렛 · 긴 타이츠',
   cool:'긴팔 저지 · 빕숏',
   mild:'반팔 저지 · 빕숏',
   hot:'메쉬 베이스레이어 · 카고 빕숏'
  };
  const hasDaily=Number.isFinite(low)&&Number.isFinite(high)&&low<=high;
  if(!hasDaily){
-  const tier=riderOutfitTier(Number.isFinite(currentTemp)?currentTemp:feelsTemp);
-  return {tier,label:labels[tier]+extraLabel,caption:shortLabels[tier]+(extraNames.length?'\n'+extraNames.join(' · '):''),range:'당일 최저·최고기온 자료 없음',
-   tip:(extraNames.length?'추운 시간대 '+extraNames.join('·')+'를 착용하세요. ':'')+
-    (Number.isFinite(currentTemp)?'현재 시간대 기온으로 임시 추천합니다.':'기온 자료 확인 후 착장을 추천합니다.'),
-   ...accessories};
+  const tier=riderOutfitTier(currentTemp);
+  return {tier,label:labels[tier],range:'당일 최저·최고기온 자료 없음',
+   tip:Number.isFinite(currentTemp)?'현재 시간대 기온으로 임시 추천합니다.':'기온 자료 확인 후 착장을 추천합니다.'};
  }
  const spread=high-low;
- // Current conditions take precedence; a cold overnight low must not force winter clothes at noon.
- const planningTemp=Number.isFinite(currentTemp)?currentTemp:
-  Number.isFinite(feelsTemp)?feelsTemp:low*0.4+high*0.6;
- const tier=riderOutfitTier(planningTemp);
+ const planningTemp=low*0.6+high*0.4;
+ let tier=riderOutfitTier(planningTemp);
+ // 영하 시간대 또는 더운 낮이 확실한 경우 필요한 방한·방열 조건을 우선합니다.
+ if(low<=0)tier='winter';
+ else if(high>=30&&low>=18)tier='hot';
  let tip;
  if(tier==='winter'){
   tip=high>=15?'추운 시간대에는 방한 우선 · 낮에 따뜻해지면 재킷을 벗거나 복장을 교체하세요.':
@@ -1157,17 +1028,10 @@ function riderOutfitPlan(low,high,currentTemp,feelsTemp){
   tip=low<20?'이른 시간에는 얇은 방풍 레이어를 준비하고, 야외 라이딩에는 통풍 저지를 덧입으세요.':
    '야외 라이딩 시 통풍 저지를 겉에 착용하고 수분·전해질을 보충하세요.';
  }
- if(extraNames.length)tip='현재 저온 조건에 '+extraNames.join('·')+'를 추가하세요. '+tip;
- if((Number.isFinite(currentTemp)||Number.isFinite(feelsTemp))&&low<=6&&
-    (!accessories.neckWarmer||!accessories.shoeCovers)){
-  const morningExtras=[low<=6&&!accessories.neckWarmer?'넥워머':null,
-   low<=3&&!accessories.shoeCovers?'슈커버':null].filter(Boolean);
-  if(morningExtras.length)tip+=' 이른 아침에는 '+morningExtras.join('·')+'도 준비하세요.';
- }
  return {
-  tier,label:labels[tier]+extraLabel,caption:shortLabels[tier]+(extraNames.length?'\n'+extraNames.join(' · '):''),
+  tier,label:labels[tier],
   range:'오늘 최저 '+low.toFixed(1)+'° · 최고 '+high.toFixed(1)+'°'+(spread>=10?' · 일교차 '+spread.toFixed(1)+'°':''),
-  tip,...accessories
+  tip
  };
 }
 function syncRiderView(avatar){
@@ -1182,22 +1046,17 @@ function syncRiderView(avatar){
   turn.setAttribute('aria-label',isBack?'캐릭터 정면 보기':'캐릭터 뒷모습 보기');
   turn.setAttribute('aria-pressed',String(isBack));
  }
- const outfitEl=document.getElementById('avatarOutfit');
- const currentOutfit=outfitEl?.dataset.fullLabel||outfitEl?.textContent||'라이딩 복장';
+ const currentOutfit=document.getElementById('avatarOutfit')?.textContent||'라이딩 복장';
  avatar.setAttribute('aria-label',(isBack?'라이더 뒷모습':'라이더 정면')+' · '+currentOutfit);
 }
-function updateRiderOutfit(low,high,currentTemp,feelsTemp){
+function updateRiderOutfit(low,high,currentTemp){
  const avatar=document.getElementById('riderAvatar');
  const label=document.getElementById('avatarOutfit');
  const stage=avatar?.closest('.avatar-stage');
  if(!avatar||!label||!stage)return;
- const plan=riderOutfitPlan(low,high,currentTemp,feelsTemp);
+ const plan=riderOutfitPlan(low,high,currentTemp);
  stage.dataset.outfit=plan.tier;
- stage.dataset.neckWarmer=String(plan.neckWarmer);
- stage.dataset.shoeCovers=String(plan.shoeCovers);
- label.textContent=plan.caption;
- label.dataset.fullLabel=plan.label;
- label.title=plan.label;
+ label.textContent=plan.label;
  syncRiderView(avatar);
  const range=document.getElementById('nowOutfitRange');
  const tip=document.getElementById('nowOutfitTip');
@@ -1206,7 +1065,7 @@ function updateRiderOutfit(low,high,currentTemp,feelsTemp){
 }
 let riderStartleTimer;
 function riderTapFeedback(){
- // Android may vibrate; iOS Safari does not expose a general-purpose vibration API.
+ // Keep native iOS switch haptics and Android vibration.
  if(typeof navigator.vibrate==='function')navigator.vibrate(12);
  const avatar=document.getElementById('riderAvatar');
  if(!avatar)return;
@@ -1219,15 +1078,6 @@ function riderTapFeedback(){
 }
 document.addEventListener('DOMContentLoaded',()=>{
  const button=document.getElementById('avatarTurn'),avatar=document.getElementById('riderAvatar');
- const riderStage=avatar?.closest('.avatar-stage');
- riderStage?.addEventListener('click',(event)=>{
-  // Event delegation survives overlay/layout changes on mobile Safari.
-  // Only the illustration and its transparent hit target should trigger a reaction.
-  if(event.target.closest('#avatarTurn, #avatarOutfit'))return;
-  const hit=event.target.closest('#riderAvatar');
-  if(hit)riderTapFeedback();
- });
- // Native iOS switch toggles supply haptics where supported, and trigger the pose.
  document.getElementById('avatarHaptic')?.addEventListener('change',riderTapFeedback);
  button?.addEventListener('click',()=>{
   if(!avatar)return;
@@ -1262,7 +1112,7 @@ function renderNowPanel(json){
  const todayIndex=Array.isArray(d?.time)?d.time.indexOf(clock.date):-1;
  const todayLow=todayIndex>=0&&Array.isArray(d?.temperature_2m_min)?d.temperature_2m_min[todayIndex]:null;
  const todayHigh=todayIndex>=0&&Array.isArray(d?.temperature_2m_max)?d.temperature_2m_max[todayIndex]:null;
- updateRiderOutfit(todayLow,todayHigh,temp,feels);
+ updateRiderOutfit(todayLow,todayHigh,temp);
  el('nowFeels').textContent='체감온도 '+(feels===null?'--':feels.toFixed(1))+'°';
  el('nowRain').textContent=rain===null?'-- mm':rain.toFixed(1)+' mm';
  el('nowHumidity').textContent=humidity===null?'--%':Math.round(humidity)+'%';
