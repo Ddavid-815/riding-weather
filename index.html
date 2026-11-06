@@ -251,7 +251,13 @@ main{max-width:800px}
    the caption can expand to three or more lines without obscuring the rider's feet. */
 .avatar-stage{height:auto;min-height:0;flex-direction:column;align-items:center;justify-content:flex-start;padding-bottom:3px;overflow:visible}
 .avatar-stage .rider-avatar{position:relative;bottom:auto;display:block;flex:none;width:min(158px,100%);height:auto;aspect-ratio:160/255;overflow:visible}
-.avatar-stage .avatar-outfit{position:relative;bottom:auto;left:auto;transform:none;flex:none;width:calc(100% - 4px);max-width:210px;margin-top:16px;overflow:visible;text-overflow:clip}
+/* Outfit label has its own grid row outside the avatar and cannot overlap the weather advice. */
+.now-panel .now-main{height:auto;min-height:0;align-items:center;margin-bottom:8px}
+.now-panel .avatar-stage{flex:0 0 47%;align-self:center}
+.avatar-outfit-row{display:flex;justify-content:flex-end;align-items:center;min-height:0;margin:0 0 12px;padding-right:0;clear:both}
+.avatar-outfit-row .avatar-outfit{position:static;bottom:auto;left:auto;transform:none;box-sizing:border-box;width:47%;max-width:230px;margin:0;overflow-wrap:anywhere;white-space:pre-line;text-overflow:clip;line-height:1.45;z-index:auto}
+.now-panel .now-outfit-plan{margin:0 0 12px;position:relative;clear:both}
+@media(max-width:460px){.avatar-outfit-row .avatar-outfit{width:47%;font-size:10px;padding:7px 8px}}
 .avatar-head{transform-origin:80px 118px;animation:avatar-look 5.3s ease-in-out infinite}
 .avatar-torso{animation:avatar-breathe 3.2s ease-in-out infinite;transform-origin:80px 154px}
 /* The avatar tap surface covers the illustration only, never the caption. */
@@ -517,9 +523,9 @@ main{max-width:800px}
  </g></g>
 </svg>
   <input type="checkbox" switch id="avatarHaptic" class="avatar-haptic-switch" aria-label="라이더 캐릭터 터치 반응">
-  <div class="avatar-outfit" id="avatarOutfit">간절기 라이딩 복장</div>
   <button class="avatar-turn" type="button" id="avatarTurn" aria-label="캐릭터 뒷모습 보기" aria-pressed="false">↻</button>
 </div></div>
+    <div class="avatar-outfit-row"><div class="avatar-outfit" id="avatarOutfit">간절기 라이딩 복장</div></div>
     <div class="now-outfit-plan" aria-live="polite"><strong id="nowOutfitRange">당일 최저·최고기온 확인 중</strong><span id="nowOutfitTip">기온 변화에 맞는 라이딩 복장을 준비합니다.</span></div>
     <div class="now-stats" aria-label="현재 시간대 상세 기상 지표">
       <div class="now-stat"><span class="now-stat-label">🌧️ 시간 강수량</span><strong id="nowRain" class="now-stat-value">-- mm</strong></div>
