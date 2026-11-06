@@ -247,15 +247,19 @@ main{max-width:800px}
 @media(prefers-reduced-motion:reduce){.avatar-bob,.avatar-torso,.avatar-head,.avatar-leftarm,.avatar-rightarm,.avatar-ground,.avatar-halo{animation:none}}
 /* Warm village-life game character proportions */
 .rider-avatar{height:228px;width:158px;filter:drop-shadow(0 8px 6px #0b24524d)}
-/* Keep shoes and socks visible above the outfit caption. */
-.avatar-stage .rider-avatar{bottom:50px}
-.avatar-stage{height:278px}
+/* Flow layout fixes the shoe/label collision. SVG and caption occupy distinct rows;
+   the caption can expand to three or more lines without obscuring the rider's feet. */
+.avatar-stage{height:auto;min-height:0;flex-direction:column;align-items:center;justify-content:flex-start}
+.avatar-stage .rider-avatar{position:relative;bottom:auto;display:block;flex:none;width:min(158px,100%);height:auto;aspect-ratio:160/255}
+.avatar-stage .avatar-outfit{position:relative;bottom:auto;left:auto;transform:none;flex:none;width:calc(100% - 4px);max-width:210px;margin-top:12px}
 .avatar-head{transform-origin:80px 118px;animation:avatar-look 5.3s ease-in-out infinite}
 .avatar-torso{animation:avatar-breathe 3.2s ease-in-out infinite;transform-origin:80px 154px}
-@media(max-width:460px){.avatar-stage{height:260px}.rider-avatar{height:214px;width:148px}}
-/* Keep the invisible tap target over the character, never over the wrapping outfit label. */
-.avatar-stage .avatar-haptic-switch{bottom:50px;height:228px;width:min(158px,100%)}
-@media(max-width:460px){.avatar-stage .avatar-haptic-switch{height:214px}}
+/* The avatar tap surface covers the illustration only, never the caption. */
+.avatar-stage .avatar-haptic-switch{top:0;bottom:auto;width:min(158px,100%);height:auto;aspect-ratio:160/255}
+@media(max-width:460px){
+ .avatar-stage{height:auto;min-height:0}
+ .avatar-stage .rider-avatar,.avatar-stage .avatar-haptic-switch{width:min(148px,100%)}
+}
 /* Actual front/back view, not horizontal mirroring */
 .avatar-back-view{display:none}
 .rider-avatar.avatar-back-active{transform:none}
@@ -474,15 +478,15 @@ main{max-width:800px}
   <ellipse cx="46" cy="102" rx="9" ry="4" fill="#ef958e" opacity=".32"/><ellipse cx="114" cy="102" rx="9" ry="4" fill="#ef958e" opacity=".32"/>
   <path d="M50 67 Q59 62 67 67 M93 67 Q101 62 110 67" fill="none" stroke="#543a35" stroke-width="2.1" stroke-linecap="round"/>
  </g>
-  <!-- Black fleece neck gaiter; high enough to cover nose and mouth, below the eyes. -->
-  <g class="avatar-neck-warmer" aria-label="코와 입을 덮는 검정 넥워머">
-   <path d="M42 93 Q80 89 118 94 C121 110 116 124 108 132 L101 145 Q80 150 59 145 L52 132 C44 123 39 107 42 93 Z" fill="#15171b" stroke="#0b0d11" stroke-width="1.7" stroke-linejoin="round"/>
-   <path d="M43 93 Q80 89 118 94" fill="none" stroke="#414247" stroke-width="2.5" stroke-linecap="round"/>
-   <path d="M48 105 Q59 110 62 122 Q68 131 72 140 M111 105 Q102 116 100 127 L94 140" fill="none" stroke="#34363c" stroke-width="2.6" stroke-linecap="round" opacity=".8"/>
-   <path d="M51 119 Q66 125 69 137 M110 119 Q96 130 93 140 M68 145 Q80 147 95 144" fill="none" stroke="#515258" stroke-width="1.1" stroke-linecap="round" opacity=".56"/>
-   <path d="M118 98 L123 99 M118 103 L125 105" fill="none" stroke="#33373d" stroke-width="1.5" stroke-linecap="round"/>
-   <circle cx="120" cy="100" r="2.4" fill="#0c0e12" stroke="#55575a" stroke-width=".8"/>
-  </g>
+  <!-- Wide charcoal-gray fleece gaiter: cheek-to-cheek coverage, eyes unobstructed. -->
+  <g class="avatar-neck-warmer" aria-label="코와 입을 덮는 회색 넥워머">
+    <path d="M34 94 Q80 87 126 94 C131 111 124 126 112 138 L103 149 Q80 158 57 149 L48 138 C36 126 29 110 34 94 Z" fill="#777d84" stroke="#50565e" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M35 94 Q80 87 125 94" fill="none" stroke="#b6bbc0" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M39 106 Q52 111 59 125 Q64 135 71 145 M121 106 Q108 115 102 129 L94 145" fill="none" stroke="#5f656d" stroke-width="2.4" stroke-linecap="round" opacity=".87"/>
+    <path d="M43 122 Q60 132 66 142 M116 121 Q100 132 94 143 M59 148 Q80 153 102 148" fill="none" stroke="#a0a6ad" stroke-width="1.2" stroke-linecap="round" opacity=".62"/>
+    <path d="M124 99 L130 100 M124 104 L131 106" fill="none" stroke="#656a71" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="126" cy="101" r="2.1" fill="#575d64" stroke="#b4bbc1" stroke-width=".8"/>
+   </g>
  </g>
  </g>
 <g class="avatar-back-view" aria-hidden="true"><g class="outfit-scene outfit-winter" data-kit="winter"><path d="M56 177 H79 L76 228 H56 Z M83 177 H103 L106 228 H89 Z" class="avatar-tights" fill="#17283d" stroke="#14243b" stroke-width="1.4"/><g class="avatar-road-shoes"><path d="M50 226 Q57 220 72 224 L78 231 Q79 236 69 237 H48 Q42 233 50 226 Z M89 224 Q104 221 111 228 Q119 234 111 237 H91 Q83 236 89 224 Z" fill="#f9fbff" stroke="#8196ab" stroke-width="1.8"/><path d="M48 234 Q62 237 77 234 M87 234 Q101 237 113 234" fill="none" stroke="#222e3b" stroke-width="2.3"/><path d="M56 227 L70 231 M91 230 L104 227" fill="none" stroke="#303b46" stroke-width="1.8"/><path d="M60 228 L68 230 M95 230 L102 228" fill="none" stroke="#a2b0ba" stroke-width="1.1"/></g><g class="avatar-arms"><g class="avatar-arm-left"><path d="M61 131 Q46 125 41 141 L29 172 Q26 181 36 183 L49 170 L65 147 Z" class="avatar-arm-base" fill="#4b708e" stroke="#a5bed0" stroke-width="1.6"/><ellipse class="avatar-arm-hand" cx="33" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/><path d="M29 169 L41 173" stroke="#243c55" stroke-width="3" fill="none"/><path d="M28 175 Q33 172 40 176 L40 185 L29 185 Z" fill="#1e303e" stroke="#172330" stroke-width="1"/></g><g class="avatar-arm-right"><path d="M99 131 Q114 125 119 141 L131 172 Q134 181 124 183 L111 170 L95 147 Z" class="avatar-arm-base" fill="#4b708e" stroke="#a5bed0" stroke-width="1.6"/><ellipse class="avatar-arm-hand" cx="127" cy="179" rx="8.2" ry="8.5" fill="#d59a76"/><path d="M119 173 L131 169" stroke="#243c55" stroke-width="3" fill="none"/><path d="M120 176 Q127 172 132 176 L131 185 L120 185 Z" fill="#1e303e" stroke="#172330" stroke-width="1"/></g></g><g class="avatar-torso"><path d="M63 125 Q80 120 99 125 L109 177 Q80 187 51 177 Z" class="avatar-back-fabric" fill="#4b708e" stroke="#a7b9cc" stroke-width="1.7"/><path d="M60 140 Q80 147 100 140" fill="none" stroke="#97b6cd" stroke-width="1.4"/><text x="80" y="156" text-anchor="middle" font-size="9" fill="#fff" font-weight="900">UAE</text><g class="avatar-rear-pockets"><path d="M57 162 Q80 166 103 162 L101 176 Q80 182 59 176 Z" fill="#416481" stroke="#819bac" stroke-width="1.1"/><path d="M72 166 V175 M88 166 V175" stroke="#7a98ae" fill="none" stroke-width="1.1"/></g></g></g>
@@ -502,14 +506,14 @@ main{max-width:800px}
   <path d="M30 66 Q30 25 80 19 Q130 25 130 66 L129 97 Q125 133 80 134 Q35 133 31 97 Z" fill="#513a2f" stroke="#493329" stroke-width="2"/>
   <path d="M36 66 Q38 35 55 30 Q77 17 101 29 Q120 37 124 66 M44 95 Q80 107 116 95" stroke="#614536" fill="none" stroke-width="5" stroke-linecap="round"/>
   <path d="M56 119 Q80 126 104 119" fill="none" stroke="#674c3c" stroke-width="3" stroke-linecap="round"/>
-  <!-- Matching rear black fabric drape over neck and lower hairline. -->
-  <g class="avatar-neck-warmer" aria-label="검정 넥워머 뒷모습">
-   <path d="M42 93 Q80 91 118 93 C121 109 116 124 108 133 L101 145 Q80 150 59 145 L52 133 C44 123 39 108 42 93 Z" fill="#15171b" stroke="#0b0d11" stroke-width="1.7" stroke-linejoin="round"/>
-   <path d="M43 94 Q80 92 117 94" fill="none" stroke="#414247" stroke-width="2.5" stroke-linecap="round"/>
-   <path d="M51 105 Q63 113 65 130 M110 107 Q100 116 97 133" fill="none" stroke="#37393e" stroke-width="2.6" stroke-linecap="round"/>
-   <path d="M79 99 Q83 117 79 140 M56 125 Q67 136 75 141 M103 125 Q94 138 85 143" fill="none" stroke="#515258" stroke-width="1.1" stroke-linecap="round" opacity=".56"/>
-   <path d="M62 144 Q80 148 98 144" fill="none" stroke="#383b40" stroke-width="1.2" stroke-linecap="round"/>
-  </g>
+  <!-- Matching gray fleece gaiter on the rear head and neck. -->
+  <g class="avatar-neck-warmer" aria-label="회색 넥워머 뒷모습">
+    <path d="M34 94 Q80 89 126 94 C130 110 124 126 112 138 L103 149 Q80 158 57 149 L48 138 C36 126 30 110 34 94 Z" fill="#777d84" stroke="#50565e" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M35 95 Q80 89 125 95" fill="none" stroke="#b6bbc0" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M40 109 Q55 115 61 130 M120 109 Q105 117 100 132" fill="none" stroke="#5f656d" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M80 100 Q84 119 80 145 M48 124 Q60 139 71 146 M111 124 Q99 139 89 146" fill="none" stroke="#a0a6ad" stroke-width="1.2" stroke-linecap="round" opacity=".62"/>
+    <path d="M59 148 Q80 153 101 148" fill="none" stroke="#646a71" stroke-width="1.2" stroke-linecap="round"/>
+   </g>
  </g></g>
 </svg>
   <input type="checkbox" switch id="avatarHaptic" class="avatar-haptic-switch" aria-label="라이더 캐릭터 터치 반응">
@@ -1022,17 +1026,23 @@ function renderForecast(json){
 }
 
 
-// 하루 최저·최고기온을 모두 반영하되, 추운 출발 시간대를 조금 더 보수적으로 반영합니다.
+// Rapha-inspired seasonal clothing bands, °C. Recommendations are adjustable heuristics.
 function riderOutfitTier(temp){
  if(!Number.isFinite(temp))return 'mild';
- return temp<5?'winter':temp<13?'cold':temp<19?'cool':temp<27?'mild':'hot';
+ return temp<6?'winter':temp<12?'cold':temp<18?'cool':temp<25?'mild':'hot';
 }
-// Thresholds are practical clothing suggestions, not physiological safety limits.
+// The avatar describes what to wear NOW: current air temperature selects the base kit,
+// feels-like temperature controls extra insulation. The daily low is a fallback only.
 function riderColdAccessories(low,currentTemp,feelsTemp){
- const temps=[low,currentTemp,feelsTemp].filter(Number.isFinite);
- if(!temps.length)return {neckWarmer:false,shoeCovers:false};
- const coldest=Math.min(...temps);
- return {neckWarmer:coldest<=7,shoeCovers:coldest<=5};
+ const hasCurrent=Number.isFinite(currentTemp)||Number.isFinite(feelsTemp);
+ if(!hasCurrent)return {
+  neckWarmer:Number.isFinite(low)&&low<=7,
+  shoeCovers:Number.isFinite(low)&&low<=8
+ };
+ return {
+  neckWarmer:(Number.isFinite(currentTemp)&&currentTemp<=7)||(Number.isFinite(feelsTemp)&&feelsTemp<=5),
+  shoeCovers:(Number.isFinite(currentTemp)&&currentTemp<=8)||(Number.isFinite(feelsTemp)&&feelsTemp<=5)
+ };
 }
 function riderOutfitPlan(low,high,currentTemp,feelsTemp){
  const accessories=riderColdAccessories(low,currentTemp,feelsTemp);
@@ -1054,18 +1064,17 @@ function riderOutfitPlan(low,high,currentTemp,feelsTemp){
  };
  const hasDaily=Number.isFinite(low)&&Number.isFinite(high)&&low<=high;
  if(!hasDaily){
-  const tier=riderOutfitTier(currentTemp);
+  const tier=riderOutfitTier(Number.isFinite(currentTemp)?currentTemp:feelsTemp);
   return {tier,label:labels[tier]+extraLabel,caption:shortLabels[tier]+(extraNames.length?'\n'+extraNames.join(' · '):''),range:'당일 최저·최고기온 자료 없음',
    tip:(extraNames.length?'추운 시간대 '+extraNames.join('·')+'를 착용하세요. ':'')+
     (Number.isFinite(currentTemp)?'현재 시간대 기온으로 임시 추천합니다.':'기온 자료 확인 후 착장을 추천합니다.'),
    ...accessories};
  }
  const spread=high-low;
- const planningTemp=low*0.6+high*0.4;
- let tier=riderOutfitTier(planningTemp);
- // 영하 시간대 또는 더운 낮이 확실한 경우 필요한 방한·방열 조건을 우선합니다.
- if(low<=0)tier='winter';
- else if(high>=30&&low>=18)tier='hot';
+ // Current conditions take precedence; a cold overnight low must not force winter clothes at noon.
+ const planningTemp=Number.isFinite(currentTemp)?currentTemp:
+  Number.isFinite(feelsTemp)?feelsTemp:low*0.4+high*0.6;
+ const tier=riderOutfitTier(planningTemp);
  let tip;
  if(tier==='winter'){
   tip=high>=15?'추운 시간대에는 방한 우선 · 낮에 따뜻해지면 재킷을 벗거나 복장을 교체하세요.':
@@ -1085,7 +1094,13 @@ function riderOutfitPlan(low,high,currentTemp,feelsTemp){
   tip=low<20?'이른 시간에는 얇은 방풍 레이어를 준비하고, 야외 라이딩에는 통풍 저지를 덧입으세요.':
    '야외 라이딩 시 통풍 저지를 겉에 착용하고 수분·전해질을 보충하세요.';
  }
- if(extraNames.length)tip='추운 시간대 '+extraNames.join('·')+'를 추가하세요. '+tip;
+ if(extraNames.length)tip='현재 저온 조건에 '+extraNames.join('·')+'를 추가하세요. '+tip;
+ if((Number.isFinite(currentTemp)||Number.isFinite(feelsTemp))&&low<=8&&
+    (!accessories.neckWarmer||!accessories.shoeCovers)){
+  const morningExtras=[low<=7&&!accessories.neckWarmer?'넥워머':null,
+   low<=8&&!accessories.shoeCovers?'슈커버':null].filter(Boolean);
+  if(morningExtras.length)tip+=' 이른 아침에는 '+morningExtras.join('·')+'도 준비하세요.';
+ }
  return {
   tier,label:labels[tier]+extraLabel,caption:shortLabels[tier]+(extraNames.length?'\n'+extraNames.join(' · '):''),
   range:'오늘 최저 '+low.toFixed(1)+'° · 최고 '+high.toFixed(1)+'°'+(spread>=10?' · 일교차 '+spread.toFixed(1)+'°':''),
