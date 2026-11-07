@@ -27,6 +27,8 @@
     .quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
     .quick strong{font-size:13px;color:#526174}
     .quick button{background:#f1f5fa;color:#325985;border:1px solid #dce5f0;padding:7px 11px;min-height:34px;font-size:13px}
+    .quick button.recent-place-button{display:inline-block;max-width:min(220px,100%);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#e6effb;color:#205c98;border-color:#bad2ee}
+    .quick button.recent-place-button[hidden]{display:none}
     .status{padding:12px;background:#fff7e5;border-radius:10px;margin:12px 0;font-size:14px;line-height:1.5;white-space:pre-line}
     .status.ok{background:#e7f5eb;color:#176b32}
     .status.fail{background:#fff0ef;color:#a32c2c}
@@ -516,7 +518,7 @@ main{max-width:800px}
       <input id="placeInput" name="place" type="search" aria-label="날씨를 조회할 지역 이름" placeholder="예: 고흥, 경주, 서울, 제주" value="" enterkeyhint="search" maxlength="90" required>
       <button id="searchButton" type="submit">날씨 검색</button>
     </form>
-    <div class="quick"><strong>빠른 선택</strong><button type="button" id="currentLocationButton" aria-label="현재 위치의 날씨 다시 조회">📍 현재 위치</button><button type="button" data-place="서울">서울</button><button type="button" data-place="강릉">강릉</button><button type="button" data-place="부산">부산</button><button type="button" data-place="제주">제주</button><button type="button" data-place="대전">대전</button></div>
+    <div class="quick"><strong>빠른 선택</strong><button type="button" id="currentLocationButton" aria-label="현재 위치의 날씨 다시 조회">📍 현재 위치</button><button type="button" data-place="서울">서울</button><button type="button" data-place="강릉">강릉</button><button type="button" data-place="부산">부산</button><button type="button" data-place="제주">제주</button><button type="button" data-place="대전">대전</button><button type="button" id="recentPlaceButton" class="recent-place-button" hidden></button></div>
     <div id="results" class="results" aria-label="지역 검색 결과"><div class="results-head" id="resultsHead">지역을 선택하세요</div><div id="resultItems"></div></div>
     <div id="status" class="status compact-status" role="status" aria-live="polite">현재 위치 및 예보를 확인 중입니다.</div>
     <div class="compact-actions">
@@ -735,7 +737,7 @@ async function lookupForeignCity(city,query){
   });
   if(!usedFallback && (places.length===1 ||
       (simplified(places[0].name)===target && simplified(places[1]?.name)!==target))){
-    return selectPlace(places[0]);
+    return selectPlace(places[0],true);
   }
   showResults(places.slice(0,10),query);
   status(usedFallback?'해외 도시 보조 검색 결과입니다. 좌표를 확인하고 선택하세요. (© OpenStreetMap contributors)':
@@ -868,7 +870,7 @@ function showResults(places, query) {
     const btn=document.createElement('button');btn.type='button';btn.className='result';
     const title=document.createElement('span');title.textContent=placeLabel(p);
     const coords=document.createElement('small');coords.textContent=formatCoords(p);
-    btn.append(title,coords);btn.addEventListener('click',()=>selectPlace(p));items.appendChild(btn);
+    btn.append(title,coords);btn.addEventListener('click',()=>{locationSelectionSerial++;selectPlace(p,true);});items.appendChild(btn);
   });
   wrapper.style.display='block';
 }
@@ -1158,6 +1160,43 @@ function buildForecastUrl(p){
 }
 const DEFAULT_PLACE=LOCAL_PLACES.find(place=>place.name==='서울특별시');
 let selectedPlace=DEFAULT_PLACE, activeController=null, retryAction=null, operationId=0;
+
+// 최근 검색은 사용자가 직접 확정해 조회한 지역 1곳만 브라우저에 보관.
+// 자동 GPS 위치/권한 거부 시 기본 서울은 이력을 덮어쓰지 않습니다.
+const RECENT_PLACE_STORAGE_KEY='ridingWeather.recentSearchedPlace.v1';
+function normalizedRecentPlace(place){
+  if(!place || place.currentLocation || typeof place.name!=='string' || !place.name.trim())return null;
+  const lat=Number(place.latitude),lon=Number(place.longitude);
+  if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return null;
+  const safeString=v=>typeof v==='string'?v.slice(0,100):'';
+  return {
+    name:safeString(place.name),ko:safeString(place.ko),admin:safeString(place.admin),
+    country:safeString(place.country),countryCode:safeString(place.countryCode),
+    latitude:lat,longitude:lon,timezone:safeString(place.timezone)||'auto'
+  };
+}
+function loadRecentPlace(){
+  try{return normalizedRecentPlace(JSON.parse(localStorage.getItem(RECENT_PLACE_STORAGE_KEY)||'null'));}
+  catch(_){return null;}
+}
+let recentSearchedPlace=loadRecentPlace();
+function renderRecentPlaceButton(){
+  const button=el('recentPlaceButton');
+  button.hidden=!recentSearchedPlace;
+  if(!recentSearchedPlace)return;
+  button.textContent='🕘 최근 · '+(recentSearchedPlace.ko||recentSearchedPlace.name);
+  button.title='최근 검색: '+placeLabel(recentSearchedPlace);
+  button.setAttribute('aria-label','최근 검색 지역 '+placeLabel(recentSearchedPlace)+'의 날씨 조회');
+}
+function rememberRecentPlace(place){
+  const saved=normalizedRecentPlace(place);
+  if(!saved)return;
+  recentSearchedPlace=saved;
+  renderRecentPlaceButton();
+  try{localStorage.setItem(RECENT_PLACE_STORAGE_KEY,JSON.stringify(saved));}
+  catch(_){/* 저장소 사용 불가 환경에서는 현재 탭에서만 최근 검색 표시 */}
+}
+renderRecentPlaceButton();
 let hourlyForecast=null, previousModalFocus=null;
 let forecastTimeZone=null, forecastUtcOffsetSeconds=null;
 // 사용자가 직접 검색/지역 선택을 시작하면 대기 중인 자동 위치 탐지 결과로 덮어쓰지 않습니다.
@@ -1335,7 +1374,7 @@ async function requestJson(url, action, loadingText){
 }
 
 
-async function selectPlace(place){
+async function selectPlace(place,rememberRecent=false){
   closeHourlyModal();
   hourlyForecast=null;
   forecastTimeZone=null;
@@ -1351,11 +1390,12 @@ async function selectPlace(place){
   el('nowDesc').textContent='현재 시간대 예보 조회 중';
   const url=buildForecastUrl(place);
   el('source').href=url;
-  const action=()=>selectPlace(place);
+  const action=()=>selectPlace(place,rememberRecent);
   const json=await requestJson(url,action,placeLabel(place)+' · ECMWF IFS 예보 조회 중… (최대 10초)');
   if(!json)return false;
   try{
     const count=renderForecast(json);
+    if(rememberRecent && selectedPlace===place)rememberRecentPlace(place);
     status('✅ '+placeLabel(place)+' · '+count+'일 예보 조회 완료','ok');
     el('searchPanel').classList.add('search-collapsed');
     el('toggleSearch').setAttribute('aria-expanded','false');
@@ -1493,7 +1533,7 @@ async function searchPlace(query){
   if(!name){status('지역 이름을 입력해 주세요.','fail');el('placeInput').focus();return;}
   hideResults();
   const locals=matchingLocalPlaces(name);
-  if(locals.length===1)return selectPlace(locals[0]);
+  if(locals.length===1)return selectPlace(locals[0],true);
   if(locals.length>1){showResults(locals,name);status('동명이 지역이 있습니다. 정확한 지역을 선택하세요.');return;}
   const guesses=foreignSuggestions(name);
   if(guesses.length){
@@ -1559,7 +1599,7 @@ async function searchPlace(query){
     // 보조 검색 결과는 자동으로 확정하지 않음(동명이 지명/유사 이름 방지).
     if(places.length===1&&!fromPhoton){
       handedToForecast=true;
-      return selectPlace(places[0]);
+      return selectPlace(places[0],true);
     }
     showResults(places.slice(0,12),name);
     status(fromPhoton?'보조 지명 검색 결과입니다. 위치·좌표를 확인하고 선택하세요. (© OpenStreetMap contributors)':
@@ -1585,6 +1625,11 @@ document.querySelectorAll('[data-place]').forEach(button=>button.addEventListene
   el('placeInput').value=button.dataset.place;searchPlace(button.dataset.place);
 }));
 el('currentLocationButton').addEventListener('click',()=>{locationSelectionSerial++;locateCurrentWeather();});
+el('recentPlaceButton').addEventListener('click',()=>{
+  if(!recentSearchedPlace)return;
+  locationSelectionSerial++; // 대기 중인 자동 위치 확인이나 이전 검색 결과는 무효화
+  selectPlace({...recentSearchedPlace},true); // 저장 좌표로 직접 조회하여 동명이 지역 재검색 방지
+});
 el('dismiss').addEventListener('click',hideDialog);
 el('retryDialogButton').addEventListener('click',()=>{if(retryAction)retryAction();});
 initHourlyModalEvents();
