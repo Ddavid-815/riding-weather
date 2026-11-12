@@ -166,9 +166,25 @@
   .ko-model-label{font-size:9px}
   .ko-map-viewer{max-width:305px}
   .ko-map-svg{height:241px;margin-top:0}
-  .ko-zoom-controls{right:0;top:5px}
-  .ko-zoom-btn{min-width:31px;height:31px;font-size:19px}
-  .ko-zoom-reset{font-size:10px}
+  /* Mobile: four compact visual buttons in a 2×2 layout instead of a tall stack.
+     Each 36px button has a 44px touch hit area, without changing desktop controls. */
+  .ko-zoom-controls{
+    display:grid;grid-template-columns:repeat(2,36px);grid-template-rows:repeat(2,36px);
+    column-gap:8px;row-gap:8px;right:7px;top:7px
+  }
+  .ko-zoom-btn{
+    position:relative;box-sizing:border-box;
+    width:36px;min-width:36px;height:36px;min-height:36px;
+    padding:0 2px;border-radius:8px;font-size:19px;
+    touch-action:manipulation;-webkit-tap-highlight-color:transparent
+  }
+  .ko-zoom-btn::before{content:"";position:absolute;inset:-4px}
+  .ko-zoom-reset{font-size:9px;font-weight:800;letter-spacing:-.025em}
+  .ko-zoom-seoul{
+    width:36px;min-width:36px;height:36px;min-height:36px;
+    padding:2px 1px;font-size:9px;line-height:1.08;
+    white-space:normal;word-break:keep-all;text-align:center
+  }
   .ko-map-hint{font-size:9px}
   .ko-timebar{max-width:335px;margin-top:0}
   .ko-day-slider{height:30px}
