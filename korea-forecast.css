@@ -70,15 +70,21 @@
 .ko-province[data-level="medium"]{fill:#6caee0}
 .ko-province[data-level="heavy"]{fill:#3278b7}
 .ko-province[data-level="unknown"]{fill:#b9c9d7}
-.ko-map-symbol{text-anchor:middle;font-size:29px;pointer-events:none}
+.ko-map-symbol{text-anchor:middle;font-size:var(--ko-symbol-size,29px);pointer-events:none}
 .ko-map-label{
-  text-anchor:middle;font-size:19px;font-weight:850;fill:#214f79;
-  paint-order:stroke;stroke:#f6fbff;stroke-width:4;stroke-linejoin:round;pointer-events:none
+  text-anchor:middle;font-size:var(--ko-province-size,19px);font-weight:850;fill:#214f79;
+  paint-order:stroke;stroke:#f6fbff;stroke-width:var(--ko-text-stroke,4px);stroke-linejoin:round;pointer-events:none
 }
 .ko-map-mm{
-  text-anchor:middle;font-size:17px;font-weight:800;fill:#1b659e;
-  paint-order:stroke;stroke:#f5fbff;stroke-width:4;stroke-linejoin:round;pointer-events:none
+  text-anchor:middle;font-size:var(--ko-mm-size,17px);font-weight:800;fill:#1b659e;
+  paint-order:stroke;stroke:#f5fbff;stroke-width:var(--ko-text-stroke,4px);stroke-linejoin:round;pointer-events:none
 }
+.ko-city-label{
+  text-anchor:middle;font-size:var(--ko-city-size,27px);font-weight:800;
+  fill:#1e5279;paint-order:stroke;stroke:#f8fcff;
+  stroke-width:var(--ko-text-stroke,4px);stroke-linejoin:round;pointer-events:none
+}
+.ko-map-credit{display:block;margin:0 0 3px;font-size:9px;line-height:1.3;color:#8296a8;text-decoration:underline;text-underline-offset:2px}
 .ko-timebar{width:100%;max-width:390px;margin:2px auto 0;padding:0 5px}
 .ko-timebar-head{display:flex;align-items:center;justify-content:center;min-height:21px}
 .ko-day-label{font-size:13px;font-weight:850;color:#285780;white-space:nowrap;font-variant-numeric:tabular-nums}

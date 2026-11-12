@@ -405,7 +405,7 @@ main{max-width:800px}
   }
 }
 </style>
-  <link rel="stylesheet" href="./korea-forecast.css?v=20261112a">
+  <link rel="stylesheet" href="./korea-forecast.css?v=20261112b">
 </head>
 <body>
 <main>
@@ -494,7 +494,7 @@ main{max-width:800px}
       <div class="ko-map-surface">
         <div class="ko-map-viewer">
           <svg id="koMap" class="ko-map-svg" viewBox="0 0 520 580" tabindex="0" role="img" aria-label="전국 시도별 일강수량 지도. 드래그로 이동하고 휠 또는 두 손가락으로 확대·축소할 수 있습니다.">
-            <g id="koProvinceLayer"></g><g id="koLabelLayer"></g>
+            <g id="koProvinceLayer"></g><g id="koLabelLayer"></g><g id="koCityLabelLayer"></g>
           </svg>
           <div class="ko-zoom-controls" role="group" aria-label="전국 지도 확대 및 축소">
             <button id="koZoomIn" class="ko-zoom-btn" type="button" title="지도 확대" aria-label="지도 확대">+</button>
@@ -502,7 +502,8 @@ main{max-width:800px}
             <button id="koZoomReset" class="ko-zoom-btn ko-zoom-reset" type="button" title="지도 원래 크기로" aria-label="지도 원래 크기로">100%</button>
           </div>
         </div>
-        <p class="ko-map-hint">지도 드래그 이동 · 휠/두 손가락 확대</p>
+        <p class="ko-map-hint">확대하면 시·군·구 이름 표시 · 드래그 이동 · 휠/핀치 확대</p>
+        <a class="ko-map-credit" href="https://github.com/KnellBalm/kr-admin-geojson" target="_blank" rel="noopener noreferrer">시·군·구 위치 자료: 국가공간정보포털 기반(2023)</a>
         <span id="koZoomAnnouncement" class="ko-sr-only" role="status" aria-live="polite"></span>
         <p id="koMapMessage" class="ko-inline-status" role="status" aria-live="polite"></p>
       </div>
@@ -1724,6 +1725,6 @@ document.getElementById('uciArchiveToggle').addEventListener('click',()=>{
 });
 uciRender();
 </script>
-<script src="./korea-forecast.js?v=20261112a"></script>
+<script src="./korea-forecast.js?v=20261112b"></script>
 </body>
 </html>
