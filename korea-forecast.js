@@ -260,13 +260,13 @@ async function reload(){
 }
 /* Interactive Korean region selection. Detail boundaries originate in simplified 2023 admin polygons. */
 function setupMapZoom(){
- const svg=$('koMap'),zoomIn=$('koZoomIn'),zoomOut=$('koZoomOut'),reset=$('koZoomReset');
- const seoulFocus=$('koSeoulFocus'),tooltip=$('koMapTooltip');
+ const svg=$('koMap'),reset=$('koZoomReset');
+ const tooltip=$('koMapTooltip');
  const provinceLabels=$('koLabelLayer'),cityLabels=$('koCityLabelLayer');
  const dokdoLayer=$('koDokdoLayer'),dokdoLabels=$('koDokdoLabelLayer');
  const selectedArea=$('koSelectedArea'),selectedPin=$('koSelectedPin'),hoverArea=$('koHoverArea');
- if(!svg||!zoomIn||!zoomOut||!reset||!seoulFocus||!cityLabels||!selectedArea||!selectedPin||!hoverArea||!dokdoLayer||!dokdoLabels||!tooltip)return null;
- const BASE_W=585,BASE_H=580,MAX_ZOOM=24,DETAIL_THRESHOLD=1.65,SEOUL_FOCUS_ZOOM=16;
+ if(!svg||!reset||!cityLabels||!selectedArea||!selectedPin||!hoverArea||!dokdoLayer||!dokdoLabels||!tooltip)return null;
+ const BASE_W=585,BASE_H=580,MAX_ZOOM=256,DETAIL_THRESHOLD=1.65;
  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
  const view={x:0,y:0,zoom:1},pointers=new Map();
  const announcement=$('koZoomAnnouncement');
@@ -429,7 +429,6 @@ function setupMapZoom(){
   }
  }
  function applyView(nextZoom,nextX,nextY){
-  const old=view.zoom;
   view.zoom=clamp(nextZoom,1,MAX_ZOOM);
   const w=BASE_W/view.zoom,h=BASE_H/view.zoom;
   view.x=clamp(nextX,0,BASE_W-w);
@@ -450,11 +449,7 @@ function setupMapZoom(){
    const radius=pxPerUnit?Math.min(3.8,7/pxPerUnit):3.8;
    dokdoPoint.setAttribute('r',radius.toFixed(3));
   }
-  zoomIn.disabled=view.zoom>=MAX_ZOOM-.001;
-  zoomOut.disabled=view.zoom<=1.001;
   reset.disabled=view.zoom<=1.001;
-  reset.textContent=Math.round(view.zoom*100)+'%';
-  if(announcement&&Math.abs(old-view.zoom)>.001)announcement.textContent='지도 확대율 '+Math.round(view.zoom*100)+'%';
   showDetailLabels();showSelection();
   // Any previous hovered region is interpreted at the old zoom level.
   // Re-evaluate it on the next pointer move instead of showing a stale outline.
@@ -475,28 +470,6 @@ function setupMapZoom(){
  function centerZoom(factor){
   const r=svg.getBoundingClientRect();
   zoomAt(view.zoom*factor,r.left+r.width/2,r.top+r.height/2);
- }
- function focusSeoul(){
-  // Fit the actual 25 Seoul district outlines into the target viewport.
-  const districts=subregions.filter(p=>p.provinceCode==='11');
-  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
-  for(const district of districts)for(const ring of district.rings||[])for(const [x,y] of ring){
-   minX=Math.min(minX,x);minY=Math.min(minY,y);
-   maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);
-  }
-  let center;
-  let target=SEOUL_FOCUS_ZOOM;
-  if(Number.isFinite(minX)){
-   center={x:(minX+maxX)/2,y:(minY+maxY)/2};
-   target=Math.min(target,BASE_W/Math.max(1,(maxX-minX)*1.18),
-    BASE_H/Math.max(1,(maxY-minY)*1.18));
-  }else{
-   const [x,y]=project([126.974,37.565]);
-   center={x,y};
-  }
-  const width=BASE_W/target,height=BASE_H/target;
-  applyView(target,center.x-width/2,center.y-height/2);
-  if(announcement)announcement.textContent='서울 25개 구 확대 '+Math.round(view.zoom*100)+'%';
  }
  function panBy(dx,dy){
   if(view.zoom<=1)return;
@@ -538,10 +511,10 @@ function setupMapZoom(){
  }
  const midpoint=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
  const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
- zoomIn.addEventListener('click',()=>centerZoom(1.35));
- zoomOut.addEventListener('click',()=>centerZoom(1/1.35));
- reset.addEventListener('click',()=>applyView(1,0,0));
- seoulFocus.addEventListener('click',focusSeoul);
+ reset.addEventListener('click',()=>{
+  applyView(1,0,0);
+  if(announcement)announcement.textContent='지도를 전체 보기로 초기화했습니다';
+ });
  svg.addEventListener('wheel',e=>{
   e.preventDefault();
   zoomAt(view.zoom*(e.deltaY<0?1.22:1/1.22),e.clientX,e.clientY);

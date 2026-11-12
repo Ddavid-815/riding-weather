@@ -67,18 +67,19 @@
   @keyframes ko-selection-flash{from{fill-opacity:.95}to{fill-opacity:.67}}
 }
 .ko-map-svg:focus-visible{outline:2px solid #2e7bc0;outline-offset:-2px;border-radius:10px}
-.ko-zoom-controls{position:absolute;top:10px;right:6px;display:flex;flex-direction:column;gap:5px;z-index:3}
-.ko-zoom-btn{
-  display:flex;align-items:center;justify-content:center;
-  min-width:44px;height:44px;padding:0 7px;
-  border:1px solid #c9dae9;border-radius:9px;
-  background:#fff;color:#285780;box-shadow:0 1px 4px #1b38551c;
-  font:700 21px/1 system-ui,sans-serif;cursor:pointer
+.ko-zoom-reset{
+  position:absolute;top:8px;right:8px;z-index:3;
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:54px;height:28px;padding:0 8px;
+  border:1px solid #c9dae9;border-radius:8px;
+  background:rgba(255,255,255,.96);color:#285780;
+  box-shadow:0 1px 4px #1b38551c;
+  font:800 11px/1 system-ui,sans-serif;cursor:pointer;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent
 }
-.ko-zoom-btn:hover:not(:disabled){background:#e8f3fc}
-.ko-zoom-btn:disabled{opacity:.42;cursor:default}
-.ko-zoom-reset{font-size:11px;font-weight:800}
-.ko-zoom-seoul{font-size:11px;font-weight:850;line-height:1.15;min-height:44px;padding:6px;white-space:nowrap}
+.ko-zoom-reset::before{content:"";position:absolute;inset:-8px}
+.ko-zoom-reset:hover:not(:disabled){background:#e8f3fc}
+.ko-zoom-reset:disabled{opacity:.58;cursor:default}
 .ko-map-hint{margin:0 0 2px;font-size:10px;line-height:1.3;color:#71869b;text-align:center}
 .ko-province{
   fill:#b9c9d7;stroke:#fff;stroke-width:1.55;stroke-linejoin:round;
@@ -166,25 +167,9 @@
   .ko-model-label{font-size:9px}
   .ko-map-viewer{max-width:305px}
   .ko-map-svg{height:241px;margin-top:0}
-  /* Mobile: compact single-column controls, retaining comfortable touch hit areas.
-     Visual buttons are 36px; their touch target is 44px via the pseudo-element. */
-  .ko-zoom-controls{
-    display:flex;flex-direction:column;align-items:center;
-    gap:8px;right:7px;top:7px
-  }
-  .ko-zoom-btn{
-    position:relative;box-sizing:border-box;
-    width:36px;min-width:36px;height:36px;min-height:36px;
-    padding:0 2px;border-radius:8px;font-size:19px;
-    touch-action:manipulation;-webkit-tap-highlight-color:transparent
-  }
-  .ko-zoom-btn::before{content:"";position:absolute;inset:-4px}
-  .ko-zoom-reset{font-size:9px;font-weight:800;letter-spacing:-.025em}
-  .ko-zoom-seoul{
-    width:36px;min-width:36px;height:36px;min-height:36px;
-    padding:2px 1px;font-size:9px;line-height:1.08;
-    white-space:normal;word-break:keep-all;text-align:center
-  }
+  /* Compact reset with an extended mobile touch target. */
+  .ko-zoom-reset{right:6px;top:6px;min-width:50px;height:26px;padding:0 6px;font-size:10px}
+  .ko-zoom-reset::before{inset:-9px}
   .ko-map-hint{font-size:9px}
   .ko-timebar{max-width:335px;margin-top:0}
   .ko-day-slider{height:30px}
