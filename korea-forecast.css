@@ -34,7 +34,7 @@
 .ko-model-label{font-size:10px;white-space:nowrap;color:#7a8da1;margin-right:auto;margin-left:4px}
 .ko-reload{
   display:inline-flex;align-items:center;justify-content:center;
-  min-height:34px;width:34px;height:34px;min-width:34px;
+  min-height:44px;width:44px;height:44px;min-width:44px;
   padding:0;border-radius:10px;border:1px solid #d4e4f2;
   background:#f0f6fd;color:#2e6da8;font-size:19px;cursor:pointer
 }
@@ -44,8 +44,10 @@
 .ko-map-viewer{position:relative;width:100%;max-width:410px;margin:0 auto}
 .ko-map-svg{
   display:block;width:100%;height:300px;margin:1px auto 0;
-  overflow:hidden;touch-action:none;user-select:none;cursor:grab
+  overflow:hidden;touch-action:pan-y;user-select:none;cursor:grab
 }
+.ko-map-tooltip{position:absolute;top:0;left:0;z-index:2;max-width:170px;padding:6px 9px;background:rgba(19,54,88,.94);border:1px solid rgba(255,255,255,.8);color:#fff;font-size:12px;font-weight:800;border-radius:8px;box-shadow:0 3px 10px rgba(10,35,60,.22);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ko-map-tooltip[hidden]{display:none}
 .ko-map-svg.ko-map-dragging{cursor:grabbing}
 .ko-map-svg:not(.ko-map-dragging){cursor:pointer}
 .ko-selected-area{
@@ -65,10 +67,10 @@
   @keyframes ko-selection-flash{from{fill-opacity:.95}to{fill-opacity:.67}}
 }
 .ko-map-svg:focus-visible{outline:2px solid #2e7bc0;outline-offset:-2px;border-radius:10px}
-.ko-zoom-controls{position:absolute;top:10px;right:6px;display:flex;flex-direction:column;gap:5px;z-index:1}
+.ko-zoom-controls{position:absolute;top:10px;right:6px;display:flex;flex-direction:column;gap:5px;z-index:3}
 .ko-zoom-btn{
   display:flex;align-items:center;justify-content:center;
-  min-width:34px;height:34px;padding:0 5px;
+  min-width:44px;height:44px;padding:0 7px;
   border:1px solid #c9dae9;border-radius:9px;
   background:#fff;color:#285780;box-shadow:0 1px 4px #1b38551c;
   font:700 21px/1 system-ui,sans-serif;cursor:pointer
@@ -76,7 +78,7 @@
 .ko-zoom-btn:hover:not(:disabled){background:#e8f3fc}
 .ko-zoom-btn:disabled{opacity:.42;cursor:default}
 .ko-zoom-reset{font-size:11px;font-weight:800}
-.ko-zoom-seoul{font-size:10px;font-weight:850;line-height:1.15;min-height:34px;padding:4px 5px;white-space:nowrap}
+.ko-zoom-seoul{font-size:11px;font-weight:850;line-height:1.15;min-height:44px;padding:6px;white-space:nowrap}
 .ko-map-hint{margin:0 0 2px;font-size:10px;line-height:1.3;color:#71869b;text-align:center}
 .ko-province{
   fill:#b9c9d7;stroke:#fff;stroke-width:1.55;stroke-linejoin:round;

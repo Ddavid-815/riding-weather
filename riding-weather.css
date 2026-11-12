@@ -1,0 +1,436 @@
+:root{color-scheme:light;--blue:#1d5da5;--ink:#19283d;--muted:#64748b;--line:#dce5f0}
+    *{box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:#eef3f9;color:var(--ink);margin:0}
+    main{max-width:960px;margin:0 auto;padding:16px 16px 40px}
+    .hero{background:linear-gradient(120deg,#173e75,#4782d0);color:#fff;padding:24px;border-radius:20px}
+    h1{font-size:clamp(22px,4.8vw,28px);margin:0 0 8px;line-height:1.35}
+    h2{font-size:19px;margin:0 0 12px}
+    .hero small{display:block;opacity:.94;line-height:1.6}
+    .hero .location{font-size:15px;font-weight:700;margin:11px 0 5px;min-height:22px}
+    .panel{background:#fff;border-radius:18px;padding:18px;margin-top:16px;box-shadow:0 2px 12px #18365b0a}
+    .muted{color:var(--muted);font-size:14px;line-height:1.6;margin:9px 0}
+    form{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
+    input{flex:1 1 220px;min-width:0;font-size:16px;line-height:24px;border:1.5px solid #c4d1e1;border-radius:11px;padding:12px 13px;background:#fff;color:var(--ink);outline-offset:2px}
+    input:focus{border-color:#3276d5;outline:2px solid #b9d5f7}
+    button,.link{display:inline-flex;justify-content:center;align-items:center;border:0;border-radius:10px;background:var(--blue);color:#fff;padding:12px 15px;text-decoration:none;font-weight:700;font-size:14px;cursor:pointer;min-height:44px}
+    button:disabled{opacity:.55;cursor:default}
+    .secondary{background:#e6eef9;color:var(--blue)}
+    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+    .quick strong{font-size:13px;color:#526174}
+    .quick button{background:#f1f5fa;color:#325985;border:1px solid #dce5f0;padding:7px 11px;min-height:34px;font-size:13px}
+    .quick button.recent-place-button{display:inline-block;max-width:min(220px,100%);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#e6effb;color:#205c98;border-color:#bad2ee}
+    .quick button.recent-place-button[hidden]{display:none}
+    .status{padding:12px;background:#fff7e5;border-radius:10px;margin:12px 0;font-size:14px;line-height:1.5;white-space:pre-line}
+    .status.ok{background:#e7f5eb;color:#176b32}
+    .status.fail{background:#fff0ef;color:#a32c2c}
+    .results{margin-top:14px;border:1px solid #dce5f0;border-radius:12px;overflow:hidden}
+    .results-head{background:#f2f6fb;padding:10px 13px;font-weight:700;font-size:14px}
+    .result{display:block;width:100%;padding:12px 13px;text-align:left;border:0;border-top:1px solid #e6edf5;border-radius:0;background:#fff;color:var(--ink);min-height:50px;font-weight:600;cursor:pointer}
+    .result small{display:block;margin-top:4px;color:#64748b;font-size:12px;font-weight:500}
+    .result:hover,.result:focus{background:#f0f6ff}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+    .day{border:1px solid var(--line);border-radius:16px;padding:15px;background:#fcfdff;position:relative}
+    .day.sat{border-top:5px solid #3276d5}.day.sun{border-top:5px solid #d45c53}
+    .day .head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+    .head-main{flex:1;min-width:0}
+    .date{display:block;font-weight:750}.sat .date{color:#2467c6}.sun .date{color:#c0443d}
+    .desc{margin:10px 0 0;font-size:15px;line-height:1.45;color:#334a66}
+    .desc-emoji{margin-right:4px}
+    .rain-mini{flex:0 0 48px;display:flex;flex-direction:column;align-items:center;gap:5px;margin-top:1px}
+    /* 모든 날짜에 같은 눈금, 같은 단색: 아래부터 채워지는 10칸 강수량 게이지 */
+    .rain-mini-track{width:25px;height:74px;padding:4px;border:1px solid #cbd8e8;border-radius:7px;background:#f9fbfe;display:flex;flex-direction:column-reverse;gap:2px}
+    .rain-segment{display:block;flex:1;min-height:0;background:#f0f4f9;border:1px solid #d5dfeb;border-radius:2px}
+    .rain-segment.filled{background:#3b6f9f;border-color:#3b6f9f}
+    .rain-mini-value{font-size:12px;font-weight:800;line-height:1;color:#27415e;white-space:nowrap}
+    .rain-mini-unit{font-size:10px;font-weight:700;color:#70819a;line-height:1}
+    .temps{margin:10px 0 8px;font-size:15px}
+    .high{color:#c4453c}.low{color:#2467c6}
+    .rain-line{margin:0 0 8px;font-size:13px;color:#59718e;font-weight:700}
+    /* 풍향명은 바람이 불어오는 방향(From), 화살표는 실제 이동 방향(To). 최대풍속은 일 최대값(10m). */
+    .wind-line{display:flex;flex-wrap:wrap;align-items:center;column-gap:12px;row-gap:5px;margin:0 0 12px;color:#56677c;font-size:12px;line-height:1.35}
+    .wind-direction,.wind-speed{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+    .wind-direction{font-weight:700}
+    .wind-arrow{display:inline-block;width:16px;text-align:center;font-size:16px;line-height:1;color:#2467a9;transform:rotate(var(--wind-deg));transform-origin:center center}
+    .wind-speed strong{color:#304d70;font-weight:800;font-variant-numeric:tabular-nums}
+    .wind-speed .wind-icon{font-size:13px}
+    .wind-speed .unit{font-size:11px;color:#64748b}
+    .rating{display:inline-block;border-radius:99px;padding:6px 10px;font-size:13px;font-weight:700}
+    .good{background:#e4f6e7;color:#176b32}.mid{background:#fff4d9;color:#87610b}.bad{background:#ffe7e7;color:#a72b2b}
+    /* 일별 누적강수량 막대그래프: 외부 라이브러리 없이 로컬 HTML에서 구동 */
+    .rain-title{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .rain-title h2{margin:0}
+    .rain-unit{font-size:12px;font-weight:700;color:#59718e;background:#f0f5fc;padding:5px 9px;border-radius:99px}
+    .rain-legend{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:10px 0 8px;color:#53647a;font-size:12px}
+    .rain-legend strong{font-weight:750;color:#2b4f72}
+    .segment-scale{font-size:11px;font-weight:600;color:#6c7a8e;white-space:nowrap;margin-left:8px}
+    .rain-scroll{overflow-x:auto;overscroll-behavior-x:contain;padding:0 0 5px;scrollbar-color:#bbcce2 transparent}
+    .rain-chart{display:flex;min-width:750px}
+    .rain-axis{position:sticky;left:0;z-index:2;flex:0 0 39px;height:231px;background:#fff;color:#6c7a8e;font-size:11px;text-align:right;padding-right:7px}
+    .rain-axis span{position:absolute;right:7px;transform:translateY(-50%)}
+    .rain-axis .axis-max{top:34px}.rain-axis .axis-half{top:110px}.rain-axis .axis-zero{top:186px}
+    .rain-plot{position:relative;flex:1;height:231px;min-width:700px}
+    .rain-gridline{position:absolute;left:0;right:0;height:1px;background:#e9eff6;pointer-events:none}
+    .rain-gridline.max{top:34px}.rain-gridline.half{top:110px}.rain-gridline.zero{top:186px;background:#aebed0}
+    .rain-bars{position:absolute;left:7px;right:7px;top:34px;bottom:45px;display:grid;grid-template-columns:repeat(14,minmax(44px,1fr));column-gap:4px}
+    .rain-column{position:relative;height:100%;min-width:0;text-align:center}
+    .rain-segments{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:26px;height:100%;display:flex;flex-direction:column-reverse;gap:3px}
+    /* 수치는 막대 높이와 무관하게 전용 상단 행에 고정: 0mm~최댓값까지 겹침 방지 */
+    .rain-value{position:absolute;left:50%;top:-26px;bottom:auto;transform:translateX(-50%);white-space:nowrap;font-size:12px;line-height:17px;font-weight:800;font-variant-numeric:tabular-nums;color:#2c4058;z-index:1}
+    .rain-day{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);font-size:11px;line-height:1.4;white-space:nowrap;color:#5b6980}
+    .rain-day strong{display:block;font-size:11px;font-weight:700;color:#354861}
+    .rain-column.sat .rain-day strong{color:#2467c6}
+    .rain-column.sun .rain-day strong{color:#c0443d}
+    .rain-foot{font-size:12px;color:#6c7a8e;line-height:1.6;margin:5px 0 0}
+    .overlay{position:fixed;inset:0;background:rgba(14,30,52,.58);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}
+    .overlay.open{display:flex}
+    .dialog{background:#fff;width:100%;max-width:390px;border-radius:20px;padding:24px;box-shadow:0 16px 50px #0004}
+    .dialog h2{margin:8px 0}.dialog p{font-size:15px;color:#526174;line-height:1.6}
+    .dialog-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+    .foot{font-size:12px;color:#66768b;line-height:1.65;margin-top:15px}
+    #weeks,#results{display:none}
+    @media(max-width:460px){main{padding:12px 12px 28px}.hero{padding:21px}.panel{padding:16px}form button{min-width:88px}.grid{grid-template-columns:repeat(auto-fit,minmax(145px,1fr))}.day{padding:12px}.wx{font-size:30px}.date{font-size:13px}.temps{font-size:14px}}
+    @media(prefers-reduced-motion:no-preference){.panel{transition:box-shadow .15s}}
+
+    .day[role="button"]{cursor:pointer;transition:border-color .15s,box-shadow .15s}
+    .day[role="button"]:hover{border-color:#80a9d8;box-shadow:0 5px 18px rgba(33,88,147,.13)}
+    .day[role="button"]:focus-visible{outline:3px solid #2478d0;outline-offset:3px}
+    .day-detail-hint{display:block;margin-top:9px;font-size:11px;font-weight:750;color:#2467a9}
+    body.hourly-open{overflow:hidden}
+    .hourly-overlay{z-index:120;padding:12px}
+    .hour-dialog{display:flex;flex-direction:column;width:min(980px,100%);max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);background:#fff;border-radius:17px;overflow:hidden;box-shadow:0 20px 55px rgba(0,0,0,.25)}
+    .hour-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:18px 18px 12px;border-bottom:1px solid #e2e8f0}
+    .hour-dialog-head h2{font-size:19px;margin:0 0 5px}
+    .hour-subtitle{font-size:12px;color:#64748b;line-height:1.5;margin:0}
+    .hour-close{flex:0 0 42px;width:42px;padding:0;border-radius:12px;background:#eef3f9;color:#2b496b;font-size:20px;min-height:42px}
+    .hour-summary{padding:10px 18px;background:#f1f6fc;font-size:13px;color:#345271;font-weight:700;line-height:1.6}
+    .hour-view-controls{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 18px;background:#fff;border-bottom:1px solid #e5edf5}
+    .hour-view-caption{font-size:11px;color:#5f7690;line-height:1.35}
+    .hour-view-toggle{padding:5px 10px;min-height:36px;font-size:12px;background:#e7f0fb;color:#245889;border:1px solid #b9d3f1;border-radius:8px;flex-shrink:0}
+    .hour-view-toggle:focus-visible{outline:2px solid #2478d0;outline-offset:2px}
+    .hour-dialog.hour-compact .hour-table{width:100%;min-width:0;table-layout:fixed}
+    .hour-dialog.hour-compact .hour-table th:nth-child(3),.hour-dialog.hour-compact .hour-table td:nth-child(3),
+    .hour-dialog.hour-compact .hour-table th:nth-child(4),.hour-dialog.hour-compact .hour-table td:nth-child(4),
+    .hour-dialog.hour-compact .hour-table th:nth-child(6),.hour-dialog.hour-compact .hour-table td:nth-child(6),
+    .hour-dialog.hour-compact .hour-table th:nth-child(n+8),.hour-dialog.hour-compact .hour-table td:nth-child(n+8){display:none}
+    .hour-dialog.hour-compact .hour-table th:nth-child(1){width:20%}
+    .hour-dialog.hour-compact .hour-table th:nth-child(2){width:38%}
+    .hour-dialog.hour-compact .hour-table th:nth-child(5){width:21%}
+    .hour-dialog.hour-compact .hour-table th:nth-child(7){width:21%}
+    .hour-dialog.hour-compact .hour-table th,.hour-dialog.hour-compact .hour-table td{font-size:11px;padding:10px 4px;overflow-wrap:anywhere}
+    .hour-dialog.hour-compact .hour-table td:nth-child(2){white-space:normal;word-break:keep-all;line-height:1.35}
+    .hour-dialog.hour-compact .hour-wind{gap:2px}
+    @media(max-width:600px){.hour-view-controls{padding:7px 13px}.hour-view-caption{display:none}.hour-view-toggle{margin-left:auto}}
+    .hour-rain-legend{display:flex;align-items:center;gap:9px;overflow-x:auto;overscroll-behavior-x:contain;white-space:nowrap;padding:8px 18px;background:#fbfdff;border-bottom:1px solid #e6edf5;color:#425c78;font-size:11px;scrollbar-width:thin}
+    .hour-rain-legend-title{font-weight:800;color:#1b4c7a;flex-shrink:0}
+    .hour-rain-legend-item{display:inline-flex;align-items:center;gap:4px;flex-shrink:0}
+    .hour-rain-swatch{display:inline-block;width:13px;height:13px;flex-shrink:0;border:1px solid #8badcc;border-radius:3px}
+    .hour-rain-swatch.rain-0{background:#fff}
+    .hour-rain-swatch.rain-1{background:#f3f8ff}
+    .hour-rain-swatch.rain-2{background:#dcecff}
+    .hour-rain-swatch.rain-3{background:#c2dffa}
+    .hour-rain-swatch.rain-4{background:#98c5ef}
+    .hour-rain-swatch.rain-5{background:#6ca8dc}
+    .hour-rain-legend-note{font-size:11px;color:#5e7793;font-weight:700;margin-left:auto;flex-shrink:0}
+    .hour-table-viewport{overflow:auto;min-height:0;flex:1;overscroll-behavior:contain;scrollbar-color:#b9c9df transparent}
+    .hour-table{border-collapse:separate;border-spacing:0;width:100%;min-width:860px;font-size:12px;text-align:center;font-variant-numeric:tabular-nums}
+    .hour-table th,.hour-table td{padding:10px 8px;border-bottom:1px solid #e6edf5;white-space:nowrap}
+    .hour-table thead th{position:sticky;top:0;background:#eaf2fb;color:#325577;font-size:12px;z-index:3}
+    .hour-table thead th:first-child{left:0;z-index:4}
+    /* Fixed 1-hour rain (mm) bands allow comparison between different dates. */
+    .hour-table tbody tr{--hour-rain-bg:#fff;--hour-rain-time-bg:#fff}
+    .hour-table tbody tr.hour-rain-1{--hour-rain-bg:#f3f8ff;--hour-rain-time-bg:#eaf4ff}
+    .hour-table tbody tr.hour-rain-2{--hour-rain-bg:#dcecff;--hour-rain-time-bg:#d2e7fd}
+    .hour-table tbody tr.hour-rain-3{--hour-rain-bg:#c2dffa;--hour-rain-time-bg:#b4d5f6}
+    .hour-table tbody tr.hour-rain-4{--hour-rain-bg:#98c5ef;--hour-rain-time-bg:#8ab8e5}
+    .hour-table tbody tr.hour-rain-5{--hour-rain-bg:#6ca8dc;--hour-rain-time-bg:#5d9ad0}
+    .hour-table tbody tr.hour-current:not(.hour-wet){--hour-rain-bg:#dceeff;--hour-rain-time-bg:#cae4ff}
+    .hour-table tbody td{background:var(--hour-rain-bg)}
+    .hour-table tbody td:first-child{position:sticky;left:0;background:var(--hour-rain-time-bg);font-weight:800;color:#334960;z-index:2}
+    .hour-table tbody tr:not(.hour-current):hover td{box-shadow:inset 0 1px 0 #7aa9d7,inset 0 -1px 0 #7aa9d7}
+    .hour-table tbody td.hour-rain{font-weight:800;color:#174a80}
+    /* Current-time outline stays visible without erasing rainfall color. */
+    .hour-table tbody tr.hour-current td,
+    .hour-table tbody tr.hour-current:hover td{background:var(--hour-rain-bg);border-top:2px solid #3577bc;border-bottom:2px solid #3577bc;font-weight:800;color:#163e6c}
+    .hour-table tbody tr.hour-current td:first-child,
+    .hour-table tbody tr.hour-current:hover td:first-child{background:var(--hour-rain-time-bg);border-left:4px solid #2478cf}
+    /* Maintain text contrast in the darkest rain bands (including the sticky time cell). */
+    .hour-table tbody tr.hour-rain-4 td,
+    .hour-table tbody tr.hour-rain-5 td{color:#0b2944}
+    .hour-now-badge{display:inline-block;margin-left:5px;padding:2px 5px;border-radius:5px;background:#2467a9;color:#fff;font-size:10px;line-height:1.2;vertical-align:middle}
+    .hour-wx{font-size:17px;margin-right:3px;vertical-align:middle}
+    .hour-wind{display:inline-flex;align-items:center;gap:4px;font-weight:700}
+    .hour-wind .wind-arrow{font-size:15px}
+    .hour-foot{margin:0;padding:11px 18px;color:#64748b;font-size:12px;line-height:1.6;border-top:1px solid #e2e8f0}
+    @media(max-width:460px){.hourly-overlay{padding:6px}.hour-dialog{border-radius:13px;max-height:calc(100dvh - 12px)}.hour-dialog-head{padding:13px 13px 9px}.hour-summary,.hour-foot{padding:10px 13px}.hour-dialog-head h2{font-size:17px}.hour-table th,.hour-table td{padding:9px 7px}.hour-rain-legend{padding:8px 13px;gap:8px}}
+
+    .compact-search-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:3px 12px;margin-bottom:12px}
+    .compact-search-head h2{margin:0;font-size:18px}
+    .compact-search-head span{font-size:12px;font-weight:600;color:#65768a}
+    .compact-search-panel .quick{margin-top:10px}
+    .compact-status{margin:10px 0 7px;padding:9px 11px;font-size:13px}
+    .compact-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+    .compact-actions button,.compact-actions .link{min-height:31px;padding:6px 10px;font-size:12px}
+
+    .windy-link-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .windy-link-row h2{margin:0 0 5px;font-size:18px}
+    .windy-link-row .muted{margin:0}
+    .windy-launch{white-space:nowrap;flex-shrink:0;min-height:42px;background:#2476b8}
+    @media(max-width:480px){.windy-launch{width:100%}}
+
+/* Mobile-first current weather home */
+body{background:#edf2fa}
+main{max-width:800px}
+.hero{padding:13px 17px;background:transparent;color:#1c365a;border-radius:0}
+.hero h1{font-size:15px;letter-spacing:.055em;margin:0;font-weight:850}
+.hero-tag{font-size:11px;font-weight:650;color:#6a7e99;letter-spacing:0;margin-left:5px}
+.hero .location,.hero small{display:none}
+.now-panel{margin:3px 0 10px;border-radius:25px;padding:22px 21px 17px;color:#fff;background:radial-gradient(circle at 91% 9%,rgba(173,216,255,.32),transparent 36%),linear-gradient(145deg,#12366d 1%,#2865b8 58%,#5999de 100%);box-shadow:0 14px 30px #23518d32;overflow:hidden}
+.now-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.now-kicker{min-width:0;font-size:10px;font-weight:800;line-height:1.45;letter-spacing:.055em;color:#d6e8ff}
+.now-kicker:first-letter{color:#9df6d3}
+.now-location-btn{min-height:40px;padding:8px 12px;background:#ffffff2a;border:1px solid #ffffff55;color:white;border-radius:999px;font-size:12px;white-space:nowrap;flex-shrink:0}
+.now-location-btn:focus-visible,.avatar-turn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.now-place{font-size:16px;font-weight:750;line-height:1.35;margin-top:12px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
+.now-main{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:4px 0 13px}
+.now-temp{font-size:clamp(73px,21vw,108px);font-weight:350;letter-spacing:-.085em;line-height:1.04;font-variant-numeric:tabular-nums}
+.now-temp span{font-size:.64em;vertical-align:top;letter-spacing:-.08em}
+.now-desc{font-size:19px;font-weight:760}
+.now-feels{font-size:13px;color:#d7eaff;margin-top:6px}
+.now-icon{font-size:clamp(65px,18vw,100px);filter:drop-shadow(0 10px 12px #142e5c45);line-height:1}
+/* Every metric uses the same two baseline rows; wind direction and speed stay inline. */
+.now-stats{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.88fr) minmax(0,1.43fr);gap:0;align-items:stretch;background:#ffffff20;border:1px solid #ffffff29;border-radius:16px;padding:11px 8px}
+.now-stats>.now-stat{display:grid;grid-template-rows:18px 24px;align-content:center;justify-items:center;row-gap:5px;min-width:0;padding:0 4px}
+.now-stats>.now-stat+.now-stat{border-left:1px solid #ffffff30}
+.now-stats .now-stat-label{display:block;color:#e2edfc;font-size:11px;font-weight:650;line-height:18px;white-space:nowrap;text-align:center}
+.now-stats .now-stat-value{display:inline-flex;align-items:center;justify-content:center;min-height:24px;line-height:24px;font-size:15px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap}
+.now-stats .now-wind-value{gap:4px;min-width:0}
+.now-stats .now-wind-direction{display:inline-flex;align-items:center;justify-content:center;gap:1px;line-height:24px;font-size:11px;font-weight:750;color:#fff;white-space:nowrap}
+.now-stats .now-wind-direction .wind-arrow{color:#fff;width:13px;line-height:1;font-size:13px;flex:none}
+.now-stats .now-wind-value strong{font-size:14px;font-weight:800;line-height:24px;color:#fff;white-space:nowrap;font-variant-numeric:tabular-nums}
+@media(max-width:390px){
+ .now-stats{grid-template-columns:minmax(0,.96fr) minmax(0,.77fr) minmax(0,1.48fr);padding:10px 5px}
+ .now-stats>.now-stat{padding:0 2px}
+ .now-stats .now-stat-label{font-size:10px}
+ .now-stats .now-stat-value{font-size:14px}
+ .now-stats .now-wind-value{gap:2px}
+ .now-stats .now-wind-value strong{font-size:12px}
+ .now-stats .now-wind-direction{font-size:10px}
+ .now-stats .now-wind-direction .wind-arrow{width:11px;font-size:12px}
+}
+.now-caption{font-size:10px;line-height:1.55;color:#e3eeff;margin-top:10px;overflow-wrap:break-word}
+.now-outfit-plan{padding:9px 11px;margin:-4px 0 11px;border-radius:12px;background:#ffffff19;border:1px solid #ffffff30;color:#eef6ff;font-size:12px;line-height:1.5}
+.now-outfit-plan strong,.now-outfit-plan span{display:block}
+.now-outfit-plan strong{font-size:12px;font-weight:800}
+.now-outfit-plan span{margin-top:3px;color:#e0edfc;font-size:11px}
+.compact-search-panel{margin-top:9px;padding:13px 15px}
+.compact-search-head{margin-bottom:8px}
+.compact-search-head h2{font-size:14px}
+.compact-search-head span{font-size:10px}
+.search-collapsed{display:none}
+.compact-search-panel .quick{margin-top:8px}
+.compact-search-panel .quick button{min-height:30px;padding:5px 9px}
+.compact-search-panel .compact-status.ok{display:none}
+.compact-search-panel .compact-actions{margin-top:5px}
+.windy-link-panel{margin-top:9px;padding:11px 15px}
+.windy-link-row{flex-wrap:nowrap;gap:8px}
+.windy-link-row h2{font-size:14px;margin:0}
+.windy-launch{width:auto!important;min-height:34px;padding:7px 11px;white-space:nowrap;font-size:12px}
+@media(max-width:460px){main{padding:9px 12px 28px}.hero{padding:10px 6px}.now-panel{padding:19px 17px 15px}.windy-link-panel{padding:11px 13px}}
+
+
+/* Animated game character selection avatar, CSS/SVG only */
+.now-main{align-items:center;min-height:236px}
+.avatar-stage{position:relative;flex:0 0 47%;height:240px;max-width:230px;align-self:center;display:flex;justify-content:center;align-items:center;isolation:isolate}
+.avatar-halo{position:absolute;width:150px;height:190px;border-radius:48%;background:radial-gradient(ellipse,#c8fff63a,transparent 72%);animation:avatar-glow 4s ease-in-out infinite;pointer-events:none}
+.rider-avatar{position:absolute;bottom:5px;height:222px;width:154px;overflow:visible;filter:drop-shadow(0 9px 9px #0b285445);transform-origin:50% 75%;transition:transform .5s ease}
+
+.avatar-bob{animation:avatar-idle 3.2s ease-in-out infinite;transform-origin:80px 224px}
+.avatar-torso{animation:avatar-breathe 3.2s ease-in-out infinite;transform-origin:82px 128px}
+.avatar-head-scale{transform-origin:82px 76px}
+.avatar-head{animation:avatar-look 5.3s ease-in-out infinite;transform-origin:83px 81px}
+.rider-avatar{filter:drop-shadow(0 8px 9px #071c3c77) drop-shadow(0 0 5px #c8e8ff47)}
+.avatar-stage:before{content:"✦";position:absolute;right:23%;top:17%;color:#fff5cb;font-size:17px;opacity:.8;animation:avatar-glow 3.6s ease-in-out infinite}
+.avatar-stage:after{content:"✧";position:absolute;left:11%;top:36%;color:#ddfcff;font-size:15px;opacity:.75;animation:avatar-glow 4.2s ease-in-out infinite reverse}
+.avatar-leftarm{animation:avatar-arm 3.2s ease-in-out infinite;transform-origin:54px 94px}
+.avatar-rightarm{animation:avatar-arm 3.2s ease-in-out infinite reverse;transform-origin:108px 94px}
+.avatar-ground{animation:avatar-shadow 3.2s ease-in-out infinite}
+.avatar-weather{position:absolute;right:0;top:8px;font-size:28px;filter:drop-shadow(0 3px 4px #16346655)}
+.avatar-outfit{position:absolute;bottom:-3px;left:50%;transform:translateX(-50%);border-radius:999px;background:#092f6ca8;color:white;border:1px solid #bbebff55;padding:5px 9px;font-size:10px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.avatar-turn{position:absolute;top:5px;left:3px;min-height:29px;width:29px;border-radius:50%;background:#ffffff24;border:1px solid #ffffff60;color:white;padding:0;font-size:19px}
+.avatar-haptic-switch{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:154px;height:222px;opacity:.001;z-index:2;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.avatar-turn{z-index:3;cursor:pointer;touch-action:manipulation}
+/* Tap reaction: a quick startled hop, head recoil and arms flinch. */
+@keyframes rider-startle-hop{0%{transform:translateY(0) scale(1) rotate(0)}12%{transform:translateY(4px) scale(1.06,.92) rotate(-3deg)}33%{transform:translateY(-19px) scale(.98,1.06) rotate(5deg)}57%{transform:translateY(-10px) rotate(-3deg)}78%{transform:translateY(2px) scale(1.03,.97) rotate(1deg)}100%{transform:translateY(0) scale(1) rotate(0)}}
+@keyframes rider-startle-head{0%,100%{transform:rotate(0)}20%{transform:rotate(-15deg) translateY(-3px)}44%{transform:rotate(12deg) translateY(-5px)}70%{transform:rotate(-4deg)}}
+@keyframes rider-startle-arm{0%,100%{transform:rotate(0)}30%{transform:rotate(-23deg)}55%{transform:rotate(12deg)}}
+.rider-avatar.avatar-startled .avatar-bob{animation:rider-startle-hop 760ms cubic-bezier(.22,.75,.3,1) both}
+.rider-avatar.avatar-startled .avatar-head{animation:rider-startle-head 760ms ease-out both}
+.rider-avatar.avatar-startled .avatar-leftarm{animation:rider-startle-arm 760ms ease-out both}
+.rider-avatar.avatar-startled .avatar-rightarm{animation:rider-startle-arm 760ms ease-out reverse both}
+@media(prefers-reduced-motion:reduce){.rider-avatar.avatar-startled .avatar-bob{animation-duration:180ms}.rider-avatar.avatar-startled .avatar-head,.rider-avatar.avatar-startled .avatar-leftarm,.rider-avatar.avatar-startled .avatar-rightarm{animation:none}}
+@keyframes avatar-idle{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-4px) rotate(1deg)}}
+@keyframes avatar-breathe{0%,100%{transform:scaleX(1)}50%{transform:scaleX(1.035)}}
+@keyframes avatar-look{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(2.5deg)}}
+@keyframes avatar-arm{0%,100%{transform:rotate(0)}50%{transform:rotate(2.5deg)}}
+@keyframes avatar-shadow{0%,100%{transform:scaleX(1);opacity:.28}50%{transform:scaleX(.9);opacity:.18}}
+@keyframes avatar-glow{0%,100%{opacity:.5;transform:scale(.94)}50%{opacity:1;transform:scale(1.05)}}
+@media(max-width:460px){.now-main{min-height:216px}.avatar-stage{height:219px;flex-basis:47%}.rider-avatar{height:204px;width:142px}.avatar-outfit{font-size:9px;padding:4px 6px}.now-temp{font-size:clamp(66px,19vw,94px)}.now-icon{display:none}}
+@media(prefers-reduced-motion:reduce){.avatar-bob,.avatar-torso,.avatar-head,.avatar-leftarm,.avatar-rightarm,.avatar-ground,.avatar-halo{animation:none}}
+/* Warm village-life game character proportions */
+.rider-avatar{height:228px;width:158px;filter:drop-shadow(0 8px 6px #0b24524d)}
+/* Keep shoes and socks visible above the outfit caption. */
+.avatar-stage .rider-avatar{bottom:16px}
+.avatar-stage{height:244px}
+.avatar-head{transform-origin:80px 118px;animation:avatar-look 5.3s ease-in-out infinite}
+.avatar-torso{animation:avatar-breathe 3.2s ease-in-out infinite;transform-origin:80px 154px}
+@media(max-width:460px){.avatar-stage{height:226px}.rider-avatar{height:214px;width:148px}}
+/* Actual front/back view, not horizontal mirroring */
+.avatar-back-view{display:none}
+.rider-avatar.avatar-back-active{transform:none}
+.rider-avatar.avatar-back-active>.avatar-bob{display:none}
+.rider-avatar.avatar-back-active>.avatar-back-view{display:block;animation:avatar-idle 3.2s ease-in-out infinite;transform-origin:80px 224px}
+.avatar-back-head{animation:avatar-look 5.3s ease-in-out infinite;transform-origin:80px 116px}
+.avatar-back-torso{animation:avatar-breathe 3.2s ease-in-out infinite;transform-origin:80px 154px}
+@media(prefers-reduced-motion:reduce){.rider-avatar.avatar-back-active>.avatar-back-view,.avatar-back-head,.avatar-back-torso{animation:none}}
+
+/* Stable outfit scene system: a single full-body outfit is visible for each temperature tier. */
+.outfit-scene{display:none}
+.avatar-stage[data-outfit="winter"] .outfit-winter,
+.avatar-stage[data-outfit="cold"] .outfit-cold,
+.avatar-stage[data-outfit="cool"] .outfit-cool,
+.avatar-stage[data-outfit="mild"] .outfit-mild,
+.avatar-stage[data-outfit="hot"] .outfit-hot{display:block}
+/* Front and back use the same temperature tier, with no mixed/ghost garment layers. */
+.rider-avatar .outfit-scene{display:none}
+.avatar-stage[data-outfit="winter"] .rider-avatar .outfit-winter,
+.avatar-stage[data-outfit="cold"] .rider-avatar .outfit-cold,
+.avatar-stage[data-outfit="cool"] .rider-avatar .outfit-cool,
+.avatar-stage[data-outfit="mild"] .rider-avatar .outfit-mild,
+.avatar-stage[data-outfit="hot"] .rider-avatar .outfit-hot{display:block}
+.avatar-stage .outfit-scene .avatar-torso{animation:none}
+.avatar-stage .outfit-scene .avatar-arms{animation:none}
+/* Bib details: summer rear straps and jersey chest graphics do not extend outside the kit. */
+.avatar-stage .outfit-scene .avatar-bib-shorts{stroke-linejoin:round}
+.avatar-stage .outfit-scene .avatar-road-shoes{stroke-linecap:round}
+/* Full-sleeve champion bands use the actual long-sleeve contours, not floating wrist lines. */
+.avatar-stage .champion-sleeve-bands{pointer-events:none}
+.avatar-stage .champion-under-gilet{pointer-events:none}
+.avatar-stage .outfit-scene .avatar-rear-pockets{pointer-events:none}
+.avatar-stage .outfit-cool .avatar-leg-skin,
+.avatar-stage .outfit-mild .avatar-leg-skin,
+.avatar-stage .outfit-hot .avatar-leg-skin{fill:#cb8864;stroke:#ad7054}
+.avatar-stage .outfit-mild .avatar-arm-base,.avatar-stage .outfit-hot .avatar-arm-base{fill:#cb8864;stroke:#ad7054}
+.avatar-stage .outfit-mild .avatar-arm-hand,.avatar-stage .outfit-hot .avatar-arm-hand{fill:#cb8864}
+
+
+
+/* UCI 월드투어 캘린더: 상단의 작은 정보 스트립 */
+.uci-strip{margin:0 0 12px;background:#fff;border-radius:16px;padding:13px 15px;box-shadow:0 2px 12px #18365b0a}
+.uci-strip.uci-no-events{padding:10px 13px}
+.uci-strip.uci-no-events .uci-schedule{display:none}
+.uci-strip-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.uci-strip-title{font-size:14px;font-weight:850;color:#193b68}
+.uci-strip-sub{font-size:12px;color:#657990}
+.uci-small-btn{min-height:34px;padding:6px 10px;background:#edf3fb;color:#245b99;font-size:12px}
+.uci-schedule{display:grid;gap:8px;margin-top:10px}
+.uci-event{width:100%;text-align:left;display:flex;justify-content:space-between;gap:8px;align-items:center;background:#f0f5fc;color:#193b68;border:1px solid #d8e5f5;padding:10px 12px;min-height:48px}
+.uci-event strong{display:block;font-size:13px}.uci-event small{font-size:11px;color:#657990}
+.uci-empty{font-size:13px;color:#64748b;padding:7px 0}
+.uci-detail{margin-top:10px;border-top:1px solid #e2e9f3;padding-top:11px;display:none}
+.uci-detail.show{display:block}
+.uci-detail h3{font-size:15px;margin:0 0 6px;color:#193b68}
+.uci-weather{font-size:13px;line-height:1.65;color:#33516e}
+.uci-riders{display:flex;gap:9px;overflow-x:auto;padding:10px 0 3px}
+.uci-rider{flex:0 0 108px;background:#f4f7fc;border-radius:12px;padding:8px 6px;text-align:center}
+.uci-rider-art{height:64px;display:grid;place-items:center;font-size:28px;background:linear-gradient(140deg,#d5e7ff,#e7f4fe);border-radius:10px}
+.uci-rider-name{font-size:11px;font-weight:800;line-height:1.35;margin-top:5px;color:#284969}
+.uci-rider-team{font-size:10px;color:#64748b;line-height:1.35;margin-top:3px}
+.uci-note{font-size:11px;color:#718299;line-height:1.5}
+.uci-link{display:inline-block;margin-top:8px;color:#1a62aa;font-weight:750;font-size:12px}
+@media(max-width:420px){.uci-strip{padding:11px 12px}.uci-strip-title{font-size:13px}.uci-strip-sub{font-size:11px}}
+
+.rider-avatar .avatar-head,.rider-avatar .avatar-back-head{transform-origin:80px 122px}
+
+/* Startle reaction on the ACTUAL rendered head and paired-arm SVG groups. */
+@keyframes rider-head-recoil{0%,100%{transform:rotate(0) translateY(0)}18%{transform:rotate(-16deg) translateY(-9px)}44%{transform:rotate(12deg) translateY(-5px)}72%{transform:rotate(-5deg) translateY(1px)}}
+@keyframes rider-arms-flinch{0%,100%{transform:translateY(0) scaleX(1)}23%{transform:translateY(-16px) scaleX(1.24)}48%{transform:translateY(-8px) scaleX(1.13)}74%{transform:translateY(2px) scaleX(.97)}}
+@keyframes rider-surprise-face{0%,12%,78%,100%{opacity:0}20%,64%{opacity:1}}
+.rider-avatar.avatar-startled .avatar-head,.rider-avatar.avatar-startled .avatar-back-head{animation:rider-head-recoil 850ms ease-out both;transform-box:view-box;transform-origin:80px 119px}
+.rider-avatar.avatar-startled .avatar-arms{animation:rider-arms-flinch 850ms ease-out both;transform-box:view-box;transform-origin:80px 135px}
+.rider-avatar .avatar-surprised-face{opacity:0;pointer-events:none}
+.rider-avatar.avatar-startled .avatar-surprised-face{animation:rider-surprise-face 850ms ease-out both}
+.rider-avatar.avatar-startled.avatar-back-active>.avatar-back-view{animation:rider-startle-hop 850ms cubic-bezier(.22,.75,.3,1) both}
+.rider-avatar.avatar-startled>.avatar-bob{animation-duration:850ms}
+@media(prefers-reduced-motion:reduce){.rider-avatar.avatar-startled .avatar-head,.rider-avatar.avatar-startled .avatar-back-head,.rider-avatar.avatar-startled .avatar-arms,.rider-avatar.avatar-startled.avatar-back-active>.avatar-back-view{animation:none}}
+
+/* Exposed foreground arm gestures, independent of the torso movement. */
+.rider-avatar .avatar-startle-hands{opacity:0;pointer-events:none}
+.rider-avatar.avatar-startled .avatar-startle-hands{opacity:1}
+.rider-avatar .avatar-startle-hands path{stroke:#f5fbff}
+.avatar-stage[data-outfit="winter"] .avatar-startle-hands path{stroke:#293e55}
+.avatar-stage[data-outfit="cold"] .avatar-startle-hands path{stroke:#d5ecd9}
+.avatar-stage[data-outfit="cool"] .avatar-startle-hands path{stroke:#f5fbff}
+@keyframes rider-wave-left{0%,100%{transform:translate(7px,12px) rotate(16deg)}20%{transform:translate(-6px,-12px) rotate(-20deg)}45%{transform:translate(-3px,-8px) rotate(-9deg)}70%{transform:translate(1px,3px) rotate(7deg)}}
+@keyframes rider-wave-right{0%,100%{transform:translate(-7px,12px) rotate(-16deg)}20%{transform:translate(6px,-12px) rotate(20deg)}45%{transform:translate(3px,-8px) rotate(9deg)}70%{transform:translate(-1px,3px) rotate(-7deg)}}
+.rider-avatar.avatar-startled .avatar-startle-hand-left{animation:rider-wave-left 850ms ease-out both;transform-origin:56px 134px}
+.rider-avatar.avatar-startled .avatar-startle-hand-right{animation:rider-wave-right 850ms ease-out both;transform-origin:104px 134px}
+@media(prefers-reduced-motion:reduce){.rider-avatar.avatar-startled .avatar-startle-hand-left,.rider-avatar.avatar-startled .avatar-startle-hand-right{animation:none}}
+
+/* Confident victory animation uses the CURRENT outfit's own arms,
+   avoiding duplicate limbs, inconsistent jersey sleeves and tan-line changes. */
+@keyframes rider-victory-body{
+  0%,100%{transform:translateY(0) rotate(0)}
+  15%{transform:translateY(2px) rotate(-1deg)}
+  35%,74%{transform:translateY(-5px) rotate(2deg)}
+  88%{transform:translateY(-2px) rotate(.5deg)}
+}
+@keyframes rider-victory-head{
+  0%,100%{transform:rotate(0)}
+  30%,74%{transform:rotate(-7deg) translateY(-2px)}
+}
+@keyframes rider-victory-right-arm{
+  0%{transform:rotate(0)}
+  14%{transform:rotate(9deg)}
+  37%,71%{transform:rotate(-124deg)}
+  84%{transform:rotate(-68deg)}
+  100%{transform:rotate(0)}
+}
+@keyframes rider-victory-left-arm{
+  0%{transform:rotate(0)}
+  37%,71%{transform:rotate(-28deg)}
+  86%{transform:rotate(-12deg)}
+  100%{transform:rotate(0)}
+}
+.rider-avatar.avatar-confident .avatar-bob{
+  animation:rider-victory-body 1150ms ease-in-out both
+}
+.rider-avatar.avatar-confident .avatar-head,
+.rider-avatar.avatar-confident .avatar-back-head{
+  animation:rider-victory-head 1150ms ease-in-out both;
+  transform-box:view-box;
+  transform-origin:80px 118px
+}
+.rider-avatar.avatar-confident .outfit-scene .avatar-arm-left{
+  animation:rider-victory-left-arm 1150ms ease-in-out both;
+  transform-box:view-box;
+  transform-origin:56px 135px
+}
+.rider-avatar.avatar-confident .outfit-scene .avatar-arm-right{
+  animation:rider-victory-right-arm 1150ms ease-in-out both;
+  transform-box:view-box;
+  transform-origin:104px 135px
+}
+.rider-avatar.avatar-confident .avatar-surprised-face{display:none!important}
+.rider-avatar.avatar-confident.avatar-back-active>.avatar-back-view{
+  animation:rider-victory-body 1150ms ease-in-out both
+}
+@media(prefers-reduced-motion:reduce){
+  .rider-avatar.avatar-confident .avatar-bob,
+  .rider-avatar.avatar-confident .avatar-head,
+  .rider-avatar.avatar-confident .avatar-back-head,
+  .rider-avatar.avatar-confident .outfit-scene .avatar-arm-left,
+  .rider-avatar.avatar-confident .outfit-scene .avatar-arm-right{
+    animation-duration:180ms
+  }
+}

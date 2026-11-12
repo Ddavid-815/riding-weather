@@ -198,10 +198,10 @@ function decodeGeo(topo){
   pin.append(icon,label,mm);labelLayer.append(pin);
  });
 }
-async function loadJSON(url,timeout=15000){
+async function loadJSON(url,timeout=15000,cacheMode='no-store'){
  const ctrl=new AbortController(),id=setTimeout(()=>ctrl.abort(),timeout);
  try{
-  const response=await fetch(url,{signal:ctrl.signal,cache:'no-store'});
+  const response=await fetch(url,{signal:ctrl.signal,cache:cacheMode});
   if(!response.ok)throw Error('HTTP '+response.status);
   return await response.json();
  }finally{clearTimeout(id);}
@@ -261,11 +261,11 @@ async function reload(){
 /* Interactive Korean region selection. Detail boundaries originate in simplified 2023 admin polygons. */
 function setupMapZoom(){
  const svg=$('koMap'),zoomIn=$('koZoomIn'),zoomOut=$('koZoomOut'),reset=$('koZoomReset');
- const seoulFocus=$('koSeoulFocus');
+ const seoulFocus=$('koSeoulFocus'),tooltip=$('koMapTooltip');
  const provinceLabels=$('koLabelLayer'),cityLabels=$('koCityLabelLayer');
  const dokdoLayer=$('koDokdoLayer'),dokdoLabels=$('koDokdoLabelLayer');
  const selectedArea=$('koSelectedArea'),selectedPin=$('koSelectedPin'),hoverArea=$('koHoverArea');
- if(!svg||!zoomIn||!zoomOut||!reset||!seoulFocus||!cityLabels||!selectedArea||!selectedPin||!hoverArea||!dokdoLayer||!dokdoLabels)return null;
+ if(!svg||!zoomIn||!zoomOut||!reset||!seoulFocus||!cityLabels||!selectedArea||!selectedPin||!hoverArea||!dokdoLayer||!dokdoLabels||!tooltip)return null;
  const BASE_W=585,BASE_H=580,MAX_ZOOM=24,DETAIL_THRESHOLD=1.65,SEOUL_FOCUS_ZOOM=16;
  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
  const view={x:0,y:0,zoom:1},pointers=new Map();
@@ -335,16 +335,26 @@ function setupMapZoom(){
   const province=provinceAt(point);
   return province?{province,city:view.zoom>=DETAIL_THRESHOLD?findCity(point,province.code):null,isDokdo:false}:null;
  }
- function setHover(region){
+ function setHover(region,clientX=null,clientY=null){
   const key=region?(region.isDokdo?'dokdo':region.city?'city:'+region.city.full:'province:'+region.province.code):'';
   const oldKey=hovered?(hovered.isDokdo?'dokdo':hovered.city?'city:'+hovered.city.full:'province:'+hovered.province.code):'';
-  if(key===oldKey)return;
-  hovered=region;
-  $('koDokdoPoint')?.classList.toggle('is-hovered',!!region?.isDokdo);
-  hoverArea.setAttribute('d',region?shapeForRegion(region.province,region.city,region.isDokdo):'');
+  if(key!==oldKey){
+   hovered=region;
+   $('koDokdoPoint')?.classList.toggle('is-hovered',!!region?.isDokdo);
+   hoverArea.setAttribute('d',region?shapeForRegion(region.province,region.city,region.isDokdo):'');
+   tooltip.hidden=!region;
+   if(region)tooltip.textContent=region.isDokdo?'독도 · 경북 울릉군':
+    region.city?region.city.full:(fullByCode.get(region.province.code)||region.province.name);
+  }
+  if(region&&Number.isFinite(clientX)&&Number.isFinite(clientY)){
+   const box=svg.parentElement.getBoundingClientRect();
+   const clampPos=(v,min,max)=>Math.max(min,Math.min(max,v));
+   tooltip.style.left=clampPos(clientX-box.left+13,4,Math.max(4,box.width-tooltip.offsetWidth-4))+'px';
+   tooltip.style.top=clampPos(clientY-box.top-38,4,Math.max(4,box.height-tooltip.offsetHeight-4))+'px';
+  }
  }
  function hoverAt(clientX,clientY){
-  setHover(regionAt(clientX,clientY));
+  setHover(regionAt(clientX,clientY),clientX,clientY);
  }
  function showSelection(){
   if(!highlighted){
@@ -425,6 +435,8 @@ function setupMapZoom(){
   view.x=clamp(nextX,0,BASE_W-w);
   view.y=clamp(nextY,0,BASE_H-h);
   svg.setAttribute('viewBox',[view.x,view.y,w,h].map(n=>n.toFixed(3)).join(' '));
+  // At 100% native vertical swipe scrolls the page; after zooming enable drag/pinch.
+  svg.style.touchAction=view.zoom<=1.001?'pan-y':'none';
   svg.style.setProperty('--ko-symbol-size',(29/view.zoom)+'px');
   svg.style.setProperty('--ko-province-size',(19/view.zoom)+'px');
   svg.style.setProperty('--ko-mm-size',(17/view.zoom)+'px');
@@ -623,10 +635,10 @@ async function init(){
  slider.addEventListener('input',update);
  $('koReload').addEventListener('click',reload);
  update();
- const mapPromise=loadJSON('./korea-provinces-2018.topo.json',12000)
+ const mapPromise=loadJSON('./korea-provinces-2018.topo.json?v=20261112u',12000,'force-cache')
   .then(t=>{decodeGeo(t);mapZoom?.refreshSelection();update();})
   .catch(()=>{$('koMapMessage').textContent='지도 표시 실패';});
- const subregionPromise=loadJSON('./korea-sigungu-labels.json',12000)
+ const subregionPromise=loadJSON('./korea-sigungu-labels.json?v=20261112u',12000,'force-cache')
   .then(data=>{
    if(!Array.isArray(data.places)||data.places.length<200)throw Error('시군구 데이터 형식 오류');
    mapZoom?.setSubregions(data.places);
