@@ -1,4 +1,4 @@
-/* Nationwide ECMWF IFS (single model). 17 representative points, not province-wide observation. */
+/* Nationwide ECMWF IFS (single model). 17 provincial sample points plus Dokdo; not area-wide observations. */
 (()=>{
 'use strict';
 const $=id=>document.getElementById(id);
@@ -20,8 +20,10 @@ const REGION_DATA=[
  ['36','전남',34.8200,126.4700],
  ['37','경북',36.5800,128.7200],
  ['38','경남',35.2380,128.6920],
- ['39','제주',33.4996,126.5312]
+ ['39','제주',33.4996,126.5312],
+ ['DO','독도',37.2408,131.8696]
 ].map(([code,name,lat,lon])=>({code,name,lat,lon}));
+const DOKDO=REGION_DATA.find(r=>r.code==='DO');
 const MAP_LABELS=[
  ['서울',127.01,37.59],['강원',128.36,37.66],
  ['충남',126.60,36.55],['경북',129.01,36.41],
@@ -117,12 +119,35 @@ function update(){
  }
  $('koSummary').textContent=date?
   '강수 '+rainCount+'곳 · 강수 없음 '+clearCount+'곳'+(missing?' · 미확인 '+missing+'곳':''):
-  '전국 17개 시도 자료 확인 중';
- $('koLabelLayer').querySelectorAll('.ko-weather-pin').forEach(pin=>{
+  '전국 17개 시도 및 독도 자료 확인 중';
+ document.querySelectorAll('#koLabelLayer .ko-weather-pin, #koDokdoLabelLayer .ko-weather-pin').forEach(pin=>{
   const item=dataFor(pin.dataset.code,date),rain=item?.rain??null;
   pin.querySelector('.ko-map-symbol').textContent=item?weatherIcon(item.code):'';
   pin.querySelector('.ko-map-mm').textContent=valid(rain)&&rain>0?rain.toFixed(1)+'mm':'';
  });
+}
+// Schematic marker for tiny East/West Dokdo islets (not a surveyed shoreline).
+// Coordinates follow the National Assembly Library's eastern islet, approx. 37.2408 N, 131.8696 E.
+function drawDokdo(){
+ const layer=$('koDokdoLayer'),labels=$('koDokdoLabelLayer');
+ if(!layer||!labels)return;
+ const [x,y]=project([DOKDO.lon,DOKDO.lat]);
+ const p=(dx,dy)=>(x+dx).toFixed(2)+','+(y+dy).toFixed(2);
+ const d='M'+p(-10,1)+' C'+p(-12,-4)+' '+p(-7,-8)+' '+p(-4,-6)+
+   ' C'+p(1,-4)+' '+p(-1,5)+' '+p(-5,6)+' C'+p(-9,7)+' '+p(-12,3)+' '+p(-10,1)+'Z'+
+   ' M'+p(2,-2)+' C'+p(3,-8)+' '+p(8,-9)+' '+p(11,-5)+
+   ' C'+p(14,-1)+' '+p(12,5)+' '+p(8,6)+' C'+p(3,6)+' '+p(0,2)+' '+p(2,-2)+'Z';
+ const shape=makeSvg('path',{id:'koProvince-DO',d,class:'ko-province ko-dokdo-islets'});
+ shape.dataset.level='unknown';
+ const shapeTitle=makeSvg('title');shapeTitle.textContent='독도 · 경상북도 울릉군 울릉읍';
+ shape.append(shapeTitle);layer.replaceChildren(shape);
+ const pin=makeSvg('g',{class:'ko-weather-pin ko-dokdo-pin'});
+ pin.dataset.code='DO';
+ const symbol=makeSvg('text',{x:x.toFixed(2),y:(y-14).toFixed(2),class:'ko-map-symbol','aria-hidden':'true'});
+ const title=makeSvg('text',{x:x.toFixed(2),y:(y+25).toFixed(2),class:'ko-map-label'});
+ title.textContent='독도';
+ const mm=makeSvg('text',{x:x.toFixed(2),y:(y+41).toFixed(2),class:'ko-map-mm'});
+ pin.append(symbol,title,mm);labels.replaceChildren(pin);
 }
 function decodeGeo(topo){
  if(topo?.type!=='Topology'||!Array.isArray(topo.arcs)||!topo.transform)throw Error('지도 경계 형식 오류');
@@ -189,7 +214,7 @@ async function reload(){
  const id=++requestId;
  $('koReload').disabled=true;
  $('koDaySlider').disabled=true;
- $('koLoading').textContent='17개 시도 ECMWF IFS 일별 예보 조회 중…';
+ $('koLoading').textContent='17개 시도 및 독도 ECMWF IFS 일별 예보 조회 중…';
  try{
   const params=new URLSearchParams({
    latitude:REGION_DATA.map(r=>r.lat.toFixed(4)).join(','),
@@ -200,7 +225,7 @@ async function reload(){
   });
   const payload=await loadJSON('https://api.open-meteo.com/v1/forecast?'+params,18000);
   const items=Array.isArray(payload)?payload:[payload];
-  if(items.length!==REGION_DATA.length)throw Error('17개 시도 예보 건수 불일치');
+  if(items.length!==REGION_DATA.length)throw Error('전국 17개 시도 및 독도 예보 건수 불일치');
   const first=items[0]?.daily?.time;
   if(!Array.isArray(first)||first.length<14)throw Error('14일 예보가 누락되었습니다');
   const next=new Map();
@@ -241,7 +266,7 @@ function setupMapZoom(){
  const provinceLabels=$('koLabelLayer'),cityLabels=$('koCityLabelLayer');
  const selectedArea=$('koSelectedArea'),selectedPin=$('koSelectedPin'),hoverArea=$('koHoverArea');
  if(!svg||!zoomIn||!zoomOut||!reset||!cityLabels||!selectedArea||!selectedPin||!hoverArea)return null;
- const BASE_W=520,BASE_H=580,MAX_ZOOM=5,DETAIL_THRESHOLD=1.65;
+ const BASE_W=585,BASE_H=580,MAX_ZOOM=5,DETAIL_THRESHOLD=1.65;
  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
  const view={x:0,y:0,zoom:1},pointers=new Map();
  const announcement=$('koZoomAnnouncement');
@@ -265,6 +290,9 @@ function setupMapZoom(){
  }
  function insideCity(pt,p){return p.rings?.some(r=>isInsideRing(pt,r))||false;}
  function provinceAt(pt){
+  // The island is too small to click at geographic scale; use a zoom-aware hit target.
+  const [dokdoX,dokdoY]=project([DOKDO.lon,DOKDO.lat]);
+  if(Math.hypot(pt.x-dokdoX,pt.y-dokdoY)<=24/view.zoom)return DOKDO;
   for(const r of REGION_DATA){
    const path=$('koProvince-'+r.code);
    if(path?.isPointInFill && path.isPointInFill(pt))return r;
@@ -433,7 +461,8 @@ function setupMapZoom(){
   const place=city?{
    name:city.name,admin:city.admin,latitude:city.lat,longitude:city.lon
   }:{
-   name:fullByCode.get(province.code)||province.name,admin:'대한민국',
+   name:fullByCode.get(province.code)||province.name,
+   admin:province.code==='DO'?'경상북도 울릉군 울릉읍':'대한민국',
    latitude:province.lat,longitude:province.lon
   };
   if(announcement)announcement.textContent='선택한 지역: '+place.name;
@@ -534,6 +563,7 @@ function setupMapZoom(){
 
 async function init(){
  const slider=$('koDaySlider');if(!slider)return;
+ drawDokdo();
  const mapZoom=setupMapZoom();
  slider.addEventListener('input',update);
  $('koReload').addEventListener('click',reload);
