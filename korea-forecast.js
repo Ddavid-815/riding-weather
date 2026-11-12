@@ -262,13 +262,15 @@ async function reload(){
 function setupMapZoom(){
  const svg=$('koMap'),reset=$('koZoomReset');
  const tooltip=$('koMapTooltip');
- const provinceLabels=$('koLabelLayer'),cityLabels=$('koCityLabelLayer');
+ const provinceLabels=$('koLabelLayer'),cityLabels=$('koCityLabelLayer'),dongLabels=$('koDongLabelLayer');
  const dokdoLayer=$('koDokdoLayer'),dokdoLabels=$('koDokdoLabelLayer');
  const selectedArea=$('koSelectedArea'),selectedPin=$('koSelectedPin'),hoverArea=$('koHoverArea');
- if(!svg||!reset||!cityLabels||!selectedArea||!selectedPin||!hoverArea||!dokdoLayer||!dokdoLabels||!tooltip)return null;
+ if(!svg||!reset||!cityLabels||!dongLabels||!selectedArea||!selectedPin||!hoverArea||!dokdoLayer||!dokdoLabels||!tooltip)return null;
  const BASE_W=585,BASE_H=580,MAX_ZOOM=256,DETAIL_THRESHOLD=1.65;
  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
  const view={x:0,y:0,zoom:1},pointers=new Map();
+ const neighborhoods=window.createKoreaDongLayer?.({svg,layer:dongLabels,onLoaded:showDetailLabels});
+ const NEIGHBORHOOD_ZOOM=28;
  const announcement=$('koZoomAnnouncement');
  const provincesByFull=new Map(Object.entries({
   '서울특별시':'11','부산광역시':'21','대구광역시':'22','인천광역시':'23',
@@ -333,18 +335,19 @@ function setupMapZoom(){
    }
   }
   const province=provinceAt(point);
-  return province?{province,city:view.zoom>=DETAIL_THRESHOLD?findCity(point,province.code):null,isDokdo:false}:null;
+  return province?{province,city:view.zoom>=DETAIL_THRESHOLD?findCity(point,province.code):null,
+   locality:neighborhoods?.hit(clientX,clientY,view,point)||null,isDokdo:false}:null;
  }
  function setHover(region,clientX=null,clientY=null){
-  const key=region?(region.isDokdo?'dokdo':region.city?'city:'+region.city.full:'province:'+region.province.code):'';
-  const oldKey=hovered?(hovered.isDokdo?'dokdo':hovered.city?'city:'+hovered.city.full:'province:'+hovered.province.code):'';
+  const key=region?(region.isDokdo?'dokdo':region.locality?'locality:'+region.locality.code:region.city?'city:'+region.city.full:'province:'+region.province.code):'';
+  const oldKey=hovered?(hovered.isDokdo?'dokdo':hovered.locality?'locality:'+hovered.locality.code:hovered.city?'city:'+hovered.city.full:'province:'+hovered.province.code):'';
   if(key!==oldKey){
    hovered=region;
    $('koDokdoPoint')?.classList.toggle('is-hovered',!!region?.isDokdo);
-   hoverArea.setAttribute('d',region?shapeForRegion(region.province,region.city,region.isDokdo):'');
+   hoverArea.setAttribute('d',region&&!region.locality?shapeForRegion(region.province,region.city,region.isDokdo):'');
    tooltip.hidden=!region;
    if(region)tooltip.textContent=region.isDokdo?'독도 · 경북 울릉군':
-    region.city?region.city.full:(fullByCode.get(region.province.code)||region.province.name);
+    region.locality?region.locality.full:region.city?region.city.full:(fullByCode.get(region.province.code)||region.province.name);
   }
   if(region&&Number.isFinite(clientX)&&Number.isFinite(clientY)){
    const box=svg.parentElement.getBoundingClientRect();
@@ -364,9 +367,9 @@ function setupMapZoom(){
   }
   const p=highlighted.province;
   $('koDokdoPoint')?.classList.toggle('is-selected',!!highlighted.isDokdo);
-  selectedArea.setAttribute('d',shapeForRegion(p,highlighted.city,highlighted.isDokdo));
+  selectedArea.setAttribute('d',highlighted.locality?'':shapeForRegion(p,highlighted.city,highlighted.isDokdo));
   // Replaying the flash acknowledges a newly selected region without scaling the map text.
-  const center=highlighted.isDokdo?DOKDO:(highlighted.city||p);
+  const center=highlighted.isDokdo?DOKDO:(highlighted.locality||highlighted.city||p);
   const x=center.x??project([center.lon,center.lat])[0];
   const y=center.y??project([center.lon,center.lat])[1];
   selectedPin.setAttribute('cx',x.toFixed(2));
@@ -376,8 +379,8 @@ function setupMapZoom(){
   void selectedArea.getBoundingClientRect();
   selectedArea.style.animation='';
  }
- function setSelected(province,city,isDokdo=false){
-  highlighted=province?{province,city:city||null,isDokdo}:null;
+ function setSelected(province,city,isDokdo=false,locality=null){
+  highlighted=province?{province,city:city||null,isDokdo,locality}:null;
   showSelection();
  }
  function buildSubregions(places){
@@ -401,11 +404,12 @@ function setupMapZoom(){
  }
  function showDetailLabels(){
   const detailed=view.zoom>=DETAIL_THRESHOLD&&placeNodes.length>0;
+  const localLabelsActive=view.zoom>=NEIGHBORHOOD_ZOOM&&!!neighborhoods?.ready;
   provinceLabels.style.display=detailed?'none':'';
-  cityLabels.style.display=detailed?'':'none';
+  cityLabels.style.display=detailed&&!localLabelsActive?'':'none';
   dokdoLayer.style.display=view.zoom>=DETAIL_THRESHOLD?'':'none';
   dokdoLabels.style.display=view.zoom>=DETAIL_THRESHOLD?'':'none';
-  if(!detailed)return;
+  if(!detailed||localLabelsActive){neighborhoods?.update(view);return;}
   const rect=svg.getBoundingClientRect();
   if(!rect.width||!rect.height)return;
   const w=BASE_W/view.zoom,h=BASE_H/view.zoom;
@@ -427,6 +431,7 @@ function setupMapZoom(){
     p.box.top<o.bottom&&p.box.bottom>o.top))continue;
    p.node.style.display='';visible.push(p.box);
   }
+  neighborhoods?.update(view);
  }
  function applyView(nextZoom,nextX,nextY){
   view.zoom=clamp(nextZoom,1,MAX_ZOOM);
@@ -450,6 +455,7 @@ function setupMapZoom(){
    dokdoPoint.setAttribute('r',radius.toFixed(3));
   }
   reset.disabled=view.zoom<=1.001;
+  reset.classList.toggle('is-visible',view.zoom>1.001);
   showDetailLabels();showSelection();
   // Any previous hovered region is interpreted at the old zoom level.
   // Re-evaluate it on the next pointer move instead of showing a stale outline.
@@ -487,16 +493,19 @@ function setupMapZoom(){
   const province=provinceAt(point);
   if(!province){setSelected(null,null);return;}
   const matching=subregions.find(p=>p.provinceCode===province.code&&insideCity(point,p));
-  setSelected(province,matching||null);
+  const locality=neighborhoods?.matching(place)||null;
+  setSelected(province,matching||null,false,locality);
  }
  function selectAt(clientX,clientY){
   const region=regionAt(clientX,clientY);
   if(!region)return;
-  const {province,city,isDokdo}=region;
-  setSelected(province,city,isDokdo);
+  const {province,city,isDokdo,locality}=region;
+  setSelected(province,city,isDokdo,locality);
   setHover(null);
   const place=isDokdo?{
    name:DOKDO.name,admin:DOKDO.admin,latitude:DOKDO.lat,longitude:DOKDO.lon
+  }:locality?{
+   name:locality.name,admin:locality.full,latitude:locality.lat,longitude:locality.lon
   }:city?{
    name:city.name,admin:city.admin,latitude:city.lat,longitude:city.lon
   }:{
@@ -513,7 +522,7 @@ function setupMapZoom(){
  const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  reset.addEventListener('click',()=>{
   applyView(1,0,0);
-  if(announcement)announcement.textContent='지도를 전체 보기로 초기화했습니다';
+  if(announcement)announcement.textContent='전국 지도를 표시합니다';
  });
  svg.addEventListener('wheel',e=>{
   e.preventDefault();
