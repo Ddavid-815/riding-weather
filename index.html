@@ -145,6 +145,9 @@
     .hour-table tbody tr.hour-current:hover td{background:var(--hour-rain-bg);border-top:2px solid #3577bc;border-bottom:2px solid #3577bc;font-weight:800;color:#163e6c}
     .hour-table tbody tr.hour-current td:first-child,
     .hour-table tbody tr.hour-current:hover td:first-child{background:var(--hour-rain-time-bg);border-left:4px solid #2478cf}
+    /* Maintain text contrast in the darkest rain bands (including the sticky time cell). */
+    .hour-table tbody tr.hour-rain-4 td,
+    .hour-table tbody tr.hour-rain-5 td{color:#0b2944}
     .hour-now-badge{display:inline-block;margin-left:5px;padding:2px 5px;border-radius:5px;background:#2467a9;color:#fff;font-size:10px;line-height:1.2;vertical-align:middle}
     .hour-wx{font-size:17px;margin-right:3px;vertical-align:middle}
     .hour-wind{display:inline-flex;align-items:center;gap:4px;font-weight:700}
