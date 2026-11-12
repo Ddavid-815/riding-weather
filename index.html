@@ -112,27 +112,45 @@
     .hour-subtitle{font-size:12px;color:#64748b;line-height:1.5;margin:0}
     .hour-close{flex:0 0 42px;width:42px;padding:0;border-radius:12px;background:#eef3f9;color:#2b496b;font-size:20px;min-height:42px}
     .hour-summary{padding:10px 18px;background:#f1f6fc;font-size:13px;color:#345271;font-weight:700;line-height:1.6}
+    .hour-rain-legend{display:flex;align-items:center;gap:9px;overflow-x:auto;overscroll-behavior-x:contain;white-space:nowrap;padding:8px 18px;background:#fbfdff;border-bottom:1px solid #e6edf5;color:#425c78;font-size:11px;scrollbar-width:thin}
+    .hour-rain-legend-title{font-weight:800;color:#1b4c7a;flex-shrink:0}
+    .hour-rain-legend-item{display:inline-flex;align-items:center;gap:4px;flex-shrink:0}
+    .hour-rain-swatch{display:inline-block;width:13px;height:13px;flex-shrink:0;border:1px solid #8badcc;border-radius:3px}
+    .hour-rain-swatch.rain-0{background:#fff}
+    .hour-rain-swatch.rain-1{background:#f3f8ff}
+    .hour-rain-swatch.rain-2{background:#dcecff}
+    .hour-rain-swatch.rain-3{background:#c2dffa}
+    .hour-rain-swatch.rain-4{background:#98c5ef}
+    .hour-rain-swatch.rain-5{background:#6ca8dc}
+    .hour-rain-legend-note{font-size:11px;color:#5e7793;font-weight:700;margin-left:auto;flex-shrink:0}
     .hour-table-viewport{overflow:auto;min-height:0;flex:1;overscroll-behavior:contain;scrollbar-color:#b9c9df transparent}
     .hour-table{border-collapse:separate;border-spacing:0;width:100%;min-width:860px;font-size:12px;text-align:center;font-variant-numeric:tabular-nums}
     .hour-table th,.hour-table td{padding:10px 8px;border-bottom:1px solid #e6edf5;white-space:nowrap}
     .hour-table thead th{position:sticky;top:0;background:#eaf2fb;color:#325577;font-size:12px;z-index:3}
     .hour-table thead th:first-child{left:0;z-index:4}
-    .hour-table tbody td:first-child{position:sticky;left:0;background:#fff;font-weight:800;color:#334960;z-index:2}
-    .hour-table tbody tr.hour-wet td{background:#f0f7ff}
-    .hour-table tbody tr.hour-wet td:first-child{background:#e8f3ff}
-    .hour-table tbody tr:hover td{background:#edf4fb}
-    .hour-table tbody td.hour-rain{font-weight:800;color:#2467a9}
-    /* 오늘의 현재 시간대만 강조. 강수량 강조 및 마우스 호버보다 우선합니다. */
+    /* Fixed 1-hour rain (mm) bands allow comparison between different dates. */
+    .hour-table tbody tr{--hour-rain-bg:#fff;--hour-rain-time-bg:#fff}
+    .hour-table tbody tr.hour-rain-1{--hour-rain-bg:#f3f8ff;--hour-rain-time-bg:#eaf4ff}
+    .hour-table tbody tr.hour-rain-2{--hour-rain-bg:#dcecff;--hour-rain-time-bg:#d2e7fd}
+    .hour-table tbody tr.hour-rain-3{--hour-rain-bg:#c2dffa;--hour-rain-time-bg:#b4d5f6}
+    .hour-table tbody tr.hour-rain-4{--hour-rain-bg:#98c5ef;--hour-rain-time-bg:#8ab8e5}
+    .hour-table tbody tr.hour-rain-5{--hour-rain-bg:#6ca8dc;--hour-rain-time-bg:#5d9ad0}
+    .hour-table tbody tr.hour-current:not(.hour-wet){--hour-rain-bg:#dceeff;--hour-rain-time-bg:#cae4ff}
+    .hour-table tbody td{background:var(--hour-rain-bg)}
+    .hour-table tbody td:first-child{position:sticky;left:0;background:var(--hour-rain-time-bg);font-weight:800;color:#334960;z-index:2}
+    .hour-table tbody tr:not(.hour-current):hover td{box-shadow:inset 0 1px 0 #7aa9d7,inset 0 -1px 0 #7aa9d7}
+    .hour-table tbody td.hour-rain{font-weight:800;color:#174a80}
+    /* Current-time outline stays visible without erasing rainfall color. */
     .hour-table tbody tr.hour-current td,
-    .hour-table tbody tr.hour-current:hover td{background:#dceeff;border-top:2px solid #3577bc;border-bottom:2px solid #3577bc;font-weight:800;color:#163e6c}
+    .hour-table tbody tr.hour-current:hover td{background:var(--hour-rain-bg);border-top:2px solid #3577bc;border-bottom:2px solid #3577bc;font-weight:800;color:#163e6c}
     .hour-table tbody tr.hour-current td:first-child,
-    .hour-table tbody tr.hour-current:hover td:first-child{background:#cae4ff;border-left:4px solid #2478cf}
+    .hour-table tbody tr.hour-current:hover td:first-child{background:var(--hour-rain-time-bg);border-left:4px solid #2478cf}
     .hour-now-badge{display:inline-block;margin-left:5px;padding:2px 5px;border-radius:5px;background:#2467a9;color:#fff;font-size:10px;line-height:1.2;vertical-align:middle}
     .hour-wx{font-size:17px;margin-right:3px;vertical-align:middle}
     .hour-wind{display:inline-flex;align-items:center;gap:4px;font-weight:700}
     .hour-wind .wind-arrow{font-size:15px}
     .hour-foot{margin:0;padding:11px 18px;color:#64748b;font-size:12px;line-height:1.6;border-top:1px solid #e2e8f0}
-    @media(max-width:460px){.hourly-overlay{padding:6px}.hour-dialog{border-radius:13px;max-height:calc(100dvh - 12px)}.hour-dialog-head{padding:13px 13px 9px}.hour-summary,.hour-foot{padding:10px 13px}.hour-dialog-head h2{font-size:17px}.hour-table th,.hour-table td{padding:9px 7px}}
+    @media(max-width:460px){.hourly-overlay{padding:6px}.hour-dialog{border-radius:13px;max-height:calc(100dvh - 12px)}.hour-dialog-head{padding:13px 13px 9px}.hour-summary,.hour-foot{padding:10px 13px}.hour-dialog-head h2{font-size:17px}.hour-table th,.hour-table td{padding:9px 7px}.hour-rain-legend{padding:8px 13px;gap:8px}}
 
     .compact-search-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:3px 12px;margin-bottom:12px}
     .compact-search-head h2{margin:0;font-size:18px}
@@ -595,6 +613,16 @@ main{max-width:800px}
       <button type="button" id="closeHourly" class="hour-close" aria-label="상세 예보 닫기">✕</button>
     </div>
     <div id="hourlySummary" class="hour-summary"></div>
+    <div class="hour-rain-legend" role="group" aria-label="1시간 강수량에 따른 행 배경색 범례">
+      <span class="hour-rain-legend-title">강수(mm/시간)</span>
+      <span class="hour-rain-legend-item"><i class="hour-rain-swatch rain-0" aria-hidden="true"></i>0</span>
+      <span class="hour-rain-legend-item"><i class="hour-rain-swatch rain-1" aria-hidden="true"></i>0.1~0.4</span>
+      <span class="hour-rain-legend-item"><i class="hour-rain-swatch rain-2" aria-hidden="true"></i>0.5~1.9</span>
+      <span class="hour-rain-legend-item"><i class="hour-rain-swatch rain-3" aria-hidden="true"></i>2~4.9</span>
+      <span class="hour-rain-legend-item"><i class="hour-rain-swatch rain-4" aria-hidden="true"></i>5~9.9</span>
+      <span class="hour-rain-legend-item"><i class="hour-rain-swatch rain-5" aria-hidden="true"></i>10 이상</span>
+      <span class="hour-rain-legend-note">↔ 표 좌우 스크롤</span>
+    </div>
     <div class="hour-table-viewport" role="region" tabindex="0" aria-label="시간별 기온·강수·바람 상세 표">
       <table class="hour-table">
         <thead><tr><th>시간</th><th>날씨</th><th>기온</th><th>체감</th><th>강수</th><th>풍향</th><th>풍속</th><th>순간풍속</th><th>습도</th><th>운량</th></tr></thead>
@@ -1259,6 +1287,16 @@ function forecastLocalClock(now=new Date()){
   hour:two(now.getHours()),minute:two(now.getMinutes())};
 }
 
+function hourlyRainLevel(value){
+ if(value===null||!Number.isFinite(value))return 0;
+ const mm=Math.max(0,Math.round(value*10)/10);
+ if(mm<=0)return 0;
+ if(mm<0.5)return 1;
+ if(mm<2)return 2;
+ if(mm<5)return 3;
+ if(mm<10)return 4;
+ return 5;
+}
 function buildHourlyRows(data,dateStr,currentHourKey=null){
  if(!data||!Array.isArray(data.time))return {count:0,html:''};
  const rows=[];
@@ -1275,13 +1313,14 @@ function buildHourlyRows(data,dateStr,currentHourKey=null){
   const cloud=hourlyValue(data,'cloud_cover',i);
   const code=hourlyValue(data,'weather_code',i);
   const w=code===null?['❔','자료 없음']:wx(code);
-  const wet=rain!==null&&rain>0;
+  const rainLevel=hourlyRainLevel(rain);
+  const wet=rainLevel>0;
   const isNow=currentHourKey!==null&&time.slice(0,13)===currentHourKey;
-  const classes=[wet?'hour-wet':'',isNow?'hour-current':''].filter(Boolean).join(' ');
+  const classes=[wet?'hour-wet hour-rain-'+rainLevel:'',isNow?'hour-current':''].filter(Boolean).join(' ');
   rows.push(`<tr${classes?' class="'+classes+'"':''}${isNow?' aria-current="time"':''}><td>${time.slice(11,16)}${isNow?'<span class="hour-now-badge">지금</span>':''}</td>`+
   `<td title="${w[1]}"><span class="hour-wx">${w[0]}</span>${w[1]}</td>`+
   `<td>${fmtHourly(temp,1,'°C')}</td><td>${fmtHourly(feels,1,'°C')}</td>`+
-  `<td${wet?' class="hour-rain"':''}>${fmtHourly(rain,1,' mm')}</td>`+
+  `<td${wet?' class="hour-rain" title="1시간 강수량 '+fmtHourly(rain,1,' mm')+' · 색상 '+rainLevel+'/5단계"':''}>${fmtHourly(rain,1,' mm')}</td>`+
   `<td>${hourlyWindHTML(direction)}</td><td>${fmtHourly(speed,1,' m/s')}</td>`+
   `<td>${fmtHourly(gust,1,' m/s')}</td><td>${fmtHourly(humidity,0,'%')}</td>`+
   `<td>${fmtHourly(cloud,0,'%')}</td></tr>`);
@@ -1310,7 +1349,7 @@ function openHourlyModal(dateStr,trigger){
  el('hourlyDialogTitle').textContent='🕒 '+dateStr.slice(5).replace('-','/')+' ('+weekdays[date.getUTCDay()]+') 시간별 예보';
  el('hourlyDialogDesc').textContent='📍 '+placeLabel(selectedPlace)+' · ECMWF IFS · 현지시간 기준';
  el('hourlySummary').textContent=result.count?
-   result.count+'개 시간대'+(isToday?' · 현재 '+clock.hour+':'+clock.minute+' (현지시간) 강조':'')+' · 기온(°C) · 강수(mm) · 풍속/순간풍속(m/s) · 습도/운량(%)':
+   result.count+'개 시간대'+(isToday?' · 현재 '+clock.hour+':'+clock.minute+' (현지시간) 강조':'')+' · 강수량이 많을수록 행 배경색이 진해집니다.':
    '선택한 날짜의 시간별 자료가 제공되지 않습니다.';
  el('hourlyBody').innerHTML=result.count?result.html:'<tr><td colspan="10">시간별 자료가 없습니다. 다른 날짜를 선택하거나 다시 조회해 주세요.</td></tr>';
  const modal=el('hourlyDialog');
