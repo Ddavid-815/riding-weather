@@ -235,45 +235,109 @@ async function reload(){
   if(id===requestId){running=false;$('koReload').disabled=false;}
  }
 }
-/* Fixed-size map labels with adaptive city/county/district level of detail. */
+/* Interactive Korean region selection. Detail boundaries originate in simplified 2023 admin polygons. */
 function setupMapZoom(){
  const svg=$('koMap'),zoomIn=$('koZoomIn'),zoomOut=$('koZoomOut'),reset=$('koZoomReset');
- const provinceLayer=$('koLabelLayer'),cityLayer=$('koCityLabelLayer');
- if(!svg||!zoomIn||!zoomOut||!reset||!cityLayer)return null;
+ const provinceLabels=$('koLabelLayer'),cityLabels=$('koCityLabelLayer');
+ const selectedArea=$('koSelectedArea'),selectedPin=$('koSelectedPin');
+ if(!svg||!zoomIn||!zoomOut||!reset||!cityLabels||!selectedArea||!selectedPin)return null;
  const BASE_W=520,BASE_H=580,MAX_ZOOM=5,DETAIL_THRESHOLD=1.65;
  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
  const view={x:0,y:0,zoom:1},pointers=new Map();
- const announce=$('koZoomAnnouncement');
- let subregions=[];
- const placeNodes=[];
+ const announcement=$('koZoomAnnouncement');
+ const provincesByFull=new Map(Object.entries({
+  '서울특별시':'11','부산광역시':'21','대구광역시':'22','인천광역시':'23',
+  '광주광역시':'24','대전광역시':'25','울산광역시':'26','세종특별자치시':'29',
+  '경기도':'31','강원특별자치도':'32','강원도':'32','충청북도':'33','충청남도':'34',
+  '전라북도':'35','전북특별자치도':'35','전라남도':'36',
+  '경상북도':'37','경상남도':'38','제주특별자치도':'39'
+ }));
+ const fullByCode=new Map([...provincesByFull].map(([name,code])=>[code,name]));
+ let subregions=[],placeNodes=[],highlighted=null,lastPlace=null,selectionTimer=null;
+ function isInsideRing(pt,ring){
+  let inside=false;
+  for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+   const a=ring[i],b=ring[j];
+   if((a[1]>pt.y)!==(b[1]>pt.y) &&
+     pt.x<(b[0]-a[0])*(pt.y-a[1])/(b[1]-a[1])+a[0])inside=!inside;
+  }
+  return inside;
+ }
+ function insideCity(pt,p){return p.rings?.some(r=>isInsideRing(pt,r))||false;}
+ function provinceAt(pt){
+  for(const r of REGION_DATA){
+   const path=$('koProvince-'+r.code);
+   if(path?.isPointInFill && path.isPointInFill(pt))return r;
+  }
+  return null;
+ }
+ function closestCity(pt,provinceCode){
+  let best=null,d=Infinity;
+  for(const p of subregions){
+   if(p.provinceCode!==provinceCode)continue;
+   const dx=p.x-pt.x,dy=p.y-pt.y,score=dx*dx+dy*dy;
+   if(score<d){best=p;d=score;}
+  }
+  return best;
+ }
+ function findCity(pt,code){
+  for(const p of subregions)if(p.provinceCode===code&&insideCity(pt,p))return p;
+  // Islands too small to survive polygon simplification: use nearest representative point within province.
+  return closestCity(pt,code);
+ }
+ function cityPath(p){
+  return (p?.rings||[]).map(r=>'M'+r.map(([x,y])=>x+','+y).join('L')+'Z').join('');
+ }
+ function showSelection(){
+  if(!highlighted){selectedArea.setAttribute('d','');selectedPin.setAttribute('r','0');return;}
+  const useCity=view.zoom>=DETAIL_THRESHOLD&&highlighted.city?.rings?.length;
+  const p=highlighted.province;
+  const path=useCity?cityPath(highlighted.city):$('koProvince-'+p.code)?.getAttribute('d')||'';
+  selectedArea.setAttribute('d',path);
+  // Replaying the flash acknowledges a newly selected region without scaling the map text.
+  const center=highlighted.city||p;
+  const x=center.x??project([center.lon,center.lat])[0];
+  const y=center.y??project([center.lon,center.lat])[1];
+  selectedPin.setAttribute('cx',x.toFixed(2));
+  selectedPin.setAttribute('cy',y.toFixed(2));
+  selectedPin.setAttribute('r',(5/view.zoom).toFixed(2));
+  selectedArea.style.animation='none';
+  void selectedArea.getBoundingClientRect();
+  selectedArea.style.animation='';
+ }
+ function setSelected(province,city){
+  highlighted=province?{province,city:city||null}:null;
+  showSelection();
+ }
  function buildSubregions(places){
-  subregions=places.filter(p=>Number.isFinite(p.lon)&&Number.isFinite(p.lat)&&typeof p.name==='string');
-  cityLayer.replaceChildren();
-  placeNodes.length=0;
+  subregions=places.filter(p=>Number.isFinite(p.lon)&&Number.isFinite(p.lat)&&typeof p.name==='string').map(p=>{
+   const prefix=p.full?.split(' ')[0]||'';
+   const [x,y]=project([p.lon,p.lat]);
+   return {...p,provinceCode:provincesByFull.get(prefix),admin:prefix,x,y};
+  });
+  cityLabels.replaceChildren();placeNodes=[];
   for(const place of subregions){
-   const [x,y]=project([place.lon,place.lat]);
-   const node=makeSvg('text',{x:x.toFixed(2),y:y.toFixed(2),class:'ko-city-label'});
+   const node=makeSvg('text',{x:place.x.toFixed(2),y:place.y.toFixed(2),class:'ko-city-label'});
    node.textContent=place.name==='세종특별자치시'?'세종시':place.name;
    node.setAttribute('aria-label',place.full||place.name);
-   node.style.display='none';
-   cityLayer.append(node);
-   placeNodes.push({name:node.textContent,x,y,node,priority:place.name.endsWith('시')?3:place.name.endsWith('군')?2:1});
+   node.style.display='none';cityLabels.append(node);
+   placeNodes.push({name:node.textContent,x:place.x,y:place.y,node,
+    priority:place.name.endsWith('시')?3:place.name.endsWith('군')?2:1});
   }
   showDetailLabels();
+  syncPlace(lastPlace);
  }
  function showDetailLabels(){
   const detailed=view.zoom>=DETAIL_THRESHOLD&&placeNodes.length>0;
-  provinceLayer.style.display=detailed?'none':'';
-  cityLayer.style.display=detailed?'':'none';
+  provinceLabels.style.display=detailed?'none':'';
+  cityLabels.style.display=detailed?'':'none';
   if(!detailed)return;
   const rect=svg.getBoundingClientRect();
   if(!rect.width||!rect.height)return;
   const w=BASE_W/view.zoom,h=BASE_H/view.zoom;
   const unit=Math.min(rect.width/w,rect.height/h);
   const offsetX=(rect.width-w*unit)/2,offsetY=(rect.height-h*unit)/2;
-  const fontPx=27*unit/view.zoom;
-  const visible=[];
-  const candidates=[];
+  const fontPx=27*unit/view.zoom,visible=[],candidates=[];
   for(const p of placeNodes){
    p.node.style.display='none';
    const px=offsetX+(p.x-view.x)*unit,py=offsetY+(p.y-view.y)*unit;
@@ -283,23 +347,20 @@ function setupMapZoom(){
       box.top<offsetY+2||box.bottom>offsetY+h*unit-2)continue;
    candidates.push({...p,box});
   }
-  // Cities first at regional scale; show counties and dense urban districts as space allows.
-  candidates.sort((a,b)=>b.priority-a.priority || a.y-b.y || a.x-b.x);
+  candidates.sort((a,b)=>b.priority-a.priority||a.y-b.y||a.x-b.x);
   for(const p of candidates){
-   if(visible.some(other=>p.box.left<other.right&&p.box.right>other.left&&
-       p.box.top<other.bottom&&p.box.bottom>other.top))continue;
-   p.node.style.display='';
-   visible.push(p.box);
+   if(visible.some(o=>p.box.left<o.right&&p.box.right>o.left&&
+    p.box.top<o.bottom&&p.box.bottom>o.top))continue;
+   p.node.style.display='';visible.push(p.box);
   }
  }
  function applyView(nextZoom,nextX,nextY){
-  const oldZoom=view.zoom;
+  const old=view.zoom;
   view.zoom=clamp(nextZoom,1,MAX_ZOOM);
   const w=BASE_W/view.zoom,h=BASE_H/view.zoom;
   view.x=clamp(nextX,0,BASE_W-w);
   view.y=clamp(nextY,0,BASE_H-h);
   svg.setAttribute('viewBox',[view.x,view.y,w,h].map(n=>n.toFixed(3)).join(' '));
-  // Keep label font sizes and their outline stable in screen pixels while viewBox zooms.
   svg.style.setProperty('--ko-symbol-size',(29/view.zoom)+'px');
   svg.style.setProperty('--ko-province-size',(19/view.zoom)+'px');
   svg.style.setProperty('--ko-mm-size',(17/view.zoom)+'px');
@@ -309,21 +370,20 @@ function setupMapZoom(){
   zoomOut.disabled=view.zoom<=1.001;
   reset.disabled=view.zoom<=1.001;
   reset.textContent=Math.round(view.zoom*100)+'%';
-  if(announce&&Math.abs(oldZoom-view.zoom)>.001)announce.textContent='지도 확대율 '+Math.round(view.zoom*100)+'%';
-  showDetailLabels();
+  if(announcement&&Math.abs(old-view.zoom)>.001)announcement.textContent='지도 확대율 '+Math.round(view.zoom*100)+'%';
+  showDetailLabels();showSelection();
  }
- function mapPoint(clientX,clientY){
-  const p=svg.createSVGPoint();
-  p.x=clientX;p.y=clientY;
+ function mapPoint(x,y){
+  const pt=svg.createSVGPoint();pt.x=x;pt.y=y;
   const m=svg.getScreenCTM();
-  return m?p.matrixTransform(m.inverse()):{x:view.x+BASE_W/(2*view.zoom),y:view.y+BASE_H/(2*view.zoom)};
+  return m?pt.matrixTransform(m.inverse()):{x:view.x+BASE_W/(2*view.zoom),y:view.y+BASE_H/(2*view.zoom)};
  }
- function zoomAt(nextZoom,clientX,clientY){
-  const z=clamp(nextZoom,1,MAX_ZOOM);
+ function zoomAt(next,x,y){
+  const z=clamp(next,1,MAX_ZOOM);
   if(Math.abs(z-view.zoom)<.0001)return;
-  const pivot=mapPoint(clientX,clientY);
-  const ratioX=(pivot.x-view.x)/(BASE_W/view.zoom),ratioY=(pivot.y-view.y)/(BASE_H/view.zoom);
-  applyView(z,pivot.x-ratioX*BASE_W/z,pivot.y-ratioY*BASE_H/z);
+  const pivot=mapPoint(x,y);
+  const rx=(pivot.x-view.x)/(BASE_W/view.zoom),ry=(pivot.y-view.y)/(BASE_H/view.zoom);
+  applyView(z,pivot.x-rx*BASE_W/z,pivot.y-ry*BASE_H/z);
  }
  function centerZoom(factor){
   const r=svg.getBoundingClientRect();
@@ -331,9 +391,34 @@ function setupMapZoom(){
  }
  function panBy(dx,dy){
   if(view.zoom<=1)return;
-  const m=svg.getScreenCTM(),pxPerUnit=m?Math.hypot(m.a,m.b):0;
-  if(!pxPerUnit)return;
-  applyView(view.zoom,view.x-dx/pxPerUnit,view.y-dy/pxPerUnit);
+  const m=svg.getScreenCTM(),u=m?Math.hypot(m.a,m.b):0;
+  if(u)applyView(view.zoom,view.x-dx/u,view.y-dy/u);
+ }
+ function syncPlace(place){
+  lastPlace=place;
+  if(!place||!Number.isFinite(place.latitude)||!Number.isFinite(place.longitude))return;
+  const [x,y]=project([place.longitude,place.latitude]);
+  const point={x,y};
+  const province=provinceAt(point);
+  if(!province){setSelected(null,null);return;}
+  const matching=subregions.find(p=>p.provinceCode===province.code&&insideCity(point,p));
+  setSelected(province,matching||null);
+ }
+ function selectAt(clientX,clientY){
+  const point=mapPoint(clientX,clientY),province=provinceAt(point);
+  if(!province)return;
+  const city=view.zoom>=DETAIL_THRESHOLD?findCity(point,province.code):null;
+  setSelected(province,city);
+  const place=city?{
+   name:city.name,admin:city.admin,latitude:city.lat,longitude:city.lon
+  }:{
+   name:fullByCode.get(province.code)||province.name,admin:'대한민국',
+   latitude:province.lat,longitude:province.lon
+  };
+  if(announcement)announcement.textContent='선택한 지역: '+place.name;
+  if(typeof window.ridingWeatherSelectMapPlace==='function'){
+   window.ridingWeatherSelectMapPlace(place);
+  }
  }
  const midpoint=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
  const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -344,11 +429,18 @@ function setupMapZoom(){
   e.preventDefault();zoomAt(view.zoom*(e.deltaY<0?1.22:1/1.22),e.clientX,e.clientY);
  },{passive:false});
  svg.addEventListener('dblclick',e=>{
+  if(selectionTimer!==null){clearTimeout(selectionTimer);selectionTimer=null;}
   e.preventDefault();zoomAt(view.zoom*1.5,e.clientX,e.clientY);
  });
  svg.addEventListener('pointerdown',e=>{
   if(e.pointerType==='mouse'&&e.button!==0)return;
-  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  const p={x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,moved:false};
+  if(pointers.size||selectionTimer!==null){
+   if(selectionTimer!==null){clearTimeout(selectionTimer);selectionTimer=null;}
+   for(const old of pointers.values())old.moved=true;
+   if(pointers.size)p.moved=true;
+  }
+  pointers.set(e.pointerId,p);
   svg.setPointerCapture(e.pointerId);
   svg.classList.add('ko-map-dragging');
   e.preventDefault();
@@ -356,9 +448,12 @@ function setupMapZoom(){
  svg.addEventListener('pointermove',e=>{
   if(!pointers.has(e.pointerId))return;
   const before=[...pointers.values()],old=pointers.get(e.pointerId);
-  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  const updated={...old,x:e.clientX,y:e.clientY};
+  if(distance(updated,{x:old.sx,y:old.sy})>8)updated.moved=true;
+  pointers.set(e.pointerId,updated);
   const after=[...pointers.values()];
   if(after.length>=2){
+   for(const p of after)p.moved=true;
    const a=midpoint(before[0],before[1]),b=midpoint(after[0],after[1]);
    panBy(b.x-a.x,b.y-a.y);
    const prev=distance(before[0],before[1]);
@@ -367,9 +462,15 @@ function setupMapZoom(){
   e.preventDefault();
  });
  function endPointer(e){
+  const p=pointers.get(e.pointerId);
+  const wasSingle=pointers.size===1;
   pointers.delete(e.pointerId);
   if(svg.hasPointerCapture(e.pointerId))svg.releasePointerCapture(e.pointerId);
   if(!pointers.size)svg.classList.remove('ko-map-dragging');
+  if(e.type==='pointerup'&&p&&wasSingle&&!p.moved&&distance({x:e.clientX,y:e.clientY},{x:p.sx,y:p.sy})<9){
+   const x=e.clientX,y=e.clientY;
+   selectionTimer=setTimeout(()=>{selectionTimer=null;selectAt(x,y);},220);
+  }
  }
  svg.addEventListener('pointerup',endPointer);
  svg.addEventListener('pointercancel',endPointer);
@@ -382,11 +483,15 @@ function setupMapZoom(){
   else if(e.key==='ArrowRight')panBy(-35,0);
   else if(e.key==='ArrowUp')panBy(0,35);
   else if(e.key==='ArrowDown')panBy(0,-35);
-  else return;
+  else if(e.key==='Enter'||e.key===' '){
+   const r=svg.getBoundingClientRect();
+   selectAt(r.left+r.width/2,r.top+r.height/2);
+  }else return;
   e.preventDefault();
  });
+ document.addEventListener('riding-weather:place-selected',e=>syncPlace(e.detail));
  applyView(1,0,0);
- return {setSubregions:buildSubregions,refresh:showDetailLabels};
+ return {setSubregions:buildSubregions,refresh:showDetailLabels,refreshSelection:()=>syncPlace(lastPlace)};
 }
 
 async function init(){
@@ -396,7 +501,7 @@ async function init(){
  $('koReload').addEventListener('click',reload);
  update();
  const mapPromise=loadJSON('./korea-provinces-2018.topo.json',12000)
-  .then(t=>{decodeGeo(t);update();})
+  .then(t=>{decodeGeo(t);mapZoom?.refreshSelection();update();})
   .catch(()=>{$('koMapMessage').textContent='지도 표시 실패';});
  const subregionPromise=loadJSON('./korea-sigungu-labels.json',12000)
   .then(data=>{

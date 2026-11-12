@@ -405,7 +405,7 @@ main{max-width:800px}
   }
 }
 </style>
-  <link rel="stylesheet" href="./korea-forecast.css?v=20261112b">
+  <link rel="stylesheet" href="./korea-forecast.css?v=20261112c">
 </head>
 <body>
 <main>
@@ -493,8 +493,8 @@ main{max-width:800px}
       <div class="ko-mini-head"><h2 id="koForecastHeading">🗺️ 전국 날씨 · 14일</h2><span class="ko-model-label">ECMWF IFS</span><button id="koReload" class="ko-reload" type="button" title="전국 예보 새로고침" aria-label="전국 예보 새로고침">↻</button></div>
       <div class="ko-map-surface">
         <div class="ko-map-viewer">
-          <svg id="koMap" class="ko-map-svg" viewBox="0 0 520 580" tabindex="0" role="img" aria-label="전국 시도별 일강수량 지도. 드래그로 이동하고 휠 또는 두 손가락으로 확대·축소할 수 있습니다.">
-            <g id="koProvinceLayer"></g><g id="koLabelLayer"></g><g id="koCityLabelLayer"></g>
+          <svg id="koMap" class="ko-map-svg" viewBox="0 0 520 580" tabindex="0" role="img" aria-label="전국 날씨 지도. 지역을 클릭하거나 터치하면 그 지역의 날씨로 변경됩니다. 확대하면 시군구를 선택할 수 있습니다. 드래그로 이동, 휠 또는 두 손가락으로 확대합니다.">
+            <g id="koProvinceLayer"></g><g id="koSelectionLayer"><path id="koSelectedArea" class="ko-selected-area" d=""></path><circle id="koSelectedPin" class="ko-selected-pin" r="0"></circle></g><g id="koLabelLayer"></g><g id="koCityLabelLayer"></g>
           </svg>
           <div class="ko-zoom-controls" role="group" aria-label="전국 지도 확대 및 축소">
             <button id="koZoomIn" class="ko-zoom-btn" type="button" title="지도 확대" aria-label="지도 확대">+</button>
@@ -502,8 +502,6 @@ main{max-width:800px}
             <button id="koZoomReset" class="ko-zoom-btn ko-zoom-reset" type="button" title="지도 원래 크기로" aria-label="지도 원래 크기로">100%</button>
           </div>
         </div>
-        <p class="ko-map-hint">확대하면 시·군·구 이름 표시 · 드래그 이동 · 휠/핀치 확대</p>
-        <a class="ko-map-credit" href="https://github.com/KnellBalm/kr-admin-geojson" target="_blank" rel="noopener noreferrer">시·군·구 위치 자료: 국가공간정보포털 기반(2023)</a>
         <span id="koZoomAnnouncement" class="ko-sr-only" role="status" aria-live="polite"></span>
         <p id="koMapMessage" class="ko-inline-status" role="status" aria-live="polite"></p>
       </div>
@@ -1390,6 +1388,9 @@ async function selectPlace(place,rememberRecent=false){
   forecastTimeZone=null;
   forecastUtcOffsetSeconds=null;
   selectedPlace=place;hideResults();
+  document.dispatchEvent(new CustomEvent('riding-weather:place-selected',{
+    detail:{name:place.name,admin:place.admin||'',latitude:Number(place.latitude),longitude:Number(place.longitude)}
+  }));
   updateWindyRadarLink(place);
   el('placeInput').value=place.currentLocation?placeLabel(place):place.ko || place.name;
   el('location').textContent='📍 '+placeLabel(place);
@@ -1417,6 +1418,18 @@ async function selectPlace(place,rememberRecent=false){
     return false;
   }
 }
+
+// 지도 선택을 날씨 조회와 동기화: 지도 자체의 시·도/시군구 좌표를 바로 사용.
+window.ridingWeatherSelectMapPlace=function(mapPlace){
+  if(!mapPlace || !Number.isFinite(mapPlace.latitude) || !Number.isFinite(mapPlace.longitude))return false;
+  locationSelectionSerial++;
+  const place={
+    name:mapPlace.name,admin:mapPlace.admin||'대한민국',
+    country:'대한민국',countryCode:'KR',
+    latitude:mapPlace.latitude,longitude:mapPlace.longitude,timezone:'Asia/Seoul'
+  };
+  return selectPlace(place,true);
+};
 
 // 브라우저 위치 권한을 받은 뒤 현재 좌표를 ECMWF 예보 API에 직접 적용합니다.
 // GitHub Pages의 HTTPS 주소에서 실행하며, 위치 정보를 별도 서버에 저장하지 않습니다.
@@ -1725,6 +1738,6 @@ document.getElementById('uciArchiveToggle').addEventListener('click',()=>{
 });
 uciRender();
 </script>
-<script src="./korea-forecast.js?v=20261112b"></script>
+<script src="./korea-forecast.js?v=20261112c"></script>
 </body>
 </html>

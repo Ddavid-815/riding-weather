@@ -47,6 +47,17 @@
   overflow:hidden;touch-action:none;user-select:none;cursor:grab
 }
 .ko-map-svg.ko-map-dragging{cursor:grabbing}
+.ko-map-svg:not(.ko-map-dragging){cursor:pointer}
+.ko-selected-area{
+  fill:#ffe49f;fill-opacity:.67;stroke:#e99225;stroke-width:2.5;
+  stroke-linejoin:round;fill-rule:evenodd;vector-effect:non-scaling-stroke;
+  pointer-events:none;filter:drop-shadow(0 0 2px rgba(208,130,27,.22))
+}
+.ko-selected-pin{fill:#e28a1a;stroke:#fff;stroke-width:2.5;vector-effect:non-scaling-stroke;pointer-events:none}
+@media(prefers-reduced-motion:no-preference){
+  .ko-selected-area{animation:ko-selection-flash .6s ease-out}
+  @keyframes ko-selection-flash{from{fill-opacity:.95}to{fill-opacity:.67}}
+}
 .ko-map-svg:focus-visible{outline:2px solid #2e7bc0;outline-offset:-2px;border-radius:10px}
 .ko-zoom-controls{position:absolute;top:10px;right:6px;display:flex;flex-direction:column;gap:5px;z-index:1}
 .ko-zoom-btn{
