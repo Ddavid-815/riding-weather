@@ -405,7 +405,7 @@ main{max-width:800px}
   }
 }
 </style>
-  <link rel="stylesheet" href="./korea-forecast.css?v=20261102g">
+  <link rel="stylesheet" href="./korea-forecast.css?v=20261112a">
 </head>
 <body>
 <main>
@@ -492,9 +492,18 @@ main{max-width:800px}
   <section class="panel ko-inline-forecast ko-forecast-card" id="koWeatherPanel" aria-labelledby="koForecastHeading">
       <div class="ko-mini-head"><h2 id="koForecastHeading">🗺️ 전국 날씨 · 14일</h2><span class="ko-model-label">ECMWF IFS</span><button id="koReload" class="ko-reload" type="button" title="전국 예보 새로고침" aria-label="전국 예보 새로고침">↻</button></div>
       <div class="ko-map-surface">
-        <svg id="koMap" class="ko-map-svg" viewBox="0 0 520 580" role="img" aria-label="전국 시도별 대표 지점의 예상 일강수량 분포 지도">
-          <g id="koProvinceLayer"></g><g id="koLabelLayer"></g>
-        </svg>
+        <div class="ko-map-viewer">
+          <svg id="koMap" class="ko-map-svg" viewBox="0 0 520 580" tabindex="0" role="img" aria-label="전국 시도별 일강수량 지도. 드래그로 이동하고 휠 또는 두 손가락으로 확대·축소할 수 있습니다.">
+            <g id="koProvinceLayer"></g><g id="koLabelLayer"></g>
+          </svg>
+          <div class="ko-zoom-controls" role="group" aria-label="전국 지도 확대 및 축소">
+            <button id="koZoomIn" class="ko-zoom-btn" type="button" title="지도 확대" aria-label="지도 확대">+</button>
+            <button id="koZoomOut" class="ko-zoom-btn" type="button" title="지도 축소" aria-label="지도 축소">−</button>
+            <button id="koZoomReset" class="ko-zoom-btn ko-zoom-reset" type="button" title="지도 원래 크기로" aria-label="지도 원래 크기로">100%</button>
+          </div>
+        </div>
+        <p class="ko-map-hint">지도 드래그 이동 · 휠/두 손가락 확대</p>
+        <span id="koZoomAnnouncement" class="ko-sr-only" role="status" aria-live="polite"></span>
         <p id="koMapMessage" class="ko-inline-status" role="status" aria-live="polite"></p>
       </div>
       <div class="ko-timebar">
@@ -1715,6 +1724,6 @@ document.getElementById('uciArchiveToggle').addEventListener('click',()=>{
 });
 uciRender();
 </script>
-<script src="./korea-forecast.js?v=20261102f"></script>
+<script src="./korea-forecast.js?v=20261112a"></script>
 </body>
 </html>

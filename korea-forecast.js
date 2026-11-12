@@ -235,8 +235,117 @@ async function reload(){
   if(id===requestId){running=false;$('koReload').disabled=false;}
  }
 }
+/* SVG map zoom/pan: fixed bounds, mouse wheel, pointer drag, pinch, keyboard and controls. */
+function setupMapZoom(){
+ const svg=$('koMap'),zoomIn=$('koZoomIn'),zoomOut=$('koZoomOut'),reset=$('koZoomReset');
+ if(!svg||!zoomIn||!zoomOut||!reset)return;
+ const BASE_W=520,BASE_H=580,MAX_ZOOM=5;
+ const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+ const view={x:0,y:0,zoom:1};
+ const pointers=new Map();
+ const announce=$('koZoomAnnouncement');
+ function applyView(nextZoom,nextX,nextY){
+  const previousZoom=view.zoom;
+  view.zoom=clamp(nextZoom,1,MAX_ZOOM);
+  const w=BASE_W/view.zoom,h=BASE_H/view.zoom;
+  view.x=clamp(nextX,0,BASE_W-w);
+  view.y=clamp(nextY,0,BASE_H-h);
+  svg.setAttribute('viewBox',[view.x,view.y,w,h].map(n=>n.toFixed(3)).join(' '));
+  zoomIn.disabled=view.zoom>=MAX_ZOOM-0.001;
+  zoomOut.disabled=view.zoom<=1.001;
+  reset.disabled=view.zoom<=1.001;
+  reset.textContent=Math.round(view.zoom*100)+'%';
+  if(announce&&Math.abs(previousZoom-view.zoom)>0.001){
+   announce.textContent='지도 확대율 '+Math.round(view.zoom*100)+'%';
+  }
+ }
+ function mapPoint(clientX,clientY){
+  const p=svg.createSVGPoint();
+  p.x=clientX;p.y=clientY;
+  const matrix=svg.getScreenCTM();
+  return matrix?p.matrixTransform(matrix.inverse()):{
+   x:view.x+BASE_W/(2*view.zoom),y:view.y+BASE_H/(2*view.zoom)
+  };
+ }
+ function zoomAt(nextZoom,clientX,clientY){
+  const zoom=clamp(nextZoom,1,MAX_ZOOM);
+  if(Math.abs(zoom-view.zoom)<0.0001)return;
+  const pivot=mapPoint(clientX,clientY);
+  const oldW=BASE_W/view.zoom,oldH=BASE_H/view.zoom;
+  const ratioX=(pivot.x-view.x)/oldW,ratioY=(pivot.y-view.y)/oldH;
+  applyView(zoom,pivot.x-ratioX*BASE_W/zoom,pivot.y-ratioY*BASE_H/zoom);
+ }
+ function centerZoom(factor){
+  const rect=svg.getBoundingClientRect();
+  zoomAt(view.zoom*factor,rect.left+rect.width/2,rect.top+rect.height/2);
+ }
+ function panBy(dx,dy){
+  if(view.zoom<=1)return;
+  const matrix=svg.getScreenCTM();
+  const pxPerUnit=matrix?Math.hypot(matrix.a,matrix.b):1;
+  if(!pxPerUnit)return;
+  applyView(view.zoom,view.x-dx/pxPerUnit,view.y-dy/pxPerUnit);
+ }
+ const mid=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
+ const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+ zoomIn.addEventListener('click',()=>centerZoom(1.35));
+ zoomOut.addEventListener('click',()=>centerZoom(1/1.35));
+ reset.addEventListener('click',()=>applyView(1,0,0));
+ svg.addEventListener('wheel',e=>{
+  e.preventDefault();
+  zoomAt(view.zoom*(e.deltaY<0?1.22:1/1.22),e.clientX,e.clientY);
+ },{passive:false});
+ svg.addEventListener('dblclick',e=>{
+  e.preventDefault();zoomAt(view.zoom*1.5,e.clientX,e.clientY);
+ });
+ svg.addEventListener('pointerdown',e=>{
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  svg.setPointerCapture(e.pointerId);
+  svg.classList.add('ko-map-dragging');
+  e.preventDefault();
+ });
+ svg.addEventListener('pointermove',e=>{
+  if(!pointers.has(e.pointerId))return;
+  const prev=[...pointers.values()];
+  const old=pointers.get(e.pointerId);
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  const next=[...pointers.values()];
+  if(next.length>=2){
+   const oldMid=mid(prev[0],prev[1]),newMid=mid(next[0],next[1]);
+   panBy(newMid.x-oldMid.x,newMid.y-oldMid.y);
+   const oldDistance=distance(prev[0],prev[1]);
+   if(oldDistance>0)zoomAt(view.zoom*distance(next[0],next[1])/oldDistance,newMid.x,newMid.y);
+  }else if(next.length===1){
+   panBy(e.clientX-old.x,e.clientY-old.y);
+  }
+  e.preventDefault();
+ });
+ function endPointer(e){
+  pointers.delete(e.pointerId);
+  if(svg.hasPointerCapture(e.pointerId))svg.releasePointerCapture(e.pointerId);
+  if(!pointers.size)svg.classList.remove('ko-map-dragging');
+ }
+ svg.addEventListener('pointerup',endPointer);
+ svg.addEventListener('pointercancel',endPointer);
+ svg.addEventListener('lostpointercapture',endPointer);
+ svg.addEventListener('keydown',e=>{
+  if(e.key==='+'||e.key==='='||e.code==='NumpadAdd')centerZoom(1.35);
+  else if(e.key==='-'||e.key==='_'||e.code==='NumpadSubtract')centerZoom(1/1.35);
+  else if(e.key==='0')applyView(1,0,0);
+  else if(e.key==='ArrowLeft')panBy(35,0);
+  else if(e.key==='ArrowRight')panBy(-35,0);
+  else if(e.key==='ArrowUp')panBy(0,35);
+  else if(e.key==='ArrowDown')panBy(0,-35);
+  else return;
+  e.preventDefault();
+ });
+ applyView(1,0,0);
+}
+
 async function init(){
  const slider=$('koDaySlider');if(!slider)return;
+ setupMapZoom();
  slider.addEventListener('input',update);
  $('koReload').addEventListener('click',reload);
  update();
