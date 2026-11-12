@@ -166,11 +166,11 @@
   .ko-model-label{font-size:9px}
   .ko-map-viewer{max-width:305px}
   .ko-map-svg{height:241px;margin-top:0}
-  /* Mobile: four compact visual buttons in a 2×2 layout instead of a tall stack.
-     Each 36px button has a 44px touch hit area, without changing desktop controls. */
+  /* Mobile: compact single-column controls, retaining comfortable touch hit areas.
+     Visual buttons are 36px; their touch target is 44px via the pseudo-element. */
   .ko-zoom-controls{
-    display:grid;grid-template-columns:repeat(2,36px);grid-template-rows:repeat(2,36px);
-    column-gap:8px;row-gap:8px;right:7px;top:7px
+    display:flex;flex-direction:column;align-items:center;
+    gap:8px;right:7px;top:7px
   }
   .ko-zoom-btn{
     position:relative;box-sizing:border-box;
