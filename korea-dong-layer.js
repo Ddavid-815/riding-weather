@@ -7,7 +7,7 @@
 'use strict';
 const THRESHOLD=28,RI_THRESHOLD=110,GRID=10,BASE_W=585,BASE_H=580;
 window.createKoreaDongLayer=function({svg,layer,onLoaded}){
- let emdReady=false,riReady=false,emdLoading=null,riLoading=null,places=[],visible=[],cells=new Map();
+ let emdReady=false,riReady=false,emdLoading=null,riLoading=null,places=[],visible=[],cells=new Map(),byCode=new Map(),selectedCode=null;
  const key=(x,y)=>Math.floor(x/GRID)+':'+Math.floor(y/GRID);
  function append(records,isRi){
   if(!Array.isArray(records)||records.length<(isRi?14000:4500))throw Error('지역명 목록 수량 오류');
@@ -20,6 +20,7 @@ window.createKoreaDongLayer=function({svg,layer,onLoaded}){
    if(x < -15||x > 650||y < -60||y > 630)continue;
    const place={code,full,name,lat,lon,x,y,ri:isRi};
    places.push(place);
+   byCode.set(code,place);
    const k=key(x,y);
    if(!cells.has(k))cells.set(k,[]);
    cells.get(k).push(place);
@@ -85,22 +86,44 @@ window.createKoreaDongLayer=function({svg,layer,onLoaded}){
    const n=document.createElementNS('http://www.w3.org/2000/svg','text');
    n.setAttribute('x',p.x.toFixed(3));n.setAttribute('y',p.y.toFixed(3));
    n.setAttribute('class',p.ri?'ko-locality-label ko-ri-label':'ko-locality-label');
+   n.dataset.code=p.code;
+   if(p.code===selectedCode)n.classList.add('is-selected');
    n.setAttribute('font-size',(fontPx/scale).toFixed(4));
    n.textContent=p.name;
    fragment.append(n);
   }
   layer.replaceChildren(fragment);visible=shown;
  }
- function hit(clientX,clientY,view,point){
-  if(!emdReady||view.zoom<THRESHOLD||!visible.length)return null;
+ // Select the actual label on tap, or the nearest local centroid when tapping
+ // in the surrounding map. Unlike the old 33px hitbox, hidden labels still count.
+ function hit(clientX,clientY,view,point,preferredCode=null){
+  if(!emdReady||view.zoom<THRESHOLD)return null;
+  const preferred=preferredCode&&byCode.get(preferredCode);
+  if(preferred&&(!preferred.ri||view.zoom>=RI_THRESHOLD))return preferred;
   const rect=svg.getBoundingClientRect();
   const scale=Math.min(rect.width/(BASE_W/view.zoom),rect.height/(BASE_H/view.zoom));
-  let nearest=null,nearestDistance=Infinity;
-  for(const p of visible){
-   const distance=Math.hypot(point.x-p.x,point.y-p.y)*scale;
-   if(distance<nearestDistance){nearest=p;nearestDistance=distance;}
+  if(!(scale>0))return null;
+  const maxDistance=Math.min(118,Math.max(68,rect.width*.3));
+  const radius=Math.max(1,Math.ceil(maxDistance/scale/GRID));
+  const gx=Math.floor(point.x/GRID),gy=Math.floor(point.y/GRID);
+  let nearest=null,nearestPixels=maxDistance;
+  for(let ix=gx-radius;ix<=gx+radius;ix++)for(let iy=gy-radius;iy<=gy+radius;iy++){
+   for(const p of cells.get(ix+':'+iy)||[]){
+    if(p.ri&&view.zoom<RI_THRESHOLD)continue;
+    const d=Math.hypot(point.x-p.x,point.y-p.y)*scale;
+    if(d<nearestPixels){nearest=p;nearestPixels=d;}
+   }
   }
-  return nearestDistance<=33?nearest:null;
+  return nearest;
+ }
+ function setSelected(place){
+  selectedCode=place?.code||null;
+  for(const node of layer.querySelectorAll('.ko-locality-label.is-selected')){
+   node.classList.remove('is-selected');
+  }
+  if(selectedCode)for(const node of layer.querySelectorAll('.ko-locality-label')){
+   if(node.dataset.code===selectedCode)node.classList.add('is-selected');
+  }
  }
  function matching(place){
   if(!emdReady||!place||!Number.isFinite(place.latitude)||!Number.isFinite(place.longitude))return null;
@@ -108,6 +131,6 @@ window.createKoreaDongLayer=function({svg,layer,onLoaded}){
   return (cells.get(key(x,y))||[]).find(p=>
    p.name===place.name&&Math.abs(p.lat-place.latitude)<.001&&Math.abs(p.lon-place.longitude)<.001)||null;
  }
- return {update,hit,matching,get ready(){return emdReady;},get count(){return places.length;}};
+ return {update,hit,matching,setSelected,get ready(){return emdReady;},get count(){return places.length;}};
 };
 })();

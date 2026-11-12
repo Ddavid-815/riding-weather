@@ -269,7 +269,7 @@ function setupMapZoom(){
  const BASE_W=585,BASE_H=580,MAX_ZOOM=256,DETAIL_THRESHOLD=1.65;
  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
  const view={x:0,y:0,zoom:1},pointers=new Map();
- const neighborhoods=window.createKoreaDongLayer?.({svg,layer:dongLabels,onLoaded:showDetailLabels});
+ const neighborhoods=window.createKoreaDongLayer?.({svg,layer:dongLabels,onLoaded:()=>{showDetailLabels();syncPlace(lastPlace);}});
  const NEIGHBORHOOD_ZOOM=28;
  const announcement=$('koZoomAnnouncement');
  const provincesByFull=new Map(Object.entries({
@@ -324,7 +324,7 @@ function setupMapZoom(){
   }
   return $('koProvince-'+province.code)?.getAttribute('d')||'';
  }
- function regionAt(clientX,clientY){
+ function regionAt(clientX,clientY,preferredCode=null){
   const point=mapPoint(clientX,clientY);
   if(view.zoom>=DETAIL_THRESHOLD){
    const [x,y]=project([DOKDO.lon,DOKDO.lat]);
@@ -335,8 +335,12 @@ function setupMapZoom(){
    }
   }
   const province=provinceAt(point);
-  return province?{province,city:view.zoom>=DETAIL_THRESHOLD?findCity(point,province.code):null,
-   locality:neighborhoods?.hit(clientX,clientY,view,point)||null,isDokdo:false}:null;
+  if(!province)return null;
+  let locality=neighborhoods?.hit(clientX,clientY,view,point,preferredCode)||null;
+  // A nearest centroid across a provincial border must not be selected.
+  if(locality&&provincesByFull.get(locality.full.split(' ')[0])!==province.code)locality=null;
+  return {province,city:view.zoom>=DETAIL_THRESHOLD?findCity(point,province.code):null,
+   locality,isDokdo:false};
  }
  function setHover(region,clientX=null,clientY=null){
   const key=region?(region.isDokdo?'dokdo':region.locality?'locality:'+region.locality.code:region.city?'city:'+region.city.full:'province:'+region.province.code):'';
@@ -361,11 +365,13 @@ function setupMapZoom(){
  }
  function showSelection(){
   if(!highlighted){
+   neighborhoods?.setSelected(null);
    selectedArea.setAttribute('d','');selectedPin.setAttribute('r','0');
    $('koDokdoPoint')?.classList.remove('is-selected');
    return;
   }
   const p=highlighted.province;
+  neighborhoods?.setSelected(highlighted.locality);
   $('koDokdoPoint')?.classList.toggle('is-selected',!!highlighted.isDokdo);
   selectedArea.setAttribute('d',highlighted.locality?'':shapeForRegion(p,highlighted.city,highlighted.isDokdo));
   // Replaying the flash acknowledges a newly selected region without scaling the map text.
@@ -374,7 +380,7 @@ function setupMapZoom(){
   const y=center.y??project([center.lon,center.lat])[1];
   selectedPin.setAttribute('cx',x.toFixed(2));
   selectedPin.setAttribute('cy',y.toFixed(2));
-  selectedPin.setAttribute('r',highlighted.isDokdo&&view.zoom<DETAIL_THRESHOLD?'0':(5/view.zoom).toFixed(2));
+  selectedPin.setAttribute('r',highlighted.isDokdo&&view.zoom<DETAIL_THRESHOLD?'0':((highlighted.locality?10:5)/view.zoom).toFixed(2));
   selectedArea.style.animation='none';
   void selectedArea.getBoundingClientRect();
   selectedArea.style.animation='';
@@ -496,8 +502,8 @@ function setupMapZoom(){
   const locality=neighborhoods?.matching(place)||null;
   setSelected(province,matching||null,false,locality);
  }
- function selectAt(clientX,clientY){
-  const region=regionAt(clientX,clientY);
+ function selectAt(clientX,clientY,preferredCode=null){
+  const region=regionAt(clientX,clientY,preferredCode);
   if(!region)return;
   const {province,city,isDokdo,locality}=region;
   setSelected(province,city,isDokdo,locality);
@@ -539,7 +545,8 @@ function setupMapZoom(){
  });
  svg.addEventListener('pointerdown',e=>{
   if(e.pointerType==='mouse'&&e.button!==0)return;
-  const p={x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,moved:false};
+  const label=e.target?.closest?.('.ko-locality-label');
+  const p={x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,moved:false,localityCode:label?.dataset.code||null};
   if(pointers.size||selectionTimer!==null){
    if(selectionTimer!==null){clearTimeout(selectionTimer);selectionTimer=null;}
    for(const old of pointers.values())old.moved=true;
@@ -585,7 +592,7 @@ function setupMapZoom(){
   }
   if(e.type==='pointerup'&&p&&wasSingle&&!p.moved&&distance({x:e.clientX,y:e.clientY},{x:p.sx,y:p.sy})<9){
    const x=e.clientX,y=e.clientY;
-   selectionTimer=setTimeout(()=>{selectionTimer=null;selectAt(x,y);},220);
+   selectionTimer=setTimeout(()=>{selectionTimer=null;selectAt(x,y,p.localityCode);},220);
   }
  }
  svg.addEventListener('pointerup',endPointer);

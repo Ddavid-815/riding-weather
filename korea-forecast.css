@@ -84,7 +84,11 @@
 .ko-locality-label{
   text-anchor:middle;fill:#19496f;font-weight:800;
   paint-order:stroke;stroke:#fff;stroke-width:var(--ko-text-stroke,4px);
-  stroke-linejoin:round;pointer-events:none
+  stroke-linejoin:round;pointer-events:visiblePainted;cursor:pointer;
+  -webkit-tap-highlight-color:transparent
+}
+.ko-locality-label.is-selected{
+  fill:#d97706;stroke:#fff4dc;font-weight:900
 }
 .ko-ri-label{fill:#4b6475;font-weight:650}
 .ko-map-hint{margin:0 0 2px;font-size:10px;line-height:1.3;color:#71869b;text-align:center}
