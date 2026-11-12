@@ -261,11 +261,12 @@ async function reload(){
 /* Interactive Korean region selection. Detail boundaries originate in simplified 2023 admin polygons. */
 function setupMapZoom(){
  const svg=$('koMap'),zoomIn=$('koZoomIn'),zoomOut=$('koZoomOut'),reset=$('koZoomReset');
+ const seoulFocus=$('koSeoulFocus');
  const provinceLabels=$('koLabelLayer'),cityLabels=$('koCityLabelLayer');
  const dokdoLayer=$('koDokdoLayer'),dokdoLabels=$('koDokdoLabelLayer');
  const selectedArea=$('koSelectedArea'),selectedPin=$('koSelectedPin'),hoverArea=$('koHoverArea');
- if(!svg||!zoomIn||!zoomOut||!reset||!cityLabels||!selectedArea||!selectedPin||!hoverArea||!dokdoLayer||!dokdoLabels)return null;
- const BASE_W=585,BASE_H=580,MAX_ZOOM=5,DETAIL_THRESHOLD=1.65;
+ if(!svg||!zoomIn||!zoomOut||!reset||!seoulFocus||!cityLabels||!selectedArea||!selectedPin||!hoverArea||!dokdoLayer||!dokdoLabels)return null;
+ const BASE_W=585,BASE_H=580,MAX_ZOOM=24,DETAIL_THRESHOLD=1.65,SEOUL_FOCUS_ZOOM=16;
  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
  const view={x:0,y:0,zoom:1},pointers=new Map();
  const announcement=$('koZoomAnnouncement');
@@ -325,9 +326,9 @@ function setupMapZoom(){
   const point=mapPoint(clientX,clientY);
   if(view.zoom>=DETAIL_THRESHOLD){
    const [x,y]=project([DOKDO.lon,DOKDO.lat]);
-   // Click/touch target 9 screen pixels: generous for usability, not a geographic radius.
+   // Invisible 14-screen-pixel radius click/touch target (not the island's geographic size).
    const screenScale=svg.getScreenCTM(),unitPx=screenScale?Math.hypot(screenScale.a,screenScale.b):1;
-   if(Math.hypot(point.x-x,point.y-y)<=9/unitPx){
+   if(Math.hypot(point.x-x,point.y-y)<=14/unitPx){
     return {province:REGIONS.get('37'),city:ulleungCounty,isDokdo:true};
    }
   }
@@ -400,7 +401,7 @@ function setupMapZoom(){
   const w=BASE_W/view.zoom,h=BASE_H/view.zoom;
   const unit=Math.min(rect.width/w,rect.height/h);
   const offsetX=(rect.width-w*unit)/2,offsetY=(rect.height-h*unit)/2;
-  const fontPx=27*unit/view.zoom,visible=[],candidates=[];
+  const fontPx=(view.zoom>=10?22:27)*unit/view.zoom,visible=[],candidates=[];
   for(const p of placeNodes){
    p.node.style.display='none';
    const px=offsetX+(p.x-view.x)*unit,py=offsetY+(p.y-view.y)*unit;
@@ -427,10 +428,16 @@ function setupMapZoom(){
   svg.style.setProperty('--ko-symbol-size',(29/view.zoom)+'px');
   svg.style.setProperty('--ko-province-size',(19/view.zoom)+'px');
   svg.style.setProperty('--ko-mm-size',(17/view.zoom)+'px');
-  svg.style.setProperty('--ko-city-size',(27/view.zoom)+'px');
+  svg.style.setProperty('--ko-city-size',((view.zoom>=10?22:27)/view.zoom)+'px');
   svg.style.setProperty('--ko-text-stroke',(4/view.zoom)+'px');
   const dokdoPoint=$('koDokdoPoint');
-  if(dokdoPoint)dokdoPoint.setAttribute('r',(2.4/view.zoom).toFixed(3));
+  if(dokdoPoint){
+   const m=svg.getScreenCTM(),pxPerUnit=m?Math.hypot(m.a,m.b):0;
+   // Keep a visible 14px marker at close zoom; cap its actual map diameter
+   // at 7.6 map units, below Ulleungdo's ~9-unit outline width.
+   const radius=pxPerUnit?Math.min(3.8,7/pxPerUnit):3.8;
+   dokdoPoint.setAttribute('r',radius.toFixed(3));
+  }
   zoomIn.disabled=view.zoom>=MAX_ZOOM-.001;
   zoomOut.disabled=view.zoom<=1.001;
   reset.disabled=view.zoom<=1.001;
@@ -456,6 +463,28 @@ function setupMapZoom(){
  function centerZoom(factor){
   const r=svg.getBoundingClientRect();
   zoomAt(view.zoom*factor,r.left+r.width/2,r.top+r.height/2);
+ }
+ function focusSeoul(){
+  // Fit the actual 25 Seoul district outlines into the target viewport.
+  const districts=subregions.filter(p=>p.provinceCode==='11');
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  for(const district of districts)for(const ring of district.rings||[])for(const [x,y] of ring){
+   minX=Math.min(minX,x);minY=Math.min(minY,y);
+   maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);
+  }
+  let center;
+  let target=SEOUL_FOCUS_ZOOM;
+  if(Number.isFinite(minX)){
+   center={x:(minX+maxX)/2,y:(minY+maxY)/2};
+   target=Math.min(target,BASE_W/Math.max(1,(maxX-minX)*1.18),
+    BASE_H/Math.max(1,(maxY-minY)*1.18));
+  }else{
+   const [x,y]=project([126.974,37.565]);
+   center={x,y};
+  }
+  const width=BASE_W/target,height=BASE_H/target;
+  applyView(target,center.x-width/2,center.y-height/2);
+  if(announcement)announcement.textContent='서울 25개 구 확대 '+Math.round(view.zoom*100)+'%';
  }
  function panBy(dx,dy){
   if(view.zoom<=1)return;
@@ -500,6 +529,7 @@ function setupMapZoom(){
  zoomIn.addEventListener('click',()=>centerZoom(1.35));
  zoomOut.addEventListener('click',()=>centerZoom(1/1.35));
  reset.addEventListener('click',()=>applyView(1,0,0));
+ seoulFocus.addEventListener('click',focusSeoul);
  svg.addEventListener('wheel',e=>{
   e.preventDefault();
   zoomAt(view.zoom*(e.deltaY<0?1.22:1/1.22),e.clientX,e.clientY);

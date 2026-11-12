@@ -405,7 +405,7 @@ main{max-width:800px}
   }
 }
 </style>
-  <link rel="stylesheet" href="./korea-forecast.css?v=20261112g">
+  <link rel="stylesheet" href="./korea-forecast.css?v=20261112h">
 </head>
 <body>
 <main>
@@ -493,13 +493,14 @@ main{max-width:800px}
       <div class="ko-mini-head"><h2 id="koForecastHeading">🗺️ 전국 날씨 · 14일</h2><span class="ko-model-label">ECMWF IFS</span><button id="koReload" class="ko-reload" type="button" title="전국 예보 새로고침" aria-label="전국 예보 새로고침">↻</button></div>
       <div class="ko-map-surface">
         <div class="ko-map-viewer">
-          <svg id="koMap" class="ko-map-svg" viewBox="0 0 585 580" tabindex="0" role="img" aria-label="전국 날씨 지도. 마우스를 지역 위로 올리면 주황색으로 미리 강조됩니다. 클릭하거나 터치하면 해당 지역의 날씨로 변경됩니다. 확대하면 시군구와 울릉군 소속 독도를 선택할 수 있습니다. 드래그로 이동, 휠 또는 두 손가락으로 확대합니다.">
+          <svg id="koMap" class="ko-map-svg" viewBox="0 0 585 580" tabindex="0" role="img" aria-label="전국 날씨 지도. 마우스를 지역 위로 올리면 주황색으로 미리 강조됩니다. 클릭하거나 터치하면 해당 지역의 날씨로 변경됩니다. 서울 구별 버튼으로 서울 25개 구를 확대할 수 있습니다. 확대하면 시군구와 울릉군 소속 독도를 선택할 수 있습니다. 드래그로 이동, 휠 또는 두 손가락으로 확대합니다.">
             <g id="koProvinceLayer"></g><g id="koDokdoLayer"></g><g id="koSelectionLayer"><path id="koSelectedArea" class="ko-selected-area" d=""></path><circle id="koSelectedPin" class="ko-selected-pin" r="0"></circle><path id="koHoverArea" class="ko-hover-area" d=""></path></g><g id="koLabelLayer"></g><g id="koCityLabelLayer"></g><g id="koDokdoLabelLayer"></g>
           </svg>
           <div class="ko-zoom-controls" role="group" aria-label="전국 지도 확대 및 축소">
             <button id="koZoomIn" class="ko-zoom-btn" type="button" title="지도 확대" aria-label="지도 확대">+</button>
             <button id="koZoomOut" class="ko-zoom-btn" type="button" title="지도 축소" aria-label="지도 축소">−</button>
             <button id="koZoomReset" class="ko-zoom-btn ko-zoom-reset" type="button" title="지도 원래 크기로" aria-label="지도 원래 크기로">100%</button>
+            <button id="koSeoulFocus" class="ko-zoom-btn ko-zoom-seoul" type="button" title="서울의 25개 구를 자세히 보기" aria-label="서울 25개 구 상세 확대">서울 구별</button>
           </div>
         </div>
         <span id="koZoomAnnouncement" class="ko-sr-only" role="status" aria-live="polite"></span>
@@ -1738,6 +1739,6 @@ document.getElementById('uciArchiveToggle').addEventListener('click',()=>{
 });
 uciRender();
 </script>
-<script src="./korea-forecast.js?v=20261112g"></script>
+<script src="./korea-forecast.js?v=20261112h"></script>
 </body>
 </html>
