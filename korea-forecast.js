@@ -130,13 +130,19 @@ function drawDokdo(){
  const layer=$('koDokdoLayer'),labels=$('koDokdoLabelLayer');
  if(!layer||!labels)return;
  const [x,y]=project([DOKDO.lon,DOKDO.lat]);
- const p=(dx,dy)=>(x+dx).toFixed(2)+','+(y+dy).toFixed(2);
- const d='M'+p(-10,1)+' C'+p(-12,-4)+' '+p(-7,-8)+' '+p(-4,-6)+
-   ' C'+p(1,-4)+' '+p(-1,5)+' '+p(-5,6)+' C'+p(-9,7)+' '+p(-12,3)+' '+p(-10,1)+'Z'+
-   ' M'+p(2,-2)+' C'+p(3,-8)+' '+p(8,-9)+' '+p(11,-5)+
-   ' C'+p(14,-1)+' '+p(12,5)+' '+p(8,6)+' C'+p(3,6)+' '+p(0,2)+' '+p(2,-2)+'Z';
+ // East/West islet locations and schematic footprints at real map scale.
+ // Approximate radii correspond to ~150-170 m, not the earlier 10-unit icons.
+ const west=project([131.8651667,37.2418333]),east=project([131.8695556,37.2407778]);
+ const tinyIslet=([cx,cy],rx,ry)=>
+  'M'+(cx-rx).toFixed(3)+','+cy.toFixed(3)+
+  'a'+rx+','+ry+' 0 1 0 '+(2*rx)+',0'+
+  'a'+rx+','+ry+' 0 1 0 '+(-2*rx)+',0Z';
+ const d=tinyIslet(west,.145,.14)+tinyIslet(east,.13,.12);
  const shape=makeSvg('path',{id:'koDokdoIslands',d,class:'ko-province ko-dokdo-islets'});
- const tip=makeSvg('title');tip.textContent=DOKDO.admin;shape.append(tip);layer.replaceChildren(shape);
+ const tip=makeSvg('title');tip.textContent=DOKDO.admin;shape.append(tip);
+ // A screen-size point marker makes the islands findable without distorting their outlines.
+ const marker=makeSvg('circle',{id:'koDokdoPoint',cx:x.toFixed(3),cy:y.toFixed(3),r:'2.4',class:'ko-dokdo-point'});
+ layer.replaceChildren(shape,marker);
  const text=makeSvg('text',{x:x.toFixed(2),y:(y+25).toFixed(2),class:'ko-city-label ko-dokdo-label'});
  text.textContent='독도';labels.replaceChildren(text);
  layer.style.display='none';labels.style.display='none';
@@ -319,7 +325,9 @@ function setupMapZoom(){
   const point=mapPoint(clientX,clientY);
   if(view.zoom>=DETAIL_THRESHOLD){
    const [x,y]=project([DOKDO.lon,DOKDO.lat]);
-   if(Math.hypot(point.x-x,point.y-y)<=23/view.zoom){
+   // Click/touch target 9 screen pixels: generous for usability, not a geographic radius.
+   const screenScale=svg.getScreenCTM(),unitPx=screenScale?Math.hypot(screenScale.a,screenScale.b):1;
+   if(Math.hypot(point.x-x,point.y-y)<=9/unitPx){
     return {province:REGIONS.get('37'),city:ulleungCounty,isDokdo:true};
    }
   }
@@ -331,14 +339,20 @@ function setupMapZoom(){
   const oldKey=hovered?(hovered.isDokdo?'dokdo':hovered.city?'city:'+hovered.city.full:'province:'+hovered.province.code):'';
   if(key===oldKey)return;
   hovered=region;
+  $('koDokdoPoint')?.classList.toggle('is-hovered',!!region?.isDokdo);
   hoverArea.setAttribute('d',region?shapeForRegion(region.province,region.city,region.isDokdo):'');
  }
  function hoverAt(clientX,clientY){
   setHover(regionAt(clientX,clientY));
  }
  function showSelection(){
-  if(!highlighted){selectedArea.setAttribute('d','');selectedPin.setAttribute('r','0');return;}
+  if(!highlighted){
+   selectedArea.setAttribute('d','');selectedPin.setAttribute('r','0');
+   $('koDokdoPoint')?.classList.remove('is-selected');
+   return;
+  }
   const p=highlighted.province;
+  $('koDokdoPoint')?.classList.toggle('is-selected',!!highlighted.isDokdo);
   selectedArea.setAttribute('d',shapeForRegion(p,highlighted.city,highlighted.isDokdo));
   // Replaying the flash acknowledges a newly selected region without scaling the map text.
   const center=highlighted.isDokdo?DOKDO:(highlighted.city||p);
@@ -415,6 +429,8 @@ function setupMapZoom(){
   svg.style.setProperty('--ko-mm-size',(17/view.zoom)+'px');
   svg.style.setProperty('--ko-city-size',(27/view.zoom)+'px');
   svg.style.setProperty('--ko-text-stroke',(4/view.zoom)+'px');
+  const dokdoPoint=$('koDokdoPoint');
+  if(dokdoPoint)dokdoPoint.setAttribute('r',(2.4/view.zoom).toFixed(3));
   zoomIn.disabled=view.zoom>=MAX_ZOOM-.001;
   zoomOut.disabled=view.zoom<=1.001;
   reset.disabled=view.zoom<=1.001;

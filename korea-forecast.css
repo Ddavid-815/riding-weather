@@ -82,7 +82,10 @@
   fill-rule:evenodd;vector-effect:non-scaling-stroke;pointer-events:none;
   transition:fill .13s ease
 }
-.ko-dokdo-islets{stroke:#5e8d9f;stroke-width:1.2;pointer-events:none}
+.ko-dokdo-islets{stroke:#5e8d9f;stroke-width:.85;pointer-events:none}
+.ko-dokdo-point{fill:#28648e;stroke:#fff;stroke-width:1;vector-effect:non-scaling-stroke;pointer-events:none}
+.ko-dokdo-point.is-hovered{fill:#ffad43;stroke:#df7910;stroke-width:1.5}
+.ko-dokdo-point.is-selected{fill:#e28a1a;stroke:#fff;stroke-width:1.5}
 .ko-dokdo-label{fill:#185a8d;pointer-events:none}
 .ko-province[data-level="none"]{fill:#d0e9d9}
 .ko-province[data-level="light"]{fill:#9fd6e9}
