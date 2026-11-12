@@ -82,8 +82,8 @@
   fill-rule:evenodd;vector-effect:non-scaling-stroke;pointer-events:none;
   transition:fill .13s ease
 }
-.ko-dokdo-islets{stroke:#5e8d9f;stroke-width:1.2}
-.ko-dokdo-pin .ko-map-label{fill:#185a8d}
+.ko-dokdo-islets{stroke:#5e8d9f;stroke-width:1.2;pointer-events:none}
+.ko-dokdo-label{fill:#185a8d;pointer-events:none}
 .ko-province[data-level="none"]{fill:#d0e9d9}
 .ko-province[data-level="light"]{fill:#9fd6e9}
 .ko-province[data-level="medium"]{fill:#6caee0}

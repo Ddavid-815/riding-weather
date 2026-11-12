@@ -1,4 +1,4 @@
-/* Nationwide ECMWF IFS (single model). 17 provincial sample points plus Dokdo; not area-wide observations. */
+/* Nationwide ECMWF IFS (single model). 17 provincial sample points, with Dokdo as a zoom-only Ulleung-gun sublocation; not area-wide observations. */
 (()=>{
 'use strict';
 const $=id=>document.getElementById(id);
@@ -20,10 +20,9 @@ const REGION_DATA=[
  ['36','전남',34.8200,126.4700],
  ['37','경북',36.5800,128.7200],
  ['38','경남',35.2380,128.6920],
- ['39','제주',33.4996,126.5312],
- ['DO','독도',37.2408,131.8696]
+ ['39','제주',33.4996,126.5312]
 ].map(([code,name,lat,lon])=>({code,name,lat,lon}));
-const DOKDO=REGION_DATA.find(r=>r.code==='DO');
+const DOKDO={name:'독도',lat:37.2408,lon:131.8696,admin:'경상북도 울릉군 울릉읍 독도리'};
 const MAP_LABELS=[
  ['서울',127.01,37.59],['강원',128.36,37.66],
  ['충남',126.60,36.55],['경북',129.01,36.41],
@@ -119,15 +118,14 @@ function update(){
  }
  $('koSummary').textContent=date?
   '강수 '+rainCount+'곳 · 강수 없음 '+clearCount+'곳'+(missing?' · 미확인 '+missing+'곳':''):
-  '전국 17개 시도 및 독도 자료 확인 중';
- document.querySelectorAll('#koLabelLayer .ko-weather-pin, #koDokdoLabelLayer .ko-weather-pin').forEach(pin=>{
+  '전국 17개 시도 자료 확인 중';
+ $('koLabelLayer').querySelectorAll('.ko-weather-pin').forEach(pin=>{
   const item=dataFor(pin.dataset.code,date),rain=item?.rain??null;
   pin.querySelector('.ko-map-symbol').textContent=item?weatherIcon(item.code):'';
   pin.querySelector('.ko-map-mm').textContent=valid(rain)&&rain>0?rain.toFixed(1)+'mm':'';
  });
 }
-// Schematic marker for tiny East/West Dokdo islets (not a surveyed shoreline).
-// Coordinates follow the National Assembly Library's eastern islet, approx. 37.2408 N, 131.8696 E.
+// Symbolic outlines of Dokdo; under Ulleung-gun (not a separate administrative region).
 function drawDokdo(){
  const layer=$('koDokdoLayer'),labels=$('koDokdoLabelLayer');
  if(!layer||!labels)return;
@@ -137,17 +135,11 @@ function drawDokdo(){
    ' C'+p(1,-4)+' '+p(-1,5)+' '+p(-5,6)+' C'+p(-9,7)+' '+p(-12,3)+' '+p(-10,1)+'Z'+
    ' M'+p(2,-2)+' C'+p(3,-8)+' '+p(8,-9)+' '+p(11,-5)+
    ' C'+p(14,-1)+' '+p(12,5)+' '+p(8,6)+' C'+p(3,6)+' '+p(0,2)+' '+p(2,-2)+'Z';
- const shape=makeSvg('path',{id:'koProvince-DO',d,class:'ko-province ko-dokdo-islets'});
- shape.dataset.level='unknown';
- const shapeTitle=makeSvg('title');shapeTitle.textContent='독도 · 경상북도 울릉군 울릉읍';
- shape.append(shapeTitle);layer.replaceChildren(shape);
- const pin=makeSvg('g',{class:'ko-weather-pin ko-dokdo-pin'});
- pin.dataset.code='DO';
- const symbol=makeSvg('text',{x:x.toFixed(2),y:(y-14).toFixed(2),class:'ko-map-symbol','aria-hidden':'true'});
- const title=makeSvg('text',{x:x.toFixed(2),y:(y+25).toFixed(2),class:'ko-map-label'});
- title.textContent='독도';
- const mm=makeSvg('text',{x:x.toFixed(2),y:(y+41).toFixed(2),class:'ko-map-mm'});
- pin.append(symbol,title,mm);labels.replaceChildren(pin);
+ const shape=makeSvg('path',{id:'koDokdoIslands',d,class:'ko-province ko-dokdo-islets'});
+ const tip=makeSvg('title');tip.textContent=DOKDO.admin;shape.append(tip);layer.replaceChildren(shape);
+ const text=makeSvg('text',{x:x.toFixed(2),y:(y+25).toFixed(2),class:'ko-city-label ko-dokdo-label'});
+ text.textContent='독도';labels.replaceChildren(text);
+ layer.style.display='none';labels.style.display='none';
 }
 function decodeGeo(topo){
  if(topo?.type!=='Topology'||!Array.isArray(topo.arcs)||!topo.transform)throw Error('지도 경계 형식 오류');
@@ -214,7 +206,7 @@ async function reload(){
  const id=++requestId;
  $('koReload').disabled=true;
  $('koDaySlider').disabled=true;
- $('koLoading').textContent='17개 시도 및 독도 ECMWF IFS 일별 예보 조회 중…';
+ $('koLoading').textContent='17개 시도 ECMWF IFS 일별 예보 조회 중…';
  try{
   const params=new URLSearchParams({
    latitude:REGION_DATA.map(r=>r.lat.toFixed(4)).join(','),
@@ -225,7 +217,7 @@ async function reload(){
   });
   const payload=await loadJSON('https://api.open-meteo.com/v1/forecast?'+params,18000);
   const items=Array.isArray(payload)?payload:[payload];
-  if(items.length!==REGION_DATA.length)throw Error('전국 17개 시도 및 독도 예보 건수 불일치');
+  if(items.length!==REGION_DATA.length)throw Error('전국 17개 시도 예보 건수 불일치');
   const first=items[0]?.daily?.time;
   if(!Array.isArray(first)||first.length<14)throw Error('14일 예보가 누락되었습니다');
   const next=new Map();
@@ -264,8 +256,9 @@ async function reload(){
 function setupMapZoom(){
  const svg=$('koMap'),zoomIn=$('koZoomIn'),zoomOut=$('koZoomOut'),reset=$('koZoomReset');
  const provinceLabels=$('koLabelLayer'),cityLabels=$('koCityLabelLayer');
+ const dokdoLayer=$('koDokdoLayer'),dokdoLabels=$('koDokdoLabelLayer');
  const selectedArea=$('koSelectedArea'),selectedPin=$('koSelectedPin'),hoverArea=$('koHoverArea');
- if(!svg||!zoomIn||!zoomOut||!reset||!cityLabels||!selectedArea||!selectedPin||!hoverArea)return null;
+ if(!svg||!zoomIn||!zoomOut||!reset||!cityLabels||!selectedArea||!selectedPin||!hoverArea||!dokdoLayer||!dokdoLabels)return null;
  const BASE_W=585,BASE_H=580,MAX_ZOOM=5,DETAIL_THRESHOLD=1.65;
  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
  const view={x:0,y:0,zoom:1},pointers=new Map();
@@ -278,7 +271,7 @@ function setupMapZoom(){
   '경상북도':'37','경상남도':'38','제주특별자치도':'39'
  }));
  const fullByCode=new Map([...provincesByFull].map(([name,code])=>[code,name]));
- let subregions=[],placeNodes=[],highlighted=null,hovered=null,lastPlace=null,selectionTimer=null;
+ let subregions=[],placeNodes=[],highlighted=null,hovered=null,lastPlace=null,selectionTimer=null,ulleungCounty=null;
  function isInsideRing(pt,ring){
   let inside=false;
   for(let i=0,j=ring.length-1;i<ring.length;j=i++){
@@ -290,9 +283,6 @@ function setupMapZoom(){
  }
  function insideCity(pt,p){return p.rings?.some(r=>isInsideRing(pt,r))||false;}
  function provinceAt(pt){
-  // The island is too small to click at geographic scale; use a zoom-aware hit target.
-  const [dokdoX,dokdoY]=project([DOKDO.lon,DOKDO.lat]);
-  if(Math.hypot(pt.x-dokdoX,pt.y-dokdoY)<=24/view.zoom)return DOKDO;
   for(const r of REGION_DATA){
    const path=$('koProvince-'+r.code);
    if(path?.isPointInFill && path.isPointInFill(pt))return r;
@@ -316,21 +306,32 @@ function setupMapZoom(){
  function cityPath(p){
   return (p?.rings||[]).map(r=>'M'+r.map(([x,y])=>x+','+y).join('L')+'Z').join('');
  }
- function shapeForRegion(province,city){
+ function dokdoPath(){return $('koDokdoIslands')?.getAttribute('d')||'';}
+ function shapeForRegion(province,city,isDokdo=false){
   if(!province)return '';
-  return view.zoom>=DETAIL_THRESHOLD&&city?.rings?.length
-   ?cityPath(city):$('koProvince-'+province.code)?.getAttribute('d')||'';
+  if(isDokdo)return view.zoom>=DETAIL_THRESHOLD?dokdoPath():'';
+  if(view.zoom>=DETAIL_THRESHOLD&&city?.rings?.length){
+   return cityPath(city)+(city.full==='경상북도 울릉군'?dokdoPath():'');
+  }
+  return $('koProvince-'+province.code)?.getAttribute('d')||'';
  }
  function regionAt(clientX,clientY){
-  const point=mapPoint(clientX,clientY),province=provinceAt(point);
-  return province?{province,city:view.zoom>=DETAIL_THRESHOLD?findCity(point,province.code):null}:null;
+  const point=mapPoint(clientX,clientY);
+  if(view.zoom>=DETAIL_THRESHOLD){
+   const [x,y]=project([DOKDO.lon,DOKDO.lat]);
+   if(Math.hypot(point.x-x,point.y-y)<=23/view.zoom){
+    return {province:REGIONS.get('37'),city:ulleungCounty,isDokdo:true};
+   }
+  }
+  const province=provinceAt(point);
+  return province?{province,city:view.zoom>=DETAIL_THRESHOLD?findCity(point,province.code):null,isDokdo:false}:null;
  }
  function setHover(region){
-  const key=region?(region.city?'city:'+region.city.full:'province:'+region.province.code):'';
-  const oldKey=hovered?(hovered.city?'city:'+hovered.city.full:'province:'+hovered.province.code):'';
+  const key=region?(region.isDokdo?'dokdo':region.city?'city:'+region.city.full:'province:'+region.province.code):'';
+  const oldKey=hovered?(hovered.isDokdo?'dokdo':hovered.city?'city:'+hovered.city.full:'province:'+hovered.province.code):'';
   if(key===oldKey)return;
   hovered=region;
-  hoverArea.setAttribute('d',region?shapeForRegion(region.province,region.city):'');
+  hoverArea.setAttribute('d',region?shapeForRegion(region.province,region.city,region.isDokdo):'');
  }
  function hoverAt(clientX,clientY){
   setHover(regionAt(clientX,clientY));
@@ -338,20 +339,20 @@ function setupMapZoom(){
  function showSelection(){
   if(!highlighted){selectedArea.setAttribute('d','');selectedPin.setAttribute('r','0');return;}
   const p=highlighted.province;
-  selectedArea.setAttribute('d',shapeForRegion(p,highlighted.city));
+  selectedArea.setAttribute('d',shapeForRegion(p,highlighted.city,highlighted.isDokdo));
   // Replaying the flash acknowledges a newly selected region without scaling the map text.
-  const center=highlighted.city||p;
+  const center=highlighted.isDokdo?DOKDO:(highlighted.city||p);
   const x=center.x??project([center.lon,center.lat])[0];
   const y=center.y??project([center.lon,center.lat])[1];
   selectedPin.setAttribute('cx',x.toFixed(2));
   selectedPin.setAttribute('cy',y.toFixed(2));
-  selectedPin.setAttribute('r',(5/view.zoom).toFixed(2));
+  selectedPin.setAttribute('r',highlighted.isDokdo&&view.zoom<DETAIL_THRESHOLD?'0':(5/view.zoom).toFixed(2));
   selectedArea.style.animation='none';
   void selectedArea.getBoundingClientRect();
   selectedArea.style.animation='';
  }
- function setSelected(province,city){
-  highlighted=province?{province,city:city||null}:null;
+ function setSelected(province,city,isDokdo=false){
+  highlighted=province?{province,city:city||null,isDokdo}:null;
   showSelection();
  }
  function buildSubregions(places){
@@ -360,6 +361,7 @@ function setupMapZoom(){
    const [x,y]=project([p.lon,p.lat]);
    return {...p,provinceCode:provincesByFull.get(prefix),admin:prefix,x,y};
   });
+  ulleungCounty=subregions.find(p=>p.full==='경상북도 울릉군')||null;
   cityLabels.replaceChildren();placeNodes=[];
   for(const place of subregions){
    const node=makeSvg('text',{x:place.x.toFixed(2),y:place.y.toFixed(2),class:'ko-city-label'});
@@ -376,6 +378,8 @@ function setupMapZoom(){
   const detailed=view.zoom>=DETAIL_THRESHOLD&&placeNodes.length>0;
   provinceLabels.style.display=detailed?'none':'';
   cityLabels.style.display=detailed?'':'none';
+  dokdoLayer.style.display=view.zoom>=DETAIL_THRESHOLD?'':'none';
+  dokdoLabels.style.display=view.zoom>=DETAIL_THRESHOLD?'':'none';
   if(!detailed)return;
   const rect=svg.getBoundingClientRect();
   if(!rect.width||!rect.height)return;
@@ -445,6 +449,9 @@ function setupMapZoom(){
  function syncPlace(place){
   lastPlace=place;
   if(!place||!Number.isFinite(place.latitude)||!Number.isFinite(place.longitude))return;
+  if(place.name==='독도'&&Math.abs(place.latitude-DOKDO.lat)<.05&&Math.abs(place.longitude-DOKDO.lon)<.05){
+   setSelected(REGIONS.get('37'),ulleungCounty,true);return;
+  }
   const [x,y]=project([place.longitude,place.latitude]);
   const point={x,y};
   const province=provinceAt(point);
@@ -455,14 +462,16 @@ function setupMapZoom(){
  function selectAt(clientX,clientY){
   const region=regionAt(clientX,clientY);
   if(!region)return;
-  const {province,city}=region;
-  setSelected(province,city);
+  const {province,city,isDokdo}=region;
+  setSelected(province,city,isDokdo);
   setHover(null);
-  const place=city?{
+  const place=isDokdo?{
+   name:DOKDO.name,admin:DOKDO.admin,latitude:DOKDO.lat,longitude:DOKDO.lon
+  }:city?{
    name:city.name,admin:city.admin,latitude:city.lat,longitude:city.lon
   }:{
    name:fullByCode.get(province.code)||province.name,
-   admin:province.code==='DO'?'경상북도 울릉군 울릉읍':'대한민국',
+   admin:'대한민국',
    latitude:province.lat,longitude:province.lon
   };
   if(announcement)announcement.textContent='선택한 지역: '+place.name;
