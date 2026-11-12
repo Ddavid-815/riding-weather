@@ -85,7 +85,7 @@ window.createKoreaDongLayer=function({svg,layer,onLoaded}){
    const n=document.createElementNS('http://www.w3.org/2000/svg','text');
    n.setAttribute('x',p.x.toFixed(3));n.setAttribute('y',p.y.toFixed(3));
    n.setAttribute('class',p.ri?'ko-locality-label ko-ri-label':'ko-locality-label');
-   n.setAttribute('font-size',(fontPx/(rect.width/BASE_W)/view.zoom).toFixed(4));
+   n.setAttribute('font-size',(fontPx/scale).toFixed(4));
    n.textContent=p.name;
    fragment.append(n);
   }
