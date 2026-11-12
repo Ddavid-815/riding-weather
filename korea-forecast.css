@@ -54,6 +54,12 @@
   pointer-events:none;filter:drop-shadow(0 0 2px rgba(208,130,27,.22))
 }
 .ko-selected-pin{fill:#e28a1a;stroke:#fff;stroke-width:2.5;vector-effect:non-scaling-stroke;pointer-events:none}
+.ko-hover-area{
+  fill:#ffad43;fill-opacity:.78;
+  stroke:#e17d10;stroke-width:2.4;stroke-linejoin:round;
+  fill-rule:evenodd;vector-effect:non-scaling-stroke;pointer-events:none;
+  filter:drop-shadow(0 0 3px rgba(222,120,16,.28))
+}
 @media(prefers-reduced-motion:no-preference){
   .ko-selected-area{animation:ko-selection-flash .6s ease-out}
   @keyframes ko-selection-flash{from{fill-opacity:.95}to{fill-opacity:.67}}

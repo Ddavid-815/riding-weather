@@ -239,8 +239,8 @@ async function reload(){
 function setupMapZoom(){
  const svg=$('koMap'),zoomIn=$('koZoomIn'),zoomOut=$('koZoomOut'),reset=$('koZoomReset');
  const provinceLabels=$('koLabelLayer'),cityLabels=$('koCityLabelLayer');
- const selectedArea=$('koSelectedArea'),selectedPin=$('koSelectedPin');
- if(!svg||!zoomIn||!zoomOut||!reset||!cityLabels||!selectedArea||!selectedPin)return null;
+ const selectedArea=$('koSelectedArea'),selectedPin=$('koSelectedPin'),hoverArea=$('koHoverArea');
+ if(!svg||!zoomIn||!zoomOut||!reset||!cityLabels||!selectedArea||!selectedPin||!hoverArea)return null;
  const BASE_W=520,BASE_H=580,MAX_ZOOM=5,DETAIL_THRESHOLD=1.65;
  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
  const view={x:0,y:0,zoom:1},pointers=new Map();
@@ -253,7 +253,7 @@ function setupMapZoom(){
   '경상북도':'37','경상남도':'38','제주특별자치도':'39'
  }));
  const fullByCode=new Map([...provincesByFull].map(([name,code])=>[code,name]));
- let subregions=[],placeNodes=[],highlighted=null,lastPlace=null,selectionTimer=null;
+ let subregions=[],placeNodes=[],highlighted=null,hovered=null,lastPlace=null,selectionTimer=null;
  function isInsideRing(pt,ring){
   let inside=false;
   for(let i=0,j=ring.length-1;i<ring.length;j=i++){
@@ -288,12 +288,29 @@ function setupMapZoom(){
  function cityPath(p){
   return (p?.rings||[]).map(r=>'M'+r.map(([x,y])=>x+','+y).join('L')+'Z').join('');
  }
+ function shapeForRegion(province,city){
+  if(!province)return '';
+  return view.zoom>=DETAIL_THRESHOLD&&city?.rings?.length
+   ?cityPath(city):$('koProvince-'+province.code)?.getAttribute('d')||'';
+ }
+ function regionAt(clientX,clientY){
+  const point=mapPoint(clientX,clientY),province=provinceAt(point);
+  return province?{province,city:view.zoom>=DETAIL_THRESHOLD?findCity(point,province.code):null}:null;
+ }
+ function setHover(region){
+  const key=region?(region.city?'city:'+region.city.full:'province:'+region.province.code):'';
+  const oldKey=hovered?(hovered.city?'city:'+hovered.city.full:'province:'+hovered.province.code):'';
+  if(key===oldKey)return;
+  hovered=region;
+  hoverArea.setAttribute('d',region?shapeForRegion(region.province,region.city):'');
+ }
+ function hoverAt(clientX,clientY){
+  setHover(regionAt(clientX,clientY));
+ }
  function showSelection(){
   if(!highlighted){selectedArea.setAttribute('d','');selectedPin.setAttribute('r','0');return;}
-  const useCity=view.zoom>=DETAIL_THRESHOLD&&highlighted.city?.rings?.length;
   const p=highlighted.province;
-  const path=useCity?cityPath(highlighted.city):$('koProvince-'+p.code)?.getAttribute('d')||'';
-  selectedArea.setAttribute('d',path);
+  selectedArea.setAttribute('d',shapeForRegion(p,highlighted.city));
   // Replaying the flash acknowledges a newly selected region without scaling the map text.
   const center=highlighted.city||p;
   const x=center.x??project([center.lon,center.lat])[0];
@@ -372,6 +389,9 @@ function setupMapZoom(){
   reset.textContent=Math.round(view.zoom*100)+'%';
   if(announcement&&Math.abs(old-view.zoom)>.001)announcement.textContent='지도 확대율 '+Math.round(view.zoom*100)+'%';
   showDetailLabels();showSelection();
+  // Any previous hovered region is interpreted at the old zoom level.
+  // Re-evaluate it on the next pointer move instead of showing a stale outline.
+  hovered=null;hoverArea.setAttribute('d','');
  }
  function mapPoint(x,y){
   const pt=svg.createSVGPoint();pt.x=x;pt.y=y;
@@ -405,10 +425,11 @@ function setupMapZoom(){
   setSelected(province,matching||null);
  }
  function selectAt(clientX,clientY){
-  const point=mapPoint(clientX,clientY),province=provinceAt(point);
-  if(!province)return;
-  const city=view.zoom>=DETAIL_THRESHOLD?findCity(point,province.code):null;
+  const region=regionAt(clientX,clientY);
+  if(!region)return;
+  const {province,city}=region;
   setSelected(province,city);
+  setHover(null);
   const place=city?{
    name:city.name,admin:city.admin,latitude:city.lat,longitude:city.lon
   }:{
@@ -426,8 +447,14 @@ function setupMapZoom(){
  zoomOut.addEventListener('click',()=>centerZoom(1/1.35));
  reset.addEventListener('click',()=>applyView(1,0,0));
  svg.addEventListener('wheel',e=>{
-  e.preventDefault();zoomAt(view.zoom*(e.deltaY<0?1.22:1/1.22),e.clientX,e.clientY);
+  e.preventDefault();
+  zoomAt(view.zoom*(e.deltaY<0?1.22:1/1.22),e.clientX,e.clientY);
+  hoverAt(e.clientX,e.clientY);
  },{passive:false});
+ svg.addEventListener('pointerenter',e=>{
+  if(e.pointerType==='mouse'&&!pointers.size)hoverAt(e.clientX,e.clientY);
+ });
+ svg.addEventListener('pointerleave',()=>{if(!pointers.size)setHover(null);});
  svg.addEventListener('dblclick',e=>{
   if(selectionTimer!==null){clearTimeout(selectionTimer);selectionTimer=null;}
   e.preventDefault();zoomAt(view.zoom*1.5,e.clientX,e.clientY);
@@ -443,14 +470,21 @@ function setupMapZoom(){
   pointers.set(e.pointerId,p);
   svg.setPointerCapture(e.pointerId);
   svg.classList.add('ko-map-dragging');
+  // Touch devices do not have persistent mouse hover: highlight on initial press.
+  if(pointers.size===1)hoverAt(e.clientX,e.clientY);
+  else setHover(null);
   e.preventDefault();
  });
  svg.addEventListener('pointermove',e=>{
-  if(!pointers.has(e.pointerId))return;
+  if(!pointers.has(e.pointerId)){
+   if(e.pointerType==='mouse')hoverAt(e.clientX,e.clientY);
+   return;
+  }
   const before=[...pointers.values()],old=pointers.get(e.pointerId);
   const updated={...old,x:e.clientX,y:e.clientY};
   if(distance(updated,{x:old.sx,y:old.sy})>8)updated.moved=true;
   pointers.set(e.pointerId,updated);
+  if(updated.moved||pointers.size>1)setHover(null);
   const after=[...pointers.values()];
   if(after.length>=2){
    for(const p of after)p.moved=true;
@@ -466,7 +500,11 @@ function setupMapZoom(){
   const wasSingle=pointers.size===1;
   pointers.delete(e.pointerId);
   if(svg.hasPointerCapture(e.pointerId))svg.releasePointerCapture(e.pointerId);
-  if(!pointers.size)svg.classList.remove('ko-map-dragging');
+  if(!pointers.size){
+   svg.classList.remove('ko-map-dragging');
+   if(p?.pointerType==='touch'||e.pointerType==='touch'||e.type==='pointercancel')setHover(null);
+   else if(e.pointerType==='mouse')hoverAt(e.clientX,e.clientY);
+  }
   if(e.type==='pointerup'&&p&&wasSingle&&!p.moved&&distance({x:e.clientX,y:e.clientY},{x:p.sx,y:p.sy})<9){
    const x=e.clientX,y=e.clientY;
    selectionTimer=setTimeout(()=>{selectionTimer=null;selectAt(x,y);},220);
