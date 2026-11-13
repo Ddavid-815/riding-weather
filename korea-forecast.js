@@ -206,13 +206,35 @@ async function loadJSON(url,timeout=15000,cacheMode='no-store'){
   return await response.json();
  }finally{clearTimeout(id);}
 }
+const MAP_CACHE_KEY='ridingWeather.nationalForecast.v1';
+const MAP_CACHE_LIFETIME_MS=6*60*60*1000;
+function storeMapCache(){
+ try{
+  const areas=Array.from(forecasts,([code,byDate])=>[code,Array.from(byDate)]);
+  localStorage.setItem(MAP_CACHE_KEY,JSON.stringify({at:Date.now(),dates,areas}));
+ }catch(error){/* Storage may be unavailable or full; the live forecast still works. */}
+}
+function restoreMapCache(){
+ try{
+  const cached=JSON.parse(localStorage.getItem(MAP_CACHE_KEY)||'null');
+  if(!cached||!Number.isFinite(cached.at)||Date.now()-cached.at>MAP_CACHE_LIFETIME_MS||cached.at>Date.now()+60000)return null;
+  if(!Array.isArray(cached.dates)||cached.dates[0]!==todayString()||cached.dates.length<14)return null;
+  if(!Array.isArray(cached.areas)||cached.areas.length!==REGION_DATA.length)return null;
+  const restored=new Map(cached.areas.map(([code,rows])=>[code,new Map(rows)]));
+  if(REGION_DATA.some(region=>!restored.has(region.code)))return null;
+  dates=cached.dates;
+  forecasts=restored;
+  return cached.at;
+ }catch(error){return null;}
+}
+
 async function reload(){
  if(running)return;
  running=true;
  const id=++requestId;
  $('koReload').disabled=true;
- $('koDaySlider').disabled=true;
- $('koLoading').textContent='17개 시도 ECMWF IFS 일별 예보 조회 중…';
+ $('koDaySlider').disabled=!dates.length;
+ $('koLoading').textContent=dates.length?'최근 예보 표시 중 · 최신 ECMWF IFS 예보 확인 중…':'17개 시도 ECMWF IFS 일별 예보 조회 중…';
  try{
   const params=new URLSearchParams({
    latitude:REGION_DATA.map(r=>r.lat.toFixed(4)).join(','),
@@ -221,7 +243,7 @@ async function reload(){
    daily:'precipitation_sum,weather_code,temperature_2m_max,temperature_2m_min',
    forecast_days:'14',timezone:'Asia/Seoul'
   });
-  const payload=await loadJSON('https://api.open-meteo.com/v1/forecast?'+params,18000);
+  const payload=await loadJSON('https://api.open-meteo.com/v1/forecast?'+params,30000);
   const items=Array.isArray(payload)?payload:[payload];
   if(items.length!==REGION_DATA.length)throw Error('전국 17개 시도 예보 건수 불일치');
   const first=items[0]?.daily?.time;
@@ -244,6 +266,7 @@ async function reload(){
   });
   if(id!==requestId)return;
   dates=first.slice(0,14);forecasts=next;
+  storeMapCache();
   const slider=$('koDaySlider');
   slider.max=String(dates.length-1);
   slider.disabled=false;
@@ -252,8 +275,18 @@ async function reload(){
   update();
  }catch(err){
   if(id!==requestId)return;
-  $('koLoading').textContent='⚠️ 예보 조회 실패 · ↻ 재시도';
-  if(dates.length){$('koDaySlider').disabled=false;update();}
+  const cachedAt=restoreMapCache();
+  if(cachedAt!==null){
+   $('koDaySlider').disabled=false;
+   const receivedAt=new Date(cachedAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+   $('koLoading').textContent='⚠️ 최신 예보 조회 실패 · '+receivedAt+' 수신한 이전 예보 표시 중';
+   update();
+  }else{
+   dates=[];forecasts=new Map();
+   $('koDaySlider').disabled=true;
+   $('koLoading').textContent='⚠️ 전국 예보 조회 실패 · ↻ 다시 시도';
+   update();
+  }
  }finally{
   if(id===requestId){running=false;$('koReload').disabled=false;}
  }
@@ -623,6 +656,11 @@ async function init(){
  const mapZoom=setupMapZoom();
  slider.addEventListener('input',update);
  $('koReload').addEventListener('click',reload);
+ const cachedAt=restoreMapCache();
+ if(cachedAt!==null){
+  slider.disabled=false;
+  $('koLoading').textContent='이전에 수신한 예보 표시 중 · 최신 예보 확인 중…';
+ }
  update();
  const mapPromise=loadJSON('./korea-provinces-2018.topo.json?v=20261112u',12000,'force-cache')
   .then(t=>{decodeGeo(t);mapZoom?.refreshSelection();update();})
