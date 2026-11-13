@@ -772,24 +772,60 @@ function initHourlyModalEvents(){
  });
 }
 
+// Keep the last few successfully rendered ECMWF responses for short upstream outages.
+// Never display an old forecast as today's: both age and forecast-local date must match.
+const FORECAST_CACHE_KEY='ridingWeather.validForecast.v1';
+const FORECAST_CACHE_LIFETIME_MS=6*60*60*1000;
+let fallbackForecastAt=null;
+function cachedForecastFor(url){
+  try{
+    const records=JSON.parse(localStorage.getItem(FORECAST_CACHE_KEY)||'[]');
+    const record=Array.isArray(records)?records.find(item=>item.url===url):null;
+    if(!record || !Number.isFinite(record.at) || Date.now()-record.at>FORECAST_CACHE_LIFETIME_MS || record.at>Date.now()+60000)return null;
+    const data=record.data;
+    if(!Array.isArray(data?.daily?.time) || !Number.isFinite(data.utc_offset_seconds))return null;
+    const localToday=new Date(Date.now()+data.utc_offset_seconds*1000).toISOString().slice(0,10);
+    return data.daily.time[0]===localToday?record:null;
+  }catch(error){return null;}
+}
+function saveForecastCache(url,data){
+  try{
+    if(!Array.isArray(data?.daily?.time))return;
+    const old=JSON.parse(localStorage.getItem(FORECAST_CACHE_KEY)||'[]');
+    const records=Array.isArray(old)?old.filter(item=>item.url!==url && Number.isFinite(item.at)):[];
+    records.unshift({url,at:Date.now(),data});
+    localStorage.setItem(FORECAST_CACHE_KEY,JSON.stringify(records.slice(0,3)));
+  }catch(error){/* Private browsing or storage quotas must not block forecasts. */}
+}
+
 async function requestJson(url, action, loadingText){
   if(activeController)activeController.abort();
   hideDialog();setBusy(true);status(loadingText);
   const controller=new AbortController();activeController=controller;
   const thisOperation=++operationId;let timedOut=false;
-  const timer=setTimeout(()=>{timedOut=true;controller.abort();},10000);
+  const timer=setTimeout(()=>{timedOut=true;controller.abort();},25000);
   retryAction=action;
   try{
     const response=await fetch(url,{signal:controller.signal,cache:'no-store'});
     if(!response.ok)throw Error('HTTP '+response.status);
     const data=await response.json();
     if(controller.signal.aborted || thisOperation!==operationId)return null;
+    fallbackForecastAt=null;
     return data;
   }catch(error){
     if(thisOperation!==operationId)return null;
-    const detail=timedOut?'10초 안에 서버 응답이 완료되지 않았습니다. 다시 시도하시겠습니까?':
-      '외부 날씨 서버에 연결하지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도하시겠습니까?';
-    status(timedOut?'⏱️ 10초 초과 — 데이터 수신 실패':'⚠️ 데이터 수신 실패 — 다시 시도 가능','fail');
+    const cached=cachedForecastFor(url);
+    if(cached){
+      fallbackForecastAt=cached.at;
+      return cached.data;
+    }
+    fallbackForecastAt=null;
+    const httpCode=/HTTP (\d{3})/.exec(String(error?.message||''))?.[1];
+    const detail=timedOut?'날씨 서버가 25초 동안 응답하지 않았습니다. 다시 시도하시겠습니까?':
+      httpCode==='429'?'날씨 API 요청 한도에 도달했습니다(HTTP 429). 잠시 뒤 다시 시도해 주세요.':
+      httpCode?'날씨 서버 요청이 실패했습니다(HTTP '+httpCode+'). 다시 시도하시겠습니까?':
+      '외부 날씨 서버 연결에 실패했습니다. 인터넷 연결 또는 API 서버 상태를 확인해 주세요.';
+    status(timedOut?'⏱️ 25초 초과 — 데이터 수신 실패':'⚠️ 데이터 수신 실패 — 다시 시도 가능','fail');
     showDialog(detail);
     return null;
   }finally{
@@ -819,12 +855,19 @@ async function selectPlace(place,rememberRecent=false){
   const url=buildForecastUrl(place);
   el('source').href=url;
   const action=()=>selectPlace(place,rememberRecent);
-  const json=await requestJson(url,action,placeLabel(place)+' · ECMWF IFS 예보 조회 중… (최대 10초)');
+  const json=await requestJson(url,action,placeLabel(place)+' · ECMWF IFS 예보 조회 중… (최대 25초)');
   if(!json)return false;
   try{
     const count=renderForecast(json);
     if(rememberRecent && selectedPlace===place)rememberRecentPlace(place);
-    status('✅ '+placeLabel(place)+' · '+count+'일 예보 조회 완료','ok');
+    if(fallbackForecastAt!==null){
+      const receivedAt=new Date(fallbackForecastAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+      el('nowPlace').textContent=placeLabel(place)+' · 이전 예보';
+      status('⚠️ 날씨 서버 연결 실패 · '+receivedAt+' 수신한 '+count+'일 예보 표시 중 (최신 예보 아님)','fail');
+    }else{
+      saveForecastCache(url,json); // Cache only after the payload has passed rendering validation.
+      status('✅ '+placeLabel(place)+' · '+count+'일 예보 조회 완료','ok');
+    }
     el('searchPanel').classList.add('search-collapsed');
     el('toggleSearch').setAttribute('aria-expanded','false');
     return true;
